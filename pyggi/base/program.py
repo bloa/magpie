@@ -16,6 +16,7 @@ import shlex
 import copy
 import difflib
 import signal
+import errno
 from abc import ABC, abstractmethod
 from distutils.dir_util import copy_tree
 from .. import PYGGI_DIR
@@ -210,7 +211,18 @@ class AbstractProgram(ABC):
         copy_tree(self.path, self.tmp_path)
 
     def remove_tmp_variant(self):
-        shutil.rmtree(self.tmp_path)
+        tmp = self.tmp_path
+        shutil.rmtree(tmp, ignore_errors=True)
+        bounds = [os.path.abspath('.'), os.path.abspath(os.path.join(self.TMP_DIR, '..'))]
+        try:
+            while True:
+                tmp = os.path.dirname(tmp)
+                if os.path.abspath(tmp) in bounds:
+                    break
+                os.rmdir(tmp)
+        except OSError as e:
+            if e.errno != errno.ENOTEMPTY:
+                raise
 
     def write_to_tmp_dir(self, new_contents):
         """
