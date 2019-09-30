@@ -15,6 +15,7 @@ import subprocess
 import shlex
 import copy
 import difflib
+import select
 import signal
 import errno
 from abc import ABC, abstractmethod
@@ -275,17 +276,44 @@ class AbstractProgram(ABC):
         self.write_to_tmp_dir(new_contents)
         return new_contents
 
-    def exec_cmd(self, cmd, timeout=15, env=None, shell=False):
-        sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+    def exec_cmd(self, cmd, timeout=15, env=None, shell=False, max_pipesize=1e4):
+        # 1e6 bytes is 1Mb
         try:
+            stdout = b''
+            stderr = b''
+            stdout_size = 0
+            stderr_size = 0
             start = time.time()
-            stdout, stderr = sprocess.communicate(timeout=timeout)
+            sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+            while sprocess.poll() is None:
+                end = time.time()
+                if end-start > timeout:
+                    raise TimeoutError()
+                a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
+                if sprocess.stdout in a:
+                    for _ in range(1024):
+                        if not len(select.select([sprocess.stdout], [], [], 0)[0]):
+                            break
+                        stdout += sprocess.stdout.read(1)
+                        stdout_size += 1
+                if sprocess.stderr in a:
+                    for _ in range(1024):
+                        if not len(select.select([sprocess.stderr], [], [], 0)[0]):
+                            break
+                        stderr += sprocess.stderr.read(1)
+                        stderr_size += 1
+                if stdout_size+stderr_size >= max_pipesize:
+                    raise IOError()
             end = time.time()
+            stdout += sprocess.stdout.read()
+            stderr += sprocess.stderr.read()
             return (sprocess.returncode, stdout, stderr, end-start)
-        except subprocess.TimeoutExpired:
+
+        except (TimeoutError, IOError):
+            end = time.time()
             os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
             _, _ = sprocess.communicate()
-            return (None, None, None, None)
+            return (sprocess.returncode, stdout, stderr, end-start)
 
     def compute_fitness(self, result, return_code, stdout, stderr, elapsed_time):
         try:
