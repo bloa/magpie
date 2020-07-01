@@ -20,7 +20,7 @@ class Patch:
         self.edit_list = []
 
     def __str__(self):
-        return ' | '.join(list(map(str, self.edit_list)))
+        return ' | '.join(map(str, self.edit_list))
 
     def __len__(self):
         return len(self.edit_list)
