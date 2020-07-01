@@ -28,6 +28,9 @@ class Patch:
     def __eq__(self, other):
         return isinstance(other, Patch) and self.edit_list == other.edit_list
 
+    def __hash__(self):
+        return hash(str(self))
+
     def clone(self):
         """
         Create a new patch which has the same sequence of edits with the current one.
