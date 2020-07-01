@@ -30,7 +30,7 @@ class Logger(object):
             pathlib.Path(Logger.LOG_DIR).mkdir(parents=True)
         # file handler
         self.log_file_path = os.path.join(Logger.LOG_DIR, "{}.log".format(name))
-        file_handler = logging.FileHandler(self.log_file_path)
+        file_handler = logging.FileHandler(self.log_file_path, delay=True)
         file_handler.setFormatter(formatter)
         file_handler.setLevel(logging.DEBUG)
         # stream handler
