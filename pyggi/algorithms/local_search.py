@@ -92,7 +92,7 @@ class LocalSearch(Algorithm):
         empty_patch = Patch(self.program)
         for i in range(warmup_reps):
             result = self.program.evaluate_patch(empty_patch, timeout=timeout)
-            if result.status is 'SUCCESS':
+            if result.status == 'SUCCESS':
                 warmup.append(result.fitness)
         original_fitness = float(sum(warmup)) / len(warmup) if warmup else None
 
@@ -125,7 +125,7 @@ class LocalSearch(Algorithm):
                 run = self.program.evaluate_patch(patch, timeout=timeout)
                 cur_result['FitnessEval'] += 1
 
-                if run.status is not 'SUCCESS':
+                if run.status != 'SUCCESS':
                     cur_result['InvalidPatch'] += 1
                     update_best = False
                 else:
