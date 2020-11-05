@@ -13,7 +13,7 @@ class LineEngine(AbstractLineEngine):
     @classmethod
     def get_source(cls, program, file_name, index):
         return program.contents[file_name][index]
-    
+
     @classmethod
     def dump(cls, contents_of_file):
         return '\n'.join(contents_of_file) + '\n'
@@ -27,7 +27,7 @@ class LineEngine(AbstractLineEngine):
         else:
             new_contents[l_f][modification_points[l_f][l_n]] = ''
         return True
-    
+
     @classmethod
     def do_insert(cls, program, op, new_contents, modification_points):
         l_f, l_n = op.target
