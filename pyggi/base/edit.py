@@ -23,11 +23,6 @@ class AbstractEdit(ABC):
                 return False
         return True
 
-    @property
-    @abstractmethod
-    def domain(self):
-        pass
-
     def __str__(self):
         """
         :return: ``LineReplacement([target], [ingredient])``

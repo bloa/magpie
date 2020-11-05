@@ -2,16 +2,8 @@ import random
 from ..base import AbstractEdit
 from . import AbstractTreeEngine
 
-"""
-Possible Edit Operators
-"""
 
-class TreeEdit(AbstractEdit):
-    @property
-    def domain(self):
-        return TreeProgram
-
-class StmtReplacement(TreeEdit):
+class StmtReplacement(AbstractEdit):
     def __init__(self, target, ingredient):
         self.target = target
         self.ingredient = ingredient
@@ -30,7 +22,7 @@ class StmtReplacement(TreeEdit):
         return cls(program.random_target(target_file, method),
                    program.random_target(ingr_file, 'random'))
 
-class StmtInsertion(TreeEdit):
+class StmtInsertion(AbstractEdit):
     def __init__(self, target, ingredient, direction='before'):
         assert direction in ['before', 'after']
         self.target = target
@@ -54,7 +46,7 @@ class StmtInsertion(TreeEdit):
                    program.random_target(ingr_file, 'random'),
                    direction)
 
-class StmtDeletion(TreeEdit):
+class StmtDeletion(AbstractEdit):
     def __init__(self, target):
         self.target = target
 
@@ -68,7 +60,7 @@ class StmtDeletion(TreeEdit):
             target_file = program.random_file(AbstractTreeEngine)
         return cls(program.random_target(target_file, method))
 
-class StmtMoving(TreeEdit):
+class StmtMoving(AbstractEdit):
     def __init__(self, target, ingredient, direction='before'):
         assert direction in ['before', 'after']
         self.target = target

@@ -2,15 +2,8 @@ import random
 from ..base import AbstractEdit
 from . import AbstractLineEngine
 
-"""
-Possible Edit Operators
-"""
-class LineEdit(AbstractEdit):
-    @property
-    def domain(self):
-        return LineProgram
 
-class LineReplacement(LineEdit):
+class LineReplacement(AbstractEdit):
     def __init__(self, target, ingredient):
         self.target = target
         self.ingredient = ingredient
@@ -29,7 +22,7 @@ class LineReplacement(LineEdit):
         return cls(program.random_target(target_file, method),
                    program.random_target(ingr_file, 'random'))
 
-class LineInsertion(LineEdit):
+class LineInsertion(AbstractEdit):
     def __init__(self, target, ingredient, direction='before'):
         assert direction in ['before', 'after']
         self.target = target
@@ -53,7 +46,7 @@ class LineInsertion(LineEdit):
                    program.random_target(ingr_file, 'random'),
                    direction)
 
-class LineDeletion(LineEdit):
+class LineDeletion(AbstractEdit):
     def __init__(self, target):
         self.target = target
 
@@ -67,7 +60,7 @@ class LineDeletion(LineEdit):
             target_file = program.random_file()
         return cls(program.random_target(target_file, method))
 
-class LineMoving(LineEdit):
+class LineMoving(AbstractEdit):
     def __init__(self, target, ingredient, direction='before'):
         assert direction in ['before', 'after']
         self.target = target
