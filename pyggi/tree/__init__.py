@@ -1,5 +1,6 @@
 from .abstract_engine import AbstractTreeEngine
 from .astor_engine import AstorEngine
 from .xml_engine import XmlEngine
-from .tree import StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving
-from .tree import TreeEdit, TreeProgram
+from .program import TreeProgram
+from .edits import StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving
+from .edits import TreeEdit

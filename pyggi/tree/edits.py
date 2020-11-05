@@ -1,23 +1,17 @@
-import os
 import random
-from abc import abstractmethod
-from ..base import AbstractProgram, AbstractEdit
-from . import AbstractLineEngine, LineEngine
-
-class LineProgram(AbstractProgram):
-    @classmethod
-    def get_engine(cls, file_name):
-        return LineEngine
+from ..base import AbstractEdit
+from . import AbstractTreeEngine
 
 """
 Possible Edit Operators
 """
-class LineEdit(AbstractEdit):
+
+class TreeEdit(AbstractEdit):
     @property
     def domain(self):
-        return LineProgram
+        return TreeProgram
 
-class LineReplacement(LineEdit):
+class StmtReplacement(TreeEdit):
     def __init__(self, target, ingredient):
         self.target = target
         self.ingredient = ingredient
@@ -29,14 +23,14 @@ class LineReplacement(LineEdit):
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None, method='random'):
         if target_file is None:
-            target_file = program.random_file(AbstractLineEngine)
+            target_file = program.random_file(AbstractTreeEngine)
         if ingr_file is None:
             ingr_file = program.random_file(engine=program.engines[target_file])
         assert program.engines[target_file] == program.engines[ingr_file]
         return cls(program.random_target(target_file, method),
                    program.random_target(ingr_file, 'random'))
 
-class LineInsertion(LineEdit):
+class StmtInsertion(TreeEdit):
     def __init__(self, target, ingredient, direction='before'):
         assert direction in ['before', 'after']
         self.target = target
@@ -50,7 +44,7 @@ class LineInsertion(LineEdit):
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None, direction=None, method='random'):
         if target_file is None:
-            target_file = program.random_file()
+            target_file = program.random_file(AbstractTreeEngine)
         if ingr_file is None:
             ingr_file = program.random_file(engine=program.engines[target_file])
         assert program.engines[target_file] == program.engines[ingr_file]
@@ -60,7 +54,7 @@ class LineInsertion(LineEdit):
                    program.random_target(ingr_file, 'random'),
                    direction)
 
-class LineDeletion(LineEdit):
+class StmtDeletion(TreeEdit):
     def __init__(self, target):
         self.target = target
 
@@ -71,10 +65,10 @@ class LineDeletion(LineEdit):
     @classmethod
     def create(cls, program, target_file=None, method='random'):
         if target_file is None:
-            target_file = program.random_file()
+            target_file = program.random_file(AbstractTreeEngine)
         return cls(program.random_target(target_file, method))
 
-class LineMoving(LineEdit):
+class StmtMoving(TreeEdit):
     def __init__(self, target, ingredient, direction='before'):
         assert direction in ['before', 'after']
         self.target = target
@@ -90,9 +84,9 @@ class LineMoving(LineEdit):
         return return_code
 
     @classmethod
-    def create(cls, program, target_file=None, ingr_file=None, direction='before', method='random'):
+    def create(cls, program, target_file=None, ingr_file=None, direction=None, method='random'):
         if target_file is None:
-            target_file = program.random_file()
+            target_file = program.random_file(AbstractTreeEngine)
         if ingr_file is None:
             ingr_file = program.random_file(engine=program.engines[target_file])
         assert program.engines[target_file] == program.engines[ingr_file]
