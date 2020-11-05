@@ -1,6 +1,6 @@
 import random
 from ..base import AbstractEdit
-from . import AbstractTreeEngine
+from . import AbstractTreeEngine, XmlEngine
 
 
 class StmtReplacement(AbstractEdit):
@@ -87,3 +87,57 @@ class StmtMoving(AbstractEdit):
         return cls(program.random_target(target_file, method),
                    program.random_target(ingr_file, 'random'),
                    direction)
+
+class TextSetting(AbstractEdit):
+    CHOICES = ['']
+
+    def __init__(self, target, value):
+        self.target = target
+        self.value = value
+
+    def apply(self, program, new_contents, modification_points):
+        engine = program.engines[self.target[0]]
+        return engine.do_set_text(program, self.target, self.value, new_contents, modification_points)
+
+    @classmethod
+    def create(cls, program, target_file=None, method='random', choices=None):
+        if choices == None:
+            choices = cls.CHOICES
+        if target_file is None:
+            target_file = program.random_file(XmlEngine)
+        target = program.random_target(target_file, method)
+        value = random.choice(choices)
+        return cls(target, value)
+
+class TextWrapping(AbstractEdit):
+    CHOICES = [('(', ')')]
+
+    def __init__(self, target, value):
+        self.target = target
+        self.value = value
+
+    def apply(self, program, new_contents, modification_points):
+        engine = program.engines[self.target[0]]
+        return engine.do_wrap_text(program, self.target, self.value[0], self.value[1], new_contents, modification_points)
+
+    @classmethod
+    def create(cls, program, target_file=None, method='random', choices=None):
+        if choices == None:
+            choices = cls.CHOICES
+        if target_file is None:
+            target_file = program.random_file(XmlEngine)
+        target = program.random_target(target_file, method)
+        value = random.choice(choices)
+        return cls(target, value)
+
+class ComparisonOperatorSetting(TextSetting):
+    CHOICES = ['==', '!=', '<', '<=', '>', '>=']
+
+class ArithmeticOperatorSetting(TextSetting):
+    CHOICES = ['+', '-', '*', '/', '%']
+
+class NumericSetting(TextSetting):
+    CHOICES = ['-1', '0', '1']
+
+class RelativeNumericSetting(TextWrapping):
+    CHOICES = [('(', '+1)'), ('(', '-1)'), ('(', '/2)'), ('(', '*2)'), ('(', '*3/2)'), ('(', '*2/3)')]

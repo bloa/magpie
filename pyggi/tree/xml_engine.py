@@ -198,36 +198,100 @@ class XmlEngine(AbstractTreeEngine):
         return True
 
     @classmethod
-    def select_tags(cls, element, keep):
+    def do_set_text(cls, program, target, value, new_contents, modification_points):
+        target = new_contents[target[0]].find(modification_points[target[0]][target[1]])
+        if target is None:
+            return False
+        target.text = value
+        return True
+
+    @classmethod
+    def do_wrap_text(cls, program, target, prefix, suffix, new_contents, modification_points):
+        target = new_contents[target[0]].find(modification_points[target[0]][target[1]])
+        if target is None:
+            return False
+        target.text = prefix + (target.text or '') + suffix
+        return True
+
+    @classmethod
+    def focus_tags(cls, element, tags):
         last = None
         marked = []
         buff = 0
         for i, child in enumerate(element):
-            cls.select_tags(child, keep=keep)
-            if child.tag not in keep:
+            cls.focus_tags(child, tags)
+            if child.tag not in tags:
                 marked.append(child)
                 if child.text:
                     if last is not None:
-                        last.tail = last.tail or ''
-                        last.tail += child.text
+                        last.tail = (last.tail or '') + child.text
                     else:
-                        element.text = element.text or ''
-                        element.text += child.text
+                        element.text = (element.text or '') + child.text
                 if len(child) > 0:
                     for sub_child in reversed(child):
                         element.insert(i+1, sub_child)
                     last = child[-1]
                 if child.tail:
                     if last is not None:
-                        last.tail = last.tail or ''
-                        last.tail += child.tail
+                        last.tail = (last.tail or '') + child.tail
                     else:
-                        element.text = element.text or ''
-                        element.text += child.tail
+                        element.text = (element.text or '') + child.tail
             else:
                 last = child
         for child in marked:
             element.remove(child)
+
+    @classmethod
+    def remove_tags(cls, element, tags):
+        if len(tags) == 0:
+            return
+        last = None
+        marked = []
+        buff = 0
+        remove_all = '*' in tags
+        for i, child in enumerate(element):
+            cls.remove_tags(child, tags)
+            if remove_all or child.tag in tags:
+                marked.append(child)
+                if child.text:
+                    if last is not None:
+                        last.tail = (last.tail or '') + child.text
+                    else:
+                        element.text = (element.text or '') + child.text
+                if len(child) > 0:
+                    for sub_child in reversed(child):
+                        element.insert(i+1, sub_child)
+                    last = child[-1]
+                if child.tail:
+                    if last is not None:
+                        last.tail = (last.tail or '') + child.tail
+                    else:
+                        element.text = (element.text or '') + child.tail
+            else:
+                last = child
+        for child in marked:
+            element.remove(child)
+
+    @classmethod
+    def get_tags(cls, element):
+        def aux(element, accu):
+            accu.append(element.tag)
+            for child in element:
+                aux(child, accu)
+            return set(accu)
+        return aux(element, [])
+
+    @classmethod
+    def count_tags(cls, element):
+        def aux(element, accu):
+            try:
+                accu[element.tag] += 1
+            except KeyError:
+                accu[element.tag] = 1
+            for child in element:
+                aux(child, accu)
+            return accu
+        return aux(element, {})
 
     @classmethod
     def rewrite_tags(cls, element, tags, new_tag):
