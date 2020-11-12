@@ -19,8 +19,6 @@ class SrcmlEngine(XmlEngine):
     def process_tree(cls, tree):
         if cls.PROCESS_PSEUDO_BLOCKS:
             cls.process_pseudo_blocks(tree)
-        if cls.PROCESS_CONDITIONS:
-            cls.process_conditions(tree)
         if cls.PROCESS_LITERALS:
             cls.process_literals(tree)
         if cls.PROCESS_OPERATORS:

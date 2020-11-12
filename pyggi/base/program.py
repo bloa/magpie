@@ -283,6 +283,7 @@ class AbstractProgram(ABC):
 
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, max_pipesize=1e4):
         # 1e6 bytes is 1Mb
+        sprocess = None
         try:
             stdout = b''
             stderr = b''
@@ -316,9 +317,12 @@ class AbstractProgram(ABC):
 
         except (TimeoutError, IOError):
             end = time.time()
-            os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-            _, _ = sprocess.communicate()
-            return (sprocess.returncode, stdout, stderr, end-start)
+            if sprocess:
+                os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                _, _ = sprocess.communicate()
+                return (sprocess.returncode, stdout, stderr, end-start)
+            else:
+                raise
 
     def compute_fitness(self, result, return_code, stdout, stderr, elapsed_time):
         try:
