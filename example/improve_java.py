@@ -47,6 +47,7 @@ class ExpProtocol:
             logger.info('==== Epoch {} ===='.format(epoch+1))
             logger.info('Termination: {}'.format(result[epoch]['stop']))
             if result[epoch]['best_patch']:
+                logger.info('Best fitness: {}'.format(result[epoch]['best_fitness']))
                 logger.info('Best patch: {}'.format(result[epoch]['best_patch']))
                 logger.info('Diff:\n{}'.format(result[epoch]['diff']))
         self.program.remove_tmp_variant()
