@@ -73,6 +73,7 @@ class AbstractProgram(ABC):
         self.timestamp = str(int(time.time()))
         self.path = os.path.abspath(path.strip())
         self.name = os.path.basename(self.path)
+        self.tmp_path = os.path.join(self.__class__.TMP_DIR, self.name, self.timestamp)
         self.logger = Logger(self.name + '_' + self.timestamp)
 
         # Create the temporary directory
@@ -192,14 +193,6 @@ class AbstractProgram(ABC):
             #cumulated_weights = sum(self.modification_weights[target_file])
             #list_of_prob = list(map(lambda w: float(w)/cumulated_weights, self.modification_weights[target_file]))
             #return (target_file, random.choices(list(range(len(candidates))), weights=list_of_prob, k=1)[0])
-
-    @property
-    def tmp_path(self):
-        """
-        :return: The path of the temporary dirctory
-        :rtype: str
-        """
-        return os.path.join(self.__class__.TMP_DIR, self.name, self.timestamp)
 
     def create_tmp_variant(self):
         """
