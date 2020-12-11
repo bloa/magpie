@@ -87,10 +87,10 @@ class XmlEngine(AbstractTreeEngine):
                 return (None, None, None, None)
 
     @classmethod
-    def do_replace(cls, program, op, new_contents, modification_points):
+    def do_replace(cls, program, target_dest, target_orig, new_contents, modification_points):
         # get elements
-        target = new_contents[op.target[0]].find(modification_points[op.target[0]][op.target[1]])
-        ingredient = program.contents[op.ingredient[0]].find(program.modification_points[op.ingredient[0]][op.ingredient[1]])
+        target = new_contents[target_dest[0]].find(modification_points[target_dest[0]][target_dest[1]])
+        ingredient = program.contents[target_orig[0]].find(program.modification_points[target_orig[0]][target_orig[1]])
         if target is None or ingredient is None:
             return False
         if target == ingredient:
@@ -109,17 +109,17 @@ class XmlEngine(AbstractTreeEngine):
 
         # update modification points
         if old_tag != ingredient.tag:
-            head, tag, pos, _ = cls.split_xpath(modification_points[op.target[0]][op.target[1]])
+            head, tag, pos, _ = cls.split_xpath(modification_points[target_dest[0]][target_dest[1]])
             itag = 1
-            for i, xpath in enumerate(modification_points[op.target[0]]):
+            for i, xpath in enumerate(modification_points[target_dest[0]]):
                 h, t, p, s = cls.split_xpath(xpath, head)
-                if i < op.target[1]:
+                if i < target_dest[1]:
                     if h != head:
                         continue
                     elif t == ingredient.tag:
                         itag += 1
-                elif i == op.target[1]:
-                    modification_points[op.target[0]][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
+                elif i == target_dest[1]:
+                    modification_points[target_dest[0]][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
                 elif h != head:
                     break
                 elif t == tag:
@@ -129,21 +129,21 @@ class XmlEngine(AbstractTreeEngine):
                         new_pos = '{}/{}[{}]/{}'.format(h, t, p-1, s)
                     else:
                         new_pos = '{}/{}[{}]'.format(h, t, p-1)
-                    modification_points[op.target[0]][i] = new_pos
+                    modification_points[target_dest[0]][i] = new_pos
                 elif t == ingredient.tag:
                     if s:
                         new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
                     else:
                         new_pos = '{}/{}[{}]'.format(h, t, p+1)
-                    modification_points[op.target[0]][i] = new_pos
+                    modification_points[target_dest[0]][i] = new_pos
         return True
 
     @classmethod
-    def do_insert(cls, program, op, new_contents, modification_points):
+    def do_insert(cls, program, target_dest, target_orig, direction, new_contents, modification_points):
         # get elements
-        target = new_contents[op.target[0]].find(modification_points[op.target[0]][op.target[1]])
-        parent = new_contents[op.target[0]].find(modification_points[op.target[0]][op.target[1]]+'..')
-        ingredient = program.contents[op.ingredient[0]].find(program.modification_points[op.ingredient[0]][op.ingredient[1]])
+        target = new_contents[target_dest[0]].find(modification_points[target_dest[0]][target_dest[1]])
+        parent = new_contents[target_dest[0]].find(modification_points[target_dest[0]][target_dest[1]]+'..')
+        ingredient = program.contents[target_orig[0]].find(program.modification_points[target_orig[0]][target_orig[1]])
         if target is None or ingredient is None:
             return False
 
@@ -152,7 +152,7 @@ class XmlEngine(AbstractTreeEngine):
         for i, child in enumerate(parent):
             if child == target:
                 tmp = copy.deepcopy(ingredient)
-                if op.direction == 'after':
+                if direction == 'after':
                     tmp.tail = child.tail
                     child.tail = '\n' + sp
                     i += 1
@@ -165,27 +165,27 @@ class XmlEngine(AbstractTreeEngine):
             assert False
 
         # update modification points
-        head, tag, pos, _ = cls.split_xpath(modification_points[op.target[0]][op.target[1]])
-        for i, xpath in enumerate(modification_points[op.target[0]]):
-            if i < op.target[1]:
+        head, tag, pos, _ = cls.split_xpath(modification_points[target_dest[0]][target_dest[1]])
+        for i, xpath in enumerate(modification_points[target_dest[0]]):
+            if i < target_dest[1]:
                 continue
             h, t, p, s = cls.split_xpath(xpath, head)
             if h != head and xpath != 'deleted':
                 break
-            if t == tag and p == pos and op.direction == 'after':
+            if t == tag and p == pos and direction == 'after':
                 continue
             if t in [ingredient.tag, tag]:
                 if s:
                     new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
                 else:
                     new_pos = '{}/{}[{}]'.format(h, t, p+1)
-                modification_points[op.target[0]][i] = new_pos
+                modification_points[target_dest[0]][i] = new_pos
         return True
 
     @classmethod
-    def do_delete(cls, program, op, new_contents, modification_points):
+    def do_delete(cls, program, target, new_contents, modification_points):
         # get elements
-        target = new_contents[op.target[0]].find(modification_points[op.target[0]][op.target[1]])
+        target = new_contents[target[0]].find(modification_points[target[0]][target[1]])
         if target is None:
             return False
 

@@ -12,11 +12,15 @@ class AbstractParamsEngine(AbstractEngine):
 
     @classmethod
     def get_contents(cls, file_path):
-        return {k:v[0] for k,v in cls.PARAMS.items()}
+        return cls.get_default_params()
 
     @classmethod
     def get_modification_points(cls, contents_of_file):
         return cls.KEYS
+
+    @classmethod
+    def get_default_params(cls):
+        return {k: cls.PARAMS[k][0] for k in cls.KEYS}
 
     @classmethod
     def get_source(cls, program, file_name, index):
@@ -37,7 +41,13 @@ class AbstractParamsEngine(AbstractEngine):
     @classmethod
     def would_be_valid(cls, config, key, value):
         for d in cls.FORB:
-            pass # TODO
+            forb = True
+            for k in d.keys():
+                if (k != key and d[k] != config[k]) or (k == key and d[k] != value):
+                    forb = False
+                    break
+            if forb:
+                return False
         return True
 
     @classmethod

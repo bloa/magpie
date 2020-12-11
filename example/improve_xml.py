@@ -20,12 +20,10 @@ from improve_java import ExpProtocol
 from improve_java import MyProgram
 
 class MyTreeProgram(TreeProgram, MyProgram):
-    def setup(self):
-        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
-
-    def load_config(self, path, config):
+    def setup(self, config):
         self.target_files = ["Triangle.java.xml"]
         self.test_command = "./run.sh"
+        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
 
 
 # ================================================================================

@@ -1,6 +1,10 @@
-import pytest
 import os
+import pytest
 import random
+import re
+import shutil
+
+import pyggi
 from pyggi.base import Patch
 from pyggi.line import LineProgram, LineInsertion, LineEngine
 from pyggi.tree import TreeProgram, StmtInsertion, AstorEngine
@@ -8,7 +12,6 @@ from pyggi.tree import TreeProgram, StmtInsertion, AstorEngine
 class MyLineProgram(LineProgram):
     def compute_fitness(self, result, return_code, stdout, stderr, elapsed_time):
         print(elapsed_time, stdout, stderr)
-        import re
         m = re.findall("runtime: ([0-9.]+)", stdout)
         if len(m) > 0:
             runtime = m[0]
@@ -22,7 +25,6 @@ class MyLineProgram(LineProgram):
 class MyTreeProgram(TreeProgram):
     def compute_fitness(self, result, return_code, stdout, stderr, elapsed_time):
         print(elapsed_time, stdout, stderr)
-        import re
         m = re.findall("runtime: ([0-9.]+)", stdout)
         if len(m) > 0:
             runtime = m[0]
@@ -35,33 +37,36 @@ class MyTreeProgram(TreeProgram):
 
 @pytest.fixture(scope='session')
 def setup_line():
-    line_program = MyLineProgram('../sample/Triangle_bug_python')
+    config = {
+        'target_files': ["triangle.py"],
+        'test_command': "pytest -s test_triangle.py",
+    }
+    line_program = MyLineProgram('../sample/Triangle_bug_python', config=config)
     return line_program
 
 @pytest.fixture(scope='session')
 def setup_tree():
-    tree_program = MyTreeProgram('../sample/Triangle_bug_python')
+    config = {
+        'target_files': ["triangle.py"],
+        'test_command': "pytest -s test_triangle.py",
+    }
+    tree_program = MyTreeProgram('../sample/Triangle_bug_python', config=config)
     return tree_program
 
 def check_program_validity(program):
     assert not program.path.endswith('/')
-    assert program.name == os.path.basename(program.path)
+    assert program.basename == os.path.basename(program.path)
     assert program.test_command is not None
     assert program.target_files is not None
     assert all([program.engines[target_file] is not None
         for target_file in program.target_files])
     assert all([program.modification_points[target_file] is not None
         for target_file in program.target_files])
-    assert os.path.exists(program.tmp_path)
 
 class TestLineProgram(object):
 
     def test_init(self, setup_line):
         program = setup_line
-        check_program_validity(program)
-
-    def test_init_with_config_file_name(self):
-        program = LineProgram('../sample/Triangle_bug_python', config='.pyggi.config')
         check_program_validity(program)
 
     def test_init_with_dict_type_config(self):
@@ -89,14 +94,6 @@ class TestLineProgram(object):
         assert file in program.target_files
         assert point in range(len(program.modification_points[file]))
 
-    def test_tmp_path(self, setup_line):
-        program = setup_line
-        assert program.tmp_path.startswith(os.path.join(program.TMP_DIR, program.name))
-
-    def test_create_tmp_variant(self, setup_line):
-        program = setup_line
-        assert os.path.exists(program.tmp_path)
-
     def test_load_contents(self, setup_line):
         program = setup_line
         assert 'triangle.py' in program.contents
@@ -121,16 +118,15 @@ class TestLineProgram(object):
 
     def test_get_source(self, setup_line):
         program = setup_line
-        file_contents = open(os.path.join(program.tmp_path, 'triangle.py'), 'r').read()
+        file_contents = open(os.path.join(program.path, 'triangle.py'), 'r').read()
         for i in range(len(program.modification_points['triangle.py'])):
             program.get_source('triangle.py', i) in file_contents
 
     def test_apply(self, setup_line):
         program = setup_line
-        patch = Patch(program)
-        patch.add(LineInsertion(('triangle.py', 1), ('triangle.py', 10), direction='after'))
+        patch = Patch([LineInsertion(('triangle.py', 1), ('triangle.py', 10), 'after')])
         program.apply(patch)
-        file_contents = open(os.path.join(program.tmp_path, 'triangle.py'), 'r').read()
+        file_contents = open(os.path.join(program.work_path, 'triangle.py'), 'r').read()
         assert file_contents == program.dump(program.get_modified_contents(patch), 'triangle.py')
 
     def test_exec_cmd(self, setup_line):
@@ -140,7 +136,7 @@ class TestLineProgram(object):
 
     def test_evaluate_patch(self, setup_line):
         program = setup_line
-        patch = Patch(program)
+        patch = Patch()
         run = program.evaluate_patch(patch)
         assert run.status == 'SUCCESS'
         assert run.fitness is not None
@@ -148,16 +144,12 @@ class TestLineProgram(object):
     def test_remove_tmp_variant(self, setup_line):
         program = setup_line
         program.remove_tmp_variant()
-        assert not os.path.exists(program.tmp_path)
+        assert not os.path.exists(program.work_dir)
 
 class TestTreeProgram(object):
 
     def test_init(self, setup_tree):
         program = setup_tree
-        check_program_validity(program)
-
-    def test_init_with_config_file_name(self):
-        program = MyTreeProgram('../sample/Triangle_bug_python', config='.pyggi.config')
         check_program_validity(program)
 
     def test_init_with_dict_type_config(self):
@@ -178,15 +170,6 @@ class TestTreeProgram(object):
             program.get_engine('triangle.html')
         assert program.get_engine('triangle.py') == AstorEngine
 
-    def test_tmp_path(self, setup_tree):
-        program = setup_tree
-
-        assert program.tmp_path.startswith(os.path.join(program.TMP_DIR, program.name))
-
-    def test_create_tmp_variant(self, setup_tree):
-        program = setup_tree
-        assert os.path.exists(program.tmp_path)
-
     def test_load_contents(self, setup_tree):
         program = setup_tree
         assert 'triangle.py' in program.contents
@@ -201,23 +184,24 @@ class TestTreeProgram(object):
 
     def test_get_source(self, setup_tree):
         program = setup_tree
-        file_contents = open(os.path.join(program.tmp_path, 'triangle.py'), 'r').read()
+        file_contents = open(os.path.join(program.path, 'triangle.py'), 'r').read()
         for i in range(len(program.modification_points['triangle.py'])):
             program.get_source('triangle.py', i) in file_contents
 
     def test_apply(self, setup_tree):
         program = setup_tree
-        patch = Patch(program)
-        patch.add(StmtInsertion(('triangle.py', 1), ('triangle.py', 10), direction='after'))
+        patch = Patch()
+        patch.add(StmtInsertion(('triangle.py', 1), ('triangle.py', 10), 'after'))
         program.apply(patch)
-        file_contents = open(os.path.join(program.tmp_path, 'triangle.py'), 'r').read()
+        file_contents = open(os.path.join(program.work_path, 'triangle.py'), 'r').read()
         assert file_contents == program.dump(program.get_modified_contents(patch), 'triangle.py')
 
     def test_diff(self, setup_tree):
         program = setup_tree
-        patch = Patch(program)
+        patch = Patch()
+        print(patch.raw())
         assert not program.diff(patch).strip()
-        patch.add(StmtInsertion(('triangle.py', 1), ('triangle.py', 10), direction='after'))
+        patch.add(StmtInsertion(('triangle.py', 1), ('triangle.py', 10), 'after'))
         assert program.diff(patch).strip()
 
     def test_exec_cmd(self, setup_tree):
@@ -227,7 +211,7 @@ class TestTreeProgram(object):
 
     def test_evaluate_patch(self, setup_tree):
         program = setup_tree
-        patch = Patch(program)
+        patch = Patch()
         run = program.evaluate_patch(patch)
         assert run.status == 'SUCCESS'
         assert run.fitness is not None
@@ -235,4 +219,11 @@ class TestTreeProgram(object):
     def test_remove_tmp_variant(self, setup_tree):
         program = setup_tree
         program.remove_tmp_variant()
-        assert not os.path.exists(program.tmp_path)
+        assert not os.path.exists(program.work_dir)
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup(request):
+    def remove_test_dir():
+        shutil.rmtree(pyggi.config.log_dir)
+        shutil.rmtree(pyggi.config.work_dir)
+    request.addfinalizer(remove_test_dir)

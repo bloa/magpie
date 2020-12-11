@@ -25,12 +25,10 @@ class MyProgram(AbstractProgram):
         return operator.create(self)
 
 class MyLineProgram(LineProgram, MyProgram):
-    def setup(self):
-        self.possible_edits = [LineReplacement, LineInsertion, LineDeletion]
-
-    def load_config(self, path, config):
+    def setup(self, config):
         self.target_files = ["Triangle.java"]
         self.test_command = "./run.sh"
+        self.possible_edits = [LineReplacement, LineInsertion, LineDeletion]
 
 class MySrcmlEngine(SrcmlEngine):
     TAG_RENAME = {
@@ -41,12 +39,10 @@ class MySrcmlEngine(SrcmlEngine):
     PROCESS_OPERATORS = False
 
 class MyTreeProgram(MyProgram):
-    def setup(self):
-        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
-
-    def load_config(self, path, config):
+    def setup(self, config):
         self.target_files = ["Triangle.java.xml"]
         self.test_command = "./run.sh"
+        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
 
     @classmethod
     def get_engine(cls, file_name):

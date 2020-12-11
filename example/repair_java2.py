@@ -28,12 +28,10 @@ class MySrcmlEngine(SrcmlEngine):
     PROCESS_OPERATORS = True
 
 class MyProgram(TreeProgram):
-    def setup(self):
-        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion, ComparisonOperatorSetting]
-
-    def load_config(self, path, config):
+    def setup(self, config):
         self.target_files = ["Triangle.java.xml"]
         self.test_command = "./run.sh"
+        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion, ComparisonOperatorSetting]
 
     def create_edit(self, patch=None):
         if len(self.possible_edits) == 0:

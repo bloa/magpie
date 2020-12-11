@@ -1,8 +1,4 @@
-"""
-
-This module contains GranularityLevel and Program class.
-
-"""
+from abc import ABC, abstractmethod
 import os
 import shutil
 import json
@@ -18,43 +14,11 @@ import difflib
 import select
 import signal
 import errno
-from abc import ABC, abstractmethod
+import logging
 from distutils.dir_util import copy_tree
-from .. import PYGGI_DIR
-from ..utils import Logger, weighted_choice
 
-class RunResult:
-    def __init__(self, status, fitness=None):
-        self.status = status
-        self.fitness = fitness
-    def __str__(self):
-        return '<{} {}>'.format(self.__class__.__name__, str(vars(self))[1:-1])
-
-class AbstractEngine(ABC):
-    @classmethod
-    @abstractmethod
-    def get_contents(cls, file_path):
-        pass
-
-    @classmethod
-    @abstractmethod
-    def get_modification_points(cls, contents_of_file):
-        pass
-
-    @classmethod
-    @abstractmethod
-    def get_source(cls, program, file_name, index):
-        pass
-
-    @classmethod
-    def write_to_tmp_dir(cls, contents_of_file, tmp_path):
-        with open(tmp_path, 'w') as tmp_file:
-            tmp_file.write(cls.dump(contents_of_file))
-
-    @classmethod
-    @abstractmethod
-    def dump(cls, contents_of_file):
-        pass
+from .. import config as pyggi_config
+from .runresult import RunResult
 
 class AbstractProgram(ABC):
     """
@@ -65,70 +29,75 @@ class AbstractProgram(ABC):
     this class needs to process and store the source code accordingly
     (for example, by parsing and storing the AST).
     """
-    CONFIG_FILE_NAME = '.pyggi.config'
-    TMP_DIR = os.path.join(PYGGI_DIR, 'tmp_variants')
-    SAVE_DIR = os.path.join(PYGGI_DIR, 'saved_variants')
-
-    def __init__(self, path, config=None):
-        self.timestamp = str(int(time.time()))
+    def __init__(self, path, config={}):
         self.path = os.path.abspath(path.strip())
-        self.name = os.path.basename(self.path)
-        self.tmp_path = os.path.join(self.__class__.TMP_DIR, self.name, self.timestamp)
-        self.logger = Logger(self.name + '_' + self.timestamp)
+        self.basename = os.path.basename(self.path)
+        self.target_files = []
+        self.logger = None
+        self.setup(config)
+        self.reset()
 
-        # Create the temporary directory
-        self.create_tmp_variant()
-        self.setup()
-
-        # Configuration
-        self.load_config(path, config)
-
-        # Associate each file to its engine
-        self.load_engines()
-
-        # Load actual contents using the engines
+    def reset(self):
+        self.close_logger()
+        self.timestamp = str(int(time.time()))
+        self.run_label = '{}_{}'.format(self.basename, self.timestamp)
+        self.work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
+        self.work_path = os.path.join(self.work_dir, self.basename)
+        self.setup_logger()
+        self.reset_tmp_variant()
         self.load_contents()
-        assert self.modification_points
-        assert self.contents
-
-        self.logger.info("Path to the temporal program variants: {}".format(self.tmp_path))
 
     def __str__(self):
         return "{}({}):{}".format(self.__class__.__name__,
                                   self.path, ",".join(self.target_files))
 
-    def setup(self):
-        pass
+    def setup(self, config={}):
+        for key in [
+                'test_command',
+                'target_files',
+        ]:
+            try:
+                self.__dict__[key] = config[key]
+            except KeyError:
+                pass
 
-    def load_config(self, path, config):
-        assert config is None or isinstance(config, str) or isinstance(config, dict)
-        from_file = False
-        if config:
-            if isinstance(config, str):
-                config_file_name = config
-                from_file = True
-        else:
-            config_file_name = AbstractProgram.CONFIG_FILE_NAME
-            from_file = True
-        if from_file:
-            with open(os.path.join(self.path, config_file_name)) as config_file:
-                config = json.load(config_file)
-        self.test_command = config['test_command']
-        self.target_files = config['target_files']
-        return config
+    def setup_logger(self):
+        # create logger
+        self.logger = logging.getLogger(self.run_label)
+        self.logger.setLevel(logging.DEBUG)
 
-    @classmethod
+        # add file logging
+        try:
+            pathlib.Path(pyggi_config.log_dir).mkdir(parents=True)
+        except FileExistsError:
+            pass
+        file_handler = logging.FileHandler(os.path.join(pyggi_config.log_dir, "{}.log".format(self.run_label)), delay=True)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s\t[%(levelname)s]\t%(message)s'))
+        file_handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(file_handler)
+
+        # add stream handler
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        self.logger.addHandler(stream_handler)
+
+    def close_logger(self):
+        if self.logger is not None:
+            self.logger.handlers.clear()
+
+
     @abstractmethod
-    def get_engine(cls, file_name):
+    def get_engine(self, file_name):
         pass
 
     def load_engines(self):
         # Associate each file to its engine
         self.engines = dict()
         for file_name in self.target_files:
-            self.engines[file_name] = self.__class__.get_engine(file_name)
+            self.engines[file_name] = self.get_engine(file_name)
 
     def load_contents(self):
+        self.load_engines()
         self.contents = {}
         self.modification_points = dict()
         self.modification_weights = dict()
@@ -194,30 +163,37 @@ class AbstractProgram(ABC):
             #list_of_prob = list(map(lambda w: float(w)/cumulated_weights, self.modification_weights[target_file]))
             #return (target_file, random.choices(list(range(len(candidates))), weights=list_of_prob, k=1)[0])
 
-    def create_tmp_variant(self):
-        """
-        Clean the temporary project directory if it exists.
-
-        :param str tmp_path: The path of directory to clean.
-        :return: None
-        """
-        pathlib.Path(self.tmp_path).mkdir(parents=True, exist_ok=True)
-        copy_tree(self.path, self.tmp_path)
-
     def reset_tmp_variant(self):
-        shutil.rmtree(self.tmp_path)
-        shutil.copytree(self.path, self.tmp_path)
+        # TODO: be more like rsync
+        self.remove_tmp_variant()
+        shutil.copytree(self.path, self.work_path)
 
     def remove_tmp_variant(self):
-        tmp = self.tmp_path
-        shutil.rmtree(tmp, ignore_errors=True)
-        bounds = [os.path.abspath('.'), os.path.abspath(os.path.join(self.TMP_DIR, '..'))]
         try:
-            while True:
-                tmp = os.path.dirname(tmp)
-                if os.path.abspath(tmp) in bounds:
-                    break
-                os.rmdir(tmp)
+            shutil.rmtree(self.work_path)
+        except FileNotFoundError:
+            pass
+        try:
+            try:
+                os.rmdir(self.work_dir)
+            except FileNotFoundError:
+                pass
+            os.rmdir(pyggi_config.work_dir)
+        except FileNotFoundError:
+            pass
+        except OSError as e:
+            if e.errno != errno.ENOTEMPTY:
+                raise
+
+    def clean_work_dir(self):
+        try:
+            shutil.rmtree(self.work_dir)
+        except FileNotFoundError:
+            pass
+        try:
+            os.rmdir(pyggi_config.work_dir)
+        except FileNotFoundError:
+            pass
         except OSError as e:
             if e.errno != errno.ENOTEMPTY:
                 raise
@@ -233,7 +209,7 @@ class AbstractProgram(ABC):
         """
         for target_file in new_contents:
             engine = self.engines[target_file]
-            tmp_path = os.path.join(self.tmp_path, target_file)
+            tmp_path = os.path.join(self.work_path, target_file)
             engine.write_to_tmp_dir(new_contents[target_file], tmp_path)
 
     def dump(self, contents, file_name):
@@ -247,10 +223,9 @@ class AbstractProgram(ABC):
         return self.engines[file_name].dump(contents[file_name])
 
     def get_modified_contents(self, patch):
-        target_files = self.contents.keys()
         modification_points = copy.deepcopy(self.modification_points)
         new_contents = copy.deepcopy(self.contents)
-        for target_file in target_files:
+        for target_file in self.contents.keys():
             edits = list(filter(lambda a: a.target[0] == target_file, patch.edit_list))
             for edit in edits:
                 edit.apply(self, new_contents, modification_points)
@@ -328,7 +303,7 @@ class AbstractProgram(ABC):
         self.apply(patch)
         cwd = os.getcwd()
         try:
-            os.chdir(self.tmp_path)
+            os.chdir(self.work_path)
             return_code, stdout, stderr, elapsed_time = self.exec_cmd(shlex.split(self.test_command), timeout)
         finally:
             os.chdir(cwd)

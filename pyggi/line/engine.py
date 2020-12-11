@@ -19,27 +19,24 @@ class LineEngine(AbstractLineEngine):
         return '\n'.join(contents_of_file) + '\n'
 
     @classmethod
-    def do_replace(cls, program, op, new_contents, modification_points):
-        l_f, l_n = op.target # line file and line number
-        if op.ingredient:
-            i_f, i_n = op.ingredient
-            new_contents[l_f][modification_points[l_f][l_n]] = program.contents[i_f][i_n]
-        else:
-            new_contents[l_f][modification_points[l_f][l_n]] = ''
+    def do_replace(cls, program, target_dest, target_orig, new_contents, modification_points):
+        l_f, l_n = target_dest # line file and line number
+        i_f, i_n = target_orig
+        new_contents[l_f][modification_points[l_f][l_n]] = program.contents[i_f][i_n]
         return True
 
     @classmethod
-    def do_insert(cls, program, op, new_contents, modification_points):
-        l_f, l_n = op.target
-        i_f, i_n = op.ingredient
-        if op.direction == 'before':
+    def do_insert(cls, program, target_dest, target_orig, direction, new_contents, modification_points):
+        l_f, l_n = target_dest
+        i_f, i_n = target_orig
+        if direction == 'before':
             new_contents[l_f].insert(
                 modification_points[l_f][l_n],
                 program.contents[i_f][i_n]
             )
             for i in range(l_n, len(modification_points[l_f])):
                 modification_points[l_f][i] += 1
-        elif op.direction == 'after':
+        elif direction == 'after':
             new_contents[l_f].insert(
                 modification_points[l_f][l_n] + 1,
                 program.contents[i_f][i_n]
@@ -49,7 +46,7 @@ class LineEngine(AbstractLineEngine):
         return True
 
     @classmethod
-    def do_delete(cls, program, op, new_contents, modification_points):
-        l_f, l_n = op.target # line file and line number
+    def do_delete(cls, program, target, new_contents, modification_points):
+        l_f, l_n = target
         new_contents[l_f][modification_points[l_f][l_n]] = ''
         return True

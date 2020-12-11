@@ -32,9 +32,6 @@ class Algorithm(ABC):
         self.report['best_patch'] = None
         self.report['stop'] = None
         self.cache_reset()
-        # duplicate separate RNG for sampling instances
-        self.inst_sample_random = random.Random()
-        self.inst_sample_random.setstate(random.getstate())
 
     @abstractmethod
     def run(self):
@@ -51,20 +48,6 @@ class Algorithm(ABC):
         self.stats['wallclock_end'] = time.time()
         self.program.logger.info('==== END ====')
         self.program.logger.info('Reason: {}'.format(self.report['stop']))
-
-    def sample_instances(self, k=None):
-        if len(self.instances) > 0 and not hasattr(self.instances[0], '__len__'):
-            # ensures bins
-            self.instances = [self.instances]
-        full = [i for b in self.instances for i in b]
-        if k is None or not (0 < k < len(full)):
-            return full
-        else:
-            tmp = [self.inst_sample_random.sample(b, k=len(b)) for b in self.instances]
-            tmp = itertools.zip_longest(*tmp)
-            tmp = [i for t in tmp for i in list(t) if t is not None]
-            tmp = tmp[:k]
-            return [i for i in full if i in tmp]
 
     def evaluate_patch(self, patch, force=False, forget=False):
         diff = None

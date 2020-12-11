@@ -22,24 +22,25 @@ class GeneticProgramming(Algorithm):
         self.program.logger.info('==== WARMUP ====')
 
     def hook_warmup_evaluation(self, count, patch, run):
-        self.aux_log_eval(count, run.status, ' ', run.fitness, patch)
+        self.aux_log_eval(count, run.status, ' ', run.fitness, None, patch)
 
     def hook_evaluation(self, patch, run, best):
         if best:
             c = '*'
         else:
             c = ' '
-        self.aux_log_eval('{} {}'.format(self.stats['gen'], self.stats['steps']+1), run.status, c, run.fitness, patch)
+        self.aux_log_eval('{} {}'.format(self.stats['gen'], self.stats['steps']+1), run.status, c, run.fitness, self.report['initial_fitness'], patch)
         if best:
             self.program.logger.debug(self.program.diff(patch))
 
-    def aux_log_eval(self, counter, status, c, fitness, data):
-        self.program.logger.info('{}\t{}\t{}{}\t{}'.format(counter, status, c, fitness, data))
+    def aux_log_eval(self, counter, status, c, fitness, baseline, data):
+        s = ' ({}%)'.format(round(100*fitness/baseline, 2)) if fitness and baseline else ''
+        self.program.logger.info('{}\t{}\t{}{}{}\t{}'.format(counter, status, c, fitness, s, data))
 
     def run(self):
         # warmup
         self.hook_warmup()
-        empty_patch = Patch(self.program)
+        empty_patch = Patch()
         for i in range(self.config['warmup']+1, 0, -1):
             self.program.base_fitness = None
             self.program.truth_table = {}
@@ -195,7 +196,7 @@ class GeneticProgramming1Point(GeneticProgramming):
         self.name = 'Genetic Programming (1-point)'
 
     def crossover(self, sol1, sol2):
-        c = Patch(self.program)
+        c = Patch()
         k1 = random.randint(0, len(sol1))
         k2 = random.randint(0, len(sol2))
         for edit in sol1.edit_list[:k1]:
@@ -210,7 +211,7 @@ class GeneticProgramming2Point(GeneticProgramming):
         self.name = 'Genetic Programming (2-point)'
 
     def crossover(self, sol1, sol2):
-        c = Patch(self.program)
+        c = Patch()
         k1 = random.randint(0, len(sol1))
         k2 = random.randint(0, len(sol1))
         k3 = random.randint(0, len(sol2))
@@ -230,7 +231,7 @@ class GeneticProgrammingUniformConcat(GeneticProgramming):
         self.config['uniform_rate'] = 0.5
 
     def crossover(self, sol1, sol2):
-        c = Patch(self.program)
+        c = Patch()
         for edit in sol1.edit_list:
             if random.random() > self.config['uniform_rate']:
                 c.add(edit)
@@ -252,7 +253,7 @@ class GeneticProgrammingUniformInter(GeneticProgramming):
         self.config['uniform_rate'] = 0.5
 
     def crossover(self, sol1, sol2):
-        c = Patch(self.program)
+        c = Patch()
         l1 = [(i/len(sol1), 0) for i in sorted(random.sample(range(len(sol1)), math.ceil(len(sol1)*self.config['uniform_rate'])))]
         l2 = [(i/len(sol2), 1) for i in sorted(random.sample(range(len(sol2)), math.ceil(len(sol2)*self.config['uniform_rate'])))]
         for (x, k) in sorted(l1+l2):

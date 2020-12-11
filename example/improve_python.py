@@ -20,10 +20,6 @@ from improve_java import ExpProtocol
 # ================================================================================
 
 class MyProgram(AbstractProgram):
-    def load_config(self, path, config):
-        self.target_files = ["triangle.py"]
-        self.test_command = "pytest -s test_triangle.py"
-
     def create_edit(self, patch=None):
         operator = random.choice(self.possible_edits)
         return operator.create(self)
@@ -42,11 +38,15 @@ class MyProgram(AbstractProgram):
             result.status = 'PARSE_ERROR'
 
 class MyLineProgram(LineProgram, MyProgram):
-    def setup(self):
+    def setup(self, config={}):
+        self.target_files = ["triangle.py"]
+        self.test_command = "pytest -s test_triangle.py"
         self.possible_edits = [LineReplacement, LineInsertion, LineDeletion]
 
 class MyTreeProgram(TreeProgram, MyProgram):
-    def setup(self):
+    def setup(self, config={}):
+        self.target_files = ["triangle.py"]
+        self.test_command = "pytest -s test_triangle.py"
         self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
 
 

@@ -4,13 +4,9 @@ from . import AbstractTreeEngine, XmlEngine
 
 
 class StmtReplacement(AbstractEdit):
-    def __init__(self, target, ingredient):
-        self.target = target
-        self.ingredient = ingredient
-
     def apply(self, program, new_contents, modification_points):
         engine = program.engines[self.target[0]]
-        return engine.do_replace(program, self, new_contents, modification_points)
+        return engine.do_replace(program, self.target, self.data[0], new_contents, modification_points)
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None, method='random'):
@@ -23,15 +19,9 @@ class StmtReplacement(AbstractEdit):
                    program.random_target(ingr_file, 'random'))
 
 class StmtInsertion(AbstractEdit):
-    def __init__(self, target, ingredient, direction='before'):
-        assert direction in ['before', 'after']
-        self.target = target
-        self.ingredient = ingredient
-        self.direction = direction
-
     def apply(self, program, new_contents, modification_points):
         engine = program.engines[self.target[0]]
-        return engine.do_insert(program, self, new_contents, modification_points)
+        return engine.do_insert(program, self.target, self.data[0], self.data[1], new_contents, modification_points)
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None, direction=None, method='random'):
@@ -47,12 +37,9 @@ class StmtInsertion(AbstractEdit):
                    direction)
 
 class StmtDeletion(AbstractEdit):
-    def __init__(self, target):
-        self.target = target
-
     def apply(self, program, new_contents, modification_points):
         engine = program.engines[self.target[0]]
-        return engine.do_delete(program, self, new_contents, modification_points)
+        return engine.do_delete(program, self.target, new_contents, modification_points)
 
     @classmethod
     def create(cls, program, target_file=None, method='random'):
@@ -61,18 +48,10 @@ class StmtDeletion(AbstractEdit):
         return cls(program.random_target(target_file, method))
 
 class StmtMoving(AbstractEdit):
-    def __init__(self, target, ingredient, direction='before'):
-        assert direction in ['before', 'after']
-        self.target = target
-        self.ingredient = ingredient
-        self.direction = direction
-
     def apply(self, program, new_contents, modification_points):
         engine = program.engines[self.target[0]]
-        engine.do_insert(program, self, new_contents, modification_points)
-        self.target, self.ingredient = self.ingredient, self.target
-        return_code = engine.do_delete(program, self, new_contents, modification_points)
-        self.target, self.ingredient = self.ingredient, self.target
+        engine.do_insert(program, self.target, self.data[0], self.data[1], new_contents, modification_points)
+        return_code = engine.do_delete(program, self.data[0], new_contents, modification_points)
         return return_code
 
     @classmethod
@@ -88,16 +67,18 @@ class StmtMoving(AbstractEdit):
                    program.random_target(ingr_file, 'random'),
                    direction)
 
+class ExprReplacement(StmtReplacement):
+    pass
+
+class ConditionReplacement(StmtReplacement):
+    pass
+
 class TextSetting(AbstractEdit):
     CHOICES = ['']
 
-    def __init__(self, target, value):
-        self.target = target
-        self.value = value
-
     def apply(self, program, new_contents, modification_points):
         engine = program.engines[self.target[0]]
-        return engine.do_set_text(program, self.target, self.value, new_contents, modification_points)
+        return engine.do_set_text(program, self.target, self.data[0], new_contents, modification_points)
 
     @classmethod
     def create(cls, program, target_file=None, method='random', choices=None):
@@ -112,13 +93,9 @@ class TextSetting(AbstractEdit):
 class TextWrapping(AbstractEdit):
     CHOICES = [('(', ')')]
 
-    def __init__(self, target, value):
-        self.target = target
-        self.value = value
-
     def apply(self, program, new_contents, modification_points):
         engine = program.engines[self.target[0]]
-        return engine.do_wrap_text(program, self.target, self.value[0], self.value[1], new_contents, modification_points)
+        return engine.do_wrap_text(program, self.target, self.data[0][0], self.data[0][1], new_contents, modification_points)
 
     @classmethod
     def create(cls, program, target_file=None, method='random', choices=None):

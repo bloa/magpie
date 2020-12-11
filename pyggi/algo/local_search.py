@@ -16,13 +16,12 @@ class LocalSearch(Algorithm):
         self.config['max_neighbours'] = None
         self.config['trapped_strategy'] = 'continue'
         self.config['mutate_strategy'] = None
-        self.config['nb_instances'] = None
 
     def hook_warmup(self):
         self.program.logger.info('==== WARMUP ====')
 
     def hook_warmup_evaluation(self, count, patch, run):
-        self.aux_log_eval(count, run.status, ' ', run.fitness, patch)
+        self.aux_log_eval(count, run.status, ' ', run.fitness, None, patch)
 
     def hook_evaluation(self, patch, run, accept, best):
         if best:
@@ -31,17 +30,18 @@ class LocalSearch(Algorithm):
             c = '+'
         else:
             c = ' '
-        self.aux_log_eval(self.stats['steps']+1, run.status, c, run.fitness, patch)
+        self.aux_log_eval(self.stats['steps']+1, run.status, c, run.fitness, self.report['initial_fitness'], patch)
         if accept or best:
             self.program.logger.debug(self.program.diff(patch))
 
-    def aux_log_eval(self, counter, status, c, fitness, data):
-        self.program.logger.info('{}\t{}\t{}{}\t{}'.format(counter, status, c, fitness, data))
+    def aux_log_eval(self, counter, status, c, fitness, baseline, data):
+        s = ' ({}%)'.format(round(100*fitness/baseline, 2)) if fitness and baseline else ''
+        self.program.logger.info('{}\t{}\t{}{}{}\t{}'.format(counter, status, c, fitness, s, data))
 
     def run(self):
         # warmup
         self.hook_warmup()
-        empty_patch = Patch(self.program)
+        empty_patch = Patch()
         if self.report['initial_patch'] is None:
             self.report['initial_patch'] = empty_patch
         for i in range(self.config['warmup']+1, 0, -1):
@@ -137,8 +137,7 @@ class DebugSearch(LocalSearch):
         debug_patch = self.report['debug_patch']
         for edit in debug_patch.edit_list:
             # move
-            patch = Patch(self.program)
-            patch.add(edit)
+            patch = Patch([edit])
 
             # compare
             run = self.evaluate_patch(patch)
@@ -167,7 +166,7 @@ class RandomSearch(LocalSearch):
 
     def explore(self, current_patch, current_fitness):
         # move
-        patch = Patch(self.program)
+        patch = Patch()
         self.mutate(patch)
 
         # compare
@@ -388,12 +387,8 @@ class TabuSearch(BestImprovement):
         super().setup()
         self.name = 'Tabu Search'
         self.config['tabu_length'] = 10
-        self.tabu_list = [] # queues are not iterable
+        self.tabu_list = [Patch()] # queues are not iterable
         self.local_tabu = set()
-
-    def run(self):
-        self.tabu_list.append(Patch(self.program))
-        return super().run()
 
     def explore(self, current_patch, current_fitness):
         # move

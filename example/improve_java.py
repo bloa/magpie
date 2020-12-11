@@ -30,17 +30,19 @@ class ExpProtocol:
 
         logger = self.program.logger
         result = []
+        default_result = {'stop': None, 'best_patch': []}
         try:
             for epoch in range(self.nb_epoch):
+                result.append(default_result)
                 logger.info('========== EPOCH {} =========='.format(epoch+1))
                 self.search.reset()
                 self.search.run()
                 r = copy.deepcopy(self.search.report)
                 r['diff'] = self.program.diff(r['best_patch'])
-                result.append(r)
+                result[epoch] = r
                 logger.info('')
         except KeyboardInterrupt:
-            pass
+            result[epoch]['stop'] = 'keyboard interrupt'
 
         logger.info('========== REPORT ==========')
         for epoch in range(len(result)):
@@ -74,12 +76,10 @@ class MyProgram(AbstractProgram):
             result.status = 'PARSE_ERROR'
 
 class MyLineProgram(LineProgram, MyProgram):
-    def setup(self):
-        self.possible_edits = [LineReplacement, LineInsertion, LineDeletion]
-
-    def load_config(self, path, config):
+    def setup(self, config):
         self.target_files = ["Triangle.java"]
         self.test_command = "./run.sh"
+        self.possible_edits = [LineReplacement, LineInsertion, LineDeletion]
 
 class MySrcmlEngine(SrcmlEngine):
     TAG_RENAME = {
@@ -90,12 +90,10 @@ class MySrcmlEngine(SrcmlEngine):
     PROCESS_OPERATORS = False
 
 class MyTreeProgram(MyProgram):
-    def setup(self):
-        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
-
-    def load_config(self, path, config):
+    def setup(self, config):
         self.target_files = ["Triangle.java.xml"]
         self.test_command = "./run.sh"
+        self.possible_edits = [StmtReplacement, StmtInsertion, StmtDeletion]
 
     @classmethod
     def get_engine(cls, file_name):

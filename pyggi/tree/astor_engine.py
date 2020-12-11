@@ -32,45 +32,45 @@ class AstorEngine(AbstractTreeEngine):
         return astor.to_source(contents_of_file)
 
     @classmethod
-    def do_replace(cls, program, op, new_contents, modification_points):
-        dst_root = new_contents[op.target[0]]
-        dst_pos = modification_points[op.target[0]][op.target[1]]
-        ingr_root = program.contents[op.ingredient[0]]
-        ingr_pos = program.modification_points[op.ingredient[0]][op.ingredient[1]]
+    def do_replace(cls, program, target_dest, target_orig, new_contents, modification_points):
+        dst_root = new_contents[target_dest[0]]
+        dst_pos = modification_points[target_dest[0]][target_dest[1]]
+        ingr_root = program.contents[target_orig[0]]
+        ingr_pos = program.modification_points[target_orig[0]][target_orig[1]]
         return cls.replace((dst_root, dst_pos), (ingr_root, ingr_pos))
 
     @classmethod
-    def do_insert(cls, program, op, new_contents, modification_points):
-        dst_root = new_contents[op.target[0]]
-        dst_pos = modification_points[op.target[0]][op.target[1]]
-        ingr_root = program.contents[op.ingredient[0]]
-        ingr_pos = program.modification_points[op.ingredient[0]][op.ingredient[1]]
-        if op.direction == 'before':
+    def do_insert(cls, program, target_dest, target_orig, direction, new_contents, modification_points):
+        dst_root = new_contents[target_dest[0]]
+        dst_pos = modification_points[target_dest[0]][target_dest[1]]
+        ingr_root = program.contents[target_orig[0]]
+        ingr_pos = program.modification_points[target_orig[0]][target_orig[1]]
+        if direction == 'before':
             success = cls.insert_before((dst_root, dst_pos), (ingr_root, ingr_pos))
             if success:
                 depth = len(dst_pos)
                 parent = dst_pos[:depth-1]
                 index = dst_pos[depth-1][1]
-                for pos in modification_points[op.target[0]]:
+                for pos in modification_points[target_dest[0]]:
                     if parent == pos[:depth-1] and len(pos) >= depth and index <= pos[depth-1][1]:
                         a, i = pos[depth-1]
                         pos[depth-1] = (a, i + 1)
-        elif op.direction == 'after':
+        elif direction == 'after':
             success = cls.insert_after((dst_root, dst_pos), (ingr_root, ingr_pos))
             if success:
                 depth = len(dst_pos)
                 parent = dst_pos[:depth-1]
                 index = dst_pos[depth - 1][1]
-                for pos in modification_points[op.target[0]]:
+                for pos in modification_points[target_dest[0]]:
                     if parent == pos[:depth-1] and len(pos) >= depth and index < pos[depth-1][1]:
                         a, i = pos[depth-1]
                         pos[depth-1] = (a, i + 1)
         return success
 
     @classmethod
-    def do_delete(cls, program, op, new_contents, modification_points):
-        dst_root = new_contents[op.target[0]]
-        dst_pos = modification_points[op.target[0]][op.target[1]]
+    def do_delete(cls, program, target, new_contents, modification_points):
+        dst_root = new_contents[target[0]]
+        dst_pos = modification_points[target[0]][target[1]]
         return cls.replace((dst_root, dst_pos), None)
 
     @classmethod

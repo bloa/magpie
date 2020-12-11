@@ -37,8 +37,7 @@ class ValidSingle(ValidSearch):
 
         for edit in cleaned_patch.edit_list:
             # move
-            patch = Patch(self.program)
-            patch.add(edit)
+            patch = Patch([edit])
 
             # compare
             run = self.evaluate_patch(patch)
@@ -61,6 +60,36 @@ class ValidSingle(ValidSearch):
         self.report['stop'] = 'validation end'
         return current_patch, current_fitness
 
+class ValidTest(ValidSearch):
+    def setup(self):
+        super().setup()
+        self.name = 'Validation Ranking'
+        self.debug_patch = Patch()
+
+    def explore(self, current_patch, current_fitness):
+        assert self.debug_patch is not None
+        self.cleaned_patch = self.clean_patch(self.debug_patch)
+        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
+        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch), len(self.debug_patch))
+        self.report['best_fitness'] = None
+        self.report['best_patch'] = None
+        self.report['cleaned_patch'] = self.cleaned_patch
+
+        # full patch only
+        run = self.evaluate_patch(self.cleaned_patch)
+        accept = best = False
+        if run.status == 'SUCCESS':
+            accept = True
+            if self.dominates(run.fitness, self.report['best_fitness']):
+                self.report['best_fitness'] = run.fitness
+                self.report['best_patch'] = self.cleaned_patch
+                best = True
+        self.hook_evaluation(self.cleaned_patch, run, accept, best)
+        self.stats['steps'] += 1
+
+        self.report['stop'] = 'validation end'
+        return current_patch, current_fitness
+
 class ValidRanking(ValidSearch):
     def setup(self):
         super().setup()
@@ -74,13 +103,25 @@ class ValidRanking(ValidSearch):
         self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch), len(self.debug_patch))
         self.report['best_fitness'] = None
         self.report['best_patch'] = None
+        self.report['cleaned_patch'] = self.cleaned_patch
+
+        # full patch first
+        run = self.evaluate_patch(self.cleaned_patch)
+        accept = best = False
+        if run.status == 'SUCCESS':
+            accept = True
+            if self.dominates(run.fitness, self.report['best_fitness']):
+                self.report['best_fitness'] = run.fitness
+                self.report['best_patch'] = self.cleaned_patch
+                best = True
+        self.hook_evaluation(self.cleaned_patch, run, accept, best)
+        self.stats['steps'] += 1
 
         # ranking
         ranking = list()
-        for edit in cleaned_patch.edit_list:
+        for edit in self.cleaned_patch.edit_list:
             # move
-            patch = Patch(self.program)
-            patch.add(edit)
+            patch = Patch([edit])
 
             # compare
             run = self.evaluate_patch(patch)
@@ -101,7 +142,7 @@ class ValidRanking(ValidSearch):
 
         # rebuild
         ranking.sort(key=lambda c: c[1])
-        rebuild = Patch(self.program)
+        rebuild = Patch()
         # todo: fail if first bad
         for (k,(edit,_)) in enumerate(ranking):
             # move

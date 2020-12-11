@@ -15,9 +15,8 @@ class Patch:
     properties, via the predefined format that PYGGI recognises.
 
     """
-    def __init__(self, program):
-        self.program = program
-        self.edit_list = []
+    def __init__(self, edit_list=None):
+        self.edit_list = edit_list or []
 
     def __str__(self):
         return ' | '.join(map(str, self.edit_list))
@@ -31,6 +30,9 @@ class Patch:
     def __hash__(self):
         return hash(str(self))
 
+    def raw(self):
+        return [{'type': edit.__class__.__name__, 'target': edit.target, 'data': edit.data} for edit in self.edit_list]
+
     def clone(self):
         """
         Create a new patch which has the same sequence of edits with the current one.
@@ -38,13 +40,7 @@ class Patch:
         :return: The created Patch
         :rtype: :py:class:`.Patch`
         """
-        clone_patch = Patch(self.program)
-        clone_patch.edit_list = deepcopy(self.edit_list)
-        return clone_patch
-
-    @property
-    def diff(self):
-        return self.program.diff(self)
+        return Patch(deepcopy(self.edit_list))
 
     def add(self, edit):
         """

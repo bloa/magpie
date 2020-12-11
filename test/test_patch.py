@@ -5,21 +5,19 @@ from pyggi.line import LineDeletion, LineMoving, LineInsertion
 
 @pytest.fixture(scope='session')
 def setup():
-    program = LineProgram('../sample/Triangle_bug_java')
+    config = {
+        'target_files': ["Triangle.java"],
+        'test_command': "./run.sh",
+    }
+    program = LineProgram('../sample/Triangle_bug_java', config=config)
     assert len(program.target_files) == 1
     assert program.target_files[0] == 'Triangle.java'
 
-    patch = Patch(program)
+    patch = Patch()
     return patch, program
 
 
 class TestPatch(object):
-
-    def test_init(self, setup):
-        patch, program = setup
-
-        assert patch.program == program
-        assert len(patch.edit_list) == 0
 
     def test_str(self, setup):
         patch, program = setup
@@ -31,18 +29,10 @@ class TestPatch(object):
 
         assert len(patch.edit_list) == len(patch)
 
-    def test_eq(self, setup):
-        patch, program = setup
-        program2 = LineProgram('../sample/Triangle_bug_java')
-        patch2 = Patch(program2)
-
-        assert patch == patch2
-
     def test_clone(self, setup):
         patch, program = setup
         cloned_patch = patch.clone()
 
-        assert cloned_patch.program == patch.program
         assert cloned_patch == patch
 
     def test_add(self, setup):

@@ -62,14 +62,14 @@ $ python setup.py install
 
 ```bash
 $ cd example
-$ python improve_java.py --project_path ../sample/Triangle_fast_java --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
+$ python improve_java.py --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
 ```
 
 * python
 
 ```bash
 $ cd example
-$ python improve_python.py --project_path ../sample/Triangle_fast_python/ --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
+$ python improve_python.py --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
 ```
 
 ##### 2. Repairing the bug of Triangle
@@ -77,14 +77,22 @@ $ python improve_python.py --project_path ../sample/Triangle_fast_python/ --mode
 
 ```bash
 $ cd example
-$ python repair_java.py --project_path ../sample/Triangle_bug_java --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
+$ python repair_java.py --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
 ```
 
 * python
 
 ```bash
 $ cd example
-$ python repair_python.py --project_path ../sample/Triangle_bug_python/ --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
+$ python repair_python.py --mode [line|tree] --epoch [EPOCH] --iter [MAX_ITER]
+```
+
+##### 3. Operating over multiple node types simultaneously
+* java
+
+```bash
+$ cd example
+$ python repair_java2.py --epoch [EPOCH] --iter [MAX_ITER]
 ```
 
 ##### Important notice about using `tree` mode for Java, C++, or C programs

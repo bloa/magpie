@@ -1,4 +1,6 @@
 from .edit import AbstractEdit
 from .patch import Patch
-from .program import AbstractProgram, AbstractEngine, RunResult
+from .runresult import RunResult
+from .engine import AbstractEngine
+from .program import AbstractProgram
 from .algorithm import Algorithm
