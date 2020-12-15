@@ -15,8 +15,8 @@ class AbstractParamsEngine(AbstractEngine):
         return cls.get_default_params()
 
     @classmethod
-    def get_modification_points(cls, contents_of_file):
-        return cls.KEYS
+    def get_locations(cls, contents_of_file):
+        return {'param': cls.KEYS}
 
     @classmethod
     def get_default_params(cls):
@@ -51,9 +51,9 @@ class AbstractParamsEngine(AbstractEngine):
         return True
 
     @classmethod
-    def do_set(cls, program, target, value, new_contents, modification_points):
+    def do_set(cls, contents, locations, new_contents, new_locations, target, value):
         config = new_contents[target[0]]
-        key = cls.KEYS[target[1]]
+        key = cls.KEYS[target[2]]
         used = cls.would_be_valid(config, key, value) and not cls.would_be_ignored(config, key, value)
         if used:
             config[key] = value

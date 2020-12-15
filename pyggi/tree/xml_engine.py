@@ -5,6 +5,8 @@ from . import AbstractTreeEngine
 from xml.etree import ElementTree
 
 class XmlEngine(AbstractTreeEngine):
+    INTERNODES = []
+
     @classmethod
     def process_tree(cls, tree):
         pass
@@ -17,8 +19,15 @@ class XmlEngine(AbstractTreeEngine):
         return tree
 
     @classmethod
-    def get_modification_points(cls, contents_of_file):
+    def get_locations(cls, contents_of_file):
         def aux(accu, prefix, root):
+            if not cls.INTERNODES or root.tag in cls.INTERNODES:
+                for i in range(len(root)+1):
+                    s = '{}><{}'.format(prefix, i) # "><" is safe because illegal
+                    try:
+                        accu['_inter_{}'.format(root.tag)].append(s)
+                    except KeyError:
+                        accu['_inter_{}'.format(root.tag)] = [s]
             tags = dict()
             for child in root:
                 if child.tag in tags:
@@ -26,15 +35,13 @@ class XmlEngine(AbstractTreeEngine):
                 else:
                     tags[child.tag] = 1
                 s = '{}/{}[{}]'.format(prefix, child.tag, tags[child.tag])
-                accu.append(s)
+                try:
+                    accu[child.tag].append(s)
+                except KeyError:
+                    accu[child.tag] = [s]
                 accu = aux(accu, s, child)
             return accu
-        return aux([], '.', contents_of_file)
-
-    @classmethod
-    def get_source(cls, program, file_name, index):
-        # never used?
-        return cls.dump(program.contents[file_name].find(program.modification_points[file_name][index]))
+        return aux({}, '.', contents_of_file)
 
     @classmethod
     def write_to_tmp_dir(cls, contents_of_file, tmp_path):
@@ -87,14 +94,16 @@ class XmlEngine(AbstractTreeEngine):
                 return (None, None, None, None)
 
     @classmethod
-    def do_replace(cls, program, target_dest, target_orig, new_contents, modification_points):
+    def do_replace(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
         # get elements
-        target = new_contents[target_dest[0]].find(modification_points[target_dest[0]][target_dest[1]])
-        ingredient = program.contents[target_orig[0]].find(program.modification_points[target_orig[0]][target_orig[1]])
+        d_f, d_t, d_i = target_dest # file name, tag, xpath index
+        o_f, o_t, o_i = target_orig # file name, tag, xpath index
+        target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
+        ingredient = contents[o_f].find(locations[o_f][o_t][o_i])
         if target is None or ingredient is None:
             return False
-        if target == ingredient:
-            return True
+        if cls.tree_to_string(target) == cls.tree_to_string(ingredient):
+            return False
 
         # mutate
         old_tag = target.tag
@@ -109,17 +118,17 @@ class XmlEngine(AbstractTreeEngine):
 
         # update modification points
         if old_tag != ingredient.tag:
-            head, tag, pos, _ = cls.split_xpath(modification_points[target_dest[0]][target_dest[1]])
+            head, tag, pos, _ = cls.split_xpath(new_locations[d_f][d_t][d_i])
             itag = 1
-            for i, xpath in enumerate(modification_points[target_dest[0]]):
+            for i, xpath in enumerate(new_locations[d_f][d_t]):
                 h, t, p, s = cls.split_xpath(xpath, head)
-                if i < target_dest[1]:
+                if i < d_i:
                     if h != head:
                         continue
                     elif t == ingredient.tag:
                         itag += 1
-                elif i == target_dest[1]:
-                    modification_points[target_dest[0]][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
+                elif i == d_i:
+                    new_locations[d_f][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
                 elif h != head:
                     break
                 elif t == tag:
@@ -129,64 +138,78 @@ class XmlEngine(AbstractTreeEngine):
                         new_pos = '{}/{}[{}]/{}'.format(h, t, p-1, s)
                     else:
                         new_pos = '{}/{}[{}]'.format(h, t, p-1)
-                    modification_points[target_dest[0]][i] = new_pos
+                    new_locations[d_f][i] = new_pos
                 elif t == ingredient.tag:
                     if s:
                         new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
                     else:
                         new_pos = '{}/{}[{}]'.format(h, t, p+1)
-                    modification_points[target_dest[0]][i] = new_pos
+                    new_locations[d_f][i] = new_pos
+        xpath = new_locations[d_f][d_t][d_i]
+        for i, xpath_inter in enumerate(new_locations[d_f][d_t]):
+            if xpath_inter[:len(xpath)] == xpath:
+                new_locations[d_f][d_t][i] = 'deleted'
         return True
 
     @classmethod
-    def do_insert(cls, program, target_dest, target_orig, direction, new_contents, modification_points):
+    def do_insert(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
         # get elements
-        target = new_contents[target_dest[0]].find(modification_points[target_dest[0]][target_dest[1]])
-        parent = new_contents[target_dest[0]].find(modification_points[target_dest[0]][target_dest[1]]+'..')
-        ingredient = program.contents[target_orig[0]].find(program.modification_points[target_orig[0]][target_orig[1]])
-        if target is None or ingredient is None:
+        d_f, d_t, d_i = target_dest # file name, tag, xpath index
+        o_f, o_t, o_i = target_orig # file name, tag, xpath index
+        if new_locations[d_f][d_t][d_i] == 'deleted':
+            return False
+        parent_xpath, insert_index = new_locations[d_f][d_t][d_i].split('><')
+        insert_index = int(insert_index)
+        parent = new_contents[d_f].find(parent_xpath)
+        ingredient = contents[o_f].find(locations[o_f][o_t][o_i])
+        if parent is None or ingredient is None:
             return False
 
         # mutate
         sp = cls.guess_spacing(parent.text)
-        for i, child in enumerate(parent):
-            if child == target:
-                tmp = copy.deepcopy(ingredient)
-                if direction == 'after':
-                    tmp.tail = child.tail
-                    child.tail = '\n' + sp
-                    i += 1
-                else:
-                    tmp.tail = '\n' + sp
-                parent.insert(i, tmp)
-                break
-            sp = cls.guess_spacing(child.tail)
+        tmp = copy.deepcopy(ingredient)
+        if insert_index == 0:
+            tmp.tail = "\n" + sp
+            parent.insert(insert_index, tmp)
         else:
-            assert False
+            for i, child in enumerate(parent):
+                if i == insert_index-1:
+                    tmp.tail = child.tail
+                    child.tail = "\n" + sp
+                    parent.insert(insert_index, tmp)
+                    break
+                sp = cls.guess_spacing(child.tail)
+            else:
+                assert False
 
         # update modification points
-        head, tag, pos, _ = cls.split_xpath(modification_points[target_dest[0]][target_dest[1]])
-        for i, xpath in enumerate(modification_points[target_dest[0]]):
-            if i < target_dest[1]:
+        for i, xpath in enumerate(new_locations[d_f][o_t]):
+            if xpath == 'deleted':
                 continue
-            h, t, p, s = cls.split_xpath(xpath, head)
-            if h != head and xpath != 'deleted':
-                break
-            if t == tag and p == pos and direction == 'after':
+            h, t, p, s = cls.split_xpath(xpath, parent_xpath)
+            if h != parent_xpath or t != ingredient.tag or p < insert_index:
                 continue
-            if t in [ingredient.tag, tag]:
-                if s:
-                    new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
-                else:
-                    new_pos = '{}/{}[{}]'.format(h, t, p+1)
-                modification_points[target_dest[0]][i] = new_pos
+            if s:
+                new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
+            else:
+                new_pos = '{}/{}[{}]'.format(h, t, p+1)
+            new_locations[d_f][o_t][i] = new_pos
+        for i, xpath_inter in enumerate(new_locations[d_f][d_t]):
+            xpath, index = xpath_inter.split('><')
+            index = int(index)
+            if xpath != parent_xpath or index < insert_index:
+                continue
+            new_locations[d_f][d_t][i] = '{}><{}'.format(xpath, index+1)
         return True
 
     @classmethod
-    def do_delete(cls, program, target, new_contents, modification_points):
+    def do_delete(cls, contents, locations, new_contents, new_locations, target):
         # get elements
-        target = new_contents[target[0]].find(modification_points[target[0]][target[1]])
+        d_f, d_t, d_i = target # file name, tag, xpath index
+        target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
         if target is None:
+            return False
+        if len(target) == 0 and target.text == None: # (probably) already deleted
             return False
 
         # mutate
@@ -198,20 +221,24 @@ class XmlEngine(AbstractTreeEngine):
         return True
 
     @classmethod
-    def do_set_text(cls, program, target, value, new_contents, modification_points):
-        target = new_contents[target[0]].find(modification_points[target[0]][target[1]])
-        if target is None:
+    def do_set_text(cls, contents, locations, new_contents, new_locations, target, value):
+        d_f, d_t, d_i = target # file name, tag, xpath index
+        target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
+        if target is None or target.text == value:
             return False
-        target.text = value
-        return True
+        else:
+            target.text = value
+            return True
 
     @classmethod
-    def do_wrap_text(cls, program, target, prefix, suffix, new_contents, modification_points):
-        target = new_contents[target[0]].find(modification_points[target[0]][target[1]])
+    def do_wrap_text(cls, contents, locations, new_contents, new_locations, target, prefix, suffix):
+        d_f, d_t, d_i = target # file name, tag, xpath index
+        target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
         if target is None:
             return False
-        target.text = prefix + (target.text or '') + suffix
-        return True
+        else:
+            target.text = prefix + (target.text or '') + suffix
+            return True
 
     @classmethod
     def focus_tags(cls, element, tags):

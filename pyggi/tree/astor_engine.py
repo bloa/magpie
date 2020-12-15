@@ -9,69 +9,86 @@ class AstorEngine(AbstractTreeEngine):
         return astor.parse_file(file_path)
 
     @classmethod
-    def get_modification_points(cls, root):
-        modification_points = list()
+    def get_locations(cls, root):
+        stmts = []
+        inter = []
         def visit_node(parent_pos, node):
             for attr in ['body', 'orelse', 'finalbody']:
                 if hasattr(node, attr):
+                    inter.append(parent_pos[:] + [(attr, 0)])
                     for i in range(len(node.__dict__[attr])):
+                        inter.append(parent_pos[:] + [(attr, i+1)])
                         current_pos = parent_pos[:] + [(attr, i)]
-                        modification_points.append(current_pos)
+                        stmts.append(current_pos)
                         visit_node(current_pos, node.__dict__[attr][i])
         visit_node([], root)
-        return modification_points
-
-    @classmethod
-    def get_source(cls, program, file_name, index):
-        blk, idx = cls.pos_2_block_n_index(program.contents[file_name],
-                                       program.modification_points[file_name][index])
-        return astor.to_source(blk[idx])
+        return {'stmt': stmts, '_inter_block': inter}
 
     @classmethod
     def dump(cls, contents_of_file):
         return astor.to_source(contents_of_file)
 
     @classmethod
-    def do_replace(cls, program, target_dest, target_orig, new_contents, modification_points):
-        dst_root = new_contents[target_dest[0]]
-        dst_pos = modification_points[target_dest[0]][target_dest[1]]
-        ingr_root = program.contents[target_orig[0]]
-        ingr_pos = program.modification_points[target_orig[0]][target_orig[1]]
-        return cls.replace((dst_root, dst_pos), (ingr_root, ingr_pos))
+    def do_replace(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
+        d_f, d_t, d_i = target_dest # file name, tag, path index
+        o_f, o_t, o_i = target_orig # file name, tag, path index
+        dst_root = new_contents[d_f]
+        dst_pos = new_locations[d_f][d_t][d_i]
+        ingr_root = contents[o_f]
+        ingr_pos = locations[o_f][o_t][o_i]
+        if cls.is_valid_pos(dst_root, dst_pos) and cls.is_valid_pos(ingr_root, ingr_pos):
+            dst_block, dst_index = cls.pos_2_block_n_index(dst_root, dst_pos)
+            src_block, src_index = cls.pos_2_block_n_index(ingr_root, ingr_pos)
+            if ast.dump(dst_block[dst_index]) == ast.dump(src_block[src_index]):
+                return False
+            else:
+                dst_block[dst_index] = copy.deepcopy(src_block[src_index])
+                return True
+        else:
+            return False
 
     @classmethod
-    def do_insert(cls, program, target_dest, target_orig, direction, new_contents, modification_points):
-        dst_root = new_contents[target_dest[0]]
-        dst_pos = modification_points[target_dest[0]][target_dest[1]]
-        ingr_root = program.contents[target_orig[0]]
-        ingr_pos = program.modification_points[target_orig[0]][target_orig[1]]
-        if direction == 'before':
-            success = cls.insert_before((dst_root, dst_pos), (ingr_root, ingr_pos))
-            if success:
-                depth = len(dst_pos)
-                parent = dst_pos[:depth-1]
-                index = dst_pos[depth-1][1]
-                for pos in modification_points[target_dest[0]]:
-                    if parent == pos[:depth-1] and len(pos) >= depth and index <= pos[depth-1][1]:
-                        a, i = pos[depth-1]
-                        pos[depth-1] = (a, i + 1)
-        elif direction == 'after':
-            success = cls.insert_after((dst_root, dst_pos), (ingr_root, ingr_pos))
-            if success:
-                depth = len(dst_pos)
-                parent = dst_pos[:depth-1]
-                index = dst_pos[depth - 1][1]
-                for pos in modification_points[target_dest[0]]:
-                    if parent == pos[:depth-1] and len(pos) >= depth and index < pos[depth-1][1]:
-                        a, i = pos[depth-1]
-                        pos[depth-1] = (a, i + 1)
-        return success
+    def do_insert(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
+        d_f, d_t, d_i = target_dest # file name, tag, path index
+        o_f, o_t, o_i = target_orig # file name, tag, path index
+        dst_root = new_contents[d_f]
+        dst_pos = new_locations[d_f][d_t][d_i]
+        ingr_root = contents[o_f]
+        ingr_pos = locations[o_f][o_t][o_i]
+        if cls.is_valid_pos(dst_root, dst_pos[:-1]) and cls.is_valid_pos(ingr_root, ingr_pos):
+            dst_block, dst_index = cls.pos_2_block_n_index(dst_root, dst_pos)
+            src_block, src_index = cls.pos_2_block_n_index(ingr_root, ingr_pos)
+            dst_block.insert(dst_index, copy.deepcopy(src_block[src_index]))
+            depth = len(dst_pos)
+            parent = dst_pos[:depth-1]
+            index = dst_pos[depth - 1][1]
+            for pos in new_locations[d_f][o_t]:
+                if pos[:depth-1] == parent and len(pos) >= depth and index <= pos[depth-1][1]:
+                    a, i = pos[depth-1]
+                    pos[depth-1] = (a, i + 1)
+            for pos in new_locations[d_f][d_t]:
+                if pos[:depth-1] == parent and len(pos) >= depth and index <= pos[depth-1][1]:
+                    a, i = pos[depth-1]
+                    pos[depth-1] = (a, i + 1)
+            return True
+        else:
+            return False
 
     @classmethod
-    def do_delete(cls, program, target, new_contents, modification_points):
-        dst_root = new_contents[target[0]]
-        dst_pos = modification_points[target[0]][target[1]]
-        return cls.replace((dst_root, dst_pos), None)
+    def do_delete(cls, contents, locations, new_contents, new_locations, target):
+        d_f, d_t, d_i = target # file name, tag, path index
+        dst_root = new_contents[d_f]
+        dst_pos = new_locations[d_f][d_t][d_i]
+        if cls.is_valid_pos(dst_root, dst_pos):
+            dst_block, dst_index = cls.pos_2_block_n_index(dst_root, dst_pos)
+            print(dst_block[dst_index])
+            if isinstance(dst_block[dst_index], ast.Pass):
+                return False
+            else:
+                dst_block[dst_index] = ast.Pass()
+                return True
+        else:
+            return False
 
     @classmethod
     def is_pos_type(cls, pos):
@@ -117,89 +134,12 @@ class AstorEngine(AbstractTreeEngine):
         :return: The node's parent block and the index within the block
         :rtype: tuple(:py:class:`ast.AST`, int)
         """
+        return (cls.pos_2_block(root, pos), pos[-1][1])
+
+    @classmethod
+    def pos_2_block(cls, root, pos):
         node = root
         for i in range(len(pos) - 1):
             block, index = pos[i]
             node = node.__dict__[block][index]
-        return (node.__dict__[pos[-1][0]], pos[-1][1])
-
-    @classmethod
-    def replace(cls, dst, src):
-        """
-        Replace *dst* with *src*
-        :param dst: The root and the position of the destination node
-        :type dst: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :param src: None or The root and the position of the source node. If none, *dst* is replaced with a pass statement.
-        :type src: None or tuple(:py:class:`ast.AST`, list(tuple(str, int))
-        :return: Success or not
-        :rtype: bool
-        """
-        if not cls.is_valid_pos(*dst):
-            return False
-        if src and not cls.is_valid_pos(*src):
-            return False
-        dst_block, dst_index = cls.pos_2_block_n_index(*dst)
-        if src:
-            src_block, src_index = cls.pos_2_block_n_index(*src)
-            dst_block[dst_index] = copy.deepcopy(src_block[src_index])
-        else:
-            dst_block[dst_index] = ast.Pass()
-        return True
-
-    @classmethod
-    def swap(cls, a, b):
-        """
-        Swap *a* and *b*
-
-        :param a: The root and position of node a
-        :type a: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :param b: The root and position of node b
-        :type b: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :return: Success or not
-        :rtype: bool
-        """
-        if not cls.is_valid_pos(*a) or not cls.is_valid_pos(*b):
-            return False
-        a_block, a_index = cls.pos_2_block_n_index(*a)
-        b_block, b_index = cls.pos_2_block_n_index(*b)
-        a_block[a_index], b_block[b_index] = copy.deepcopy(b_block[b_index]), copy.deepcopy(
-            a_block[a_index])
-        return True
-
-    @classmethod
-    def insert_before(cls, dst, src):
-        """
-        Insert *src* before *dst*
-
-        :param dst: The root and position of the destination node
-        :type dst: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :param src: The root and position of the source node
-        :type src: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :return: Success or not
-        :rtype: bool
-        """
-        if not cls.is_valid_pos(*dst) or not cls.is_valid_pos(*src):
-            return False
-        dst_block, dst_index = cls.pos_2_block_n_index(*dst)
-        src_block, src_index = cls.pos_2_block_n_index(*src)
-        dst_block.insert(dst_index, copy.deepcopy(src_block[src_index]))
-        return True
-
-    @classmethod
-    def insert_after(cls, dst, src):
-        """
-        Insert *src* after *dst*
-
-        :param dst: The root and position of the destination node
-        :type dst: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :param src: The root and position of the source node
-        :type src: tuple(:py:class:`ast.AST`, list(tuple(str, int)))
-        :return: Success or not
-        :rtype: bool
-        """
-        if not cls.is_valid_pos(*dst) or not cls.is_valid_pos(*src):
-            return False
-        dst_block, dst_index = cls.pos_2_block_n_index(*dst)
-        src_block, src_index = cls.pos_2_block_n_index(*src)
-        dst_block.insert(dst_index + 1, copy.deepcopy(src_block[src_index]))
-        return True
+        return node.__dict__[pos[-1][0]]

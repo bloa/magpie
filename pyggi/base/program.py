@@ -99,39 +99,12 @@ class AbstractProgram(ABC):
     def load_contents(self):
         self.load_engines()
         self.contents = {}
-        self.modification_points = dict()
-        self.modification_weights = dict()
+        self.locations = {}
+        self.locations_weights = {}
         for file_name in self.target_files:
             engine = self.engines[file_name]
             self.contents[file_name] = engine.get_contents(os.path.join(self.path, file_name))
-            self.modification_points[file_name] = engine.get_modification_points(self.contents[file_name])
-
-    def set_weight(self, file_name, index, weight):
-        """
-        :param file_name: the file containing the modification point
-        :param index: the index of the modification point
-        :param weight: The modification weight([0,1]) of the modification point
-        :type file_name: str
-        :type index: int
-        :type weight: float
-        :return: None
-        :rtype: None
-        """
-        assert 0 <= weight <= 1
-        if file_name not in self.modification_weights:
-            self.modification_weights[file_name] = [1.0] * len(self.modification_points[file_name])
-        self.modification_weights[file_name][index] = weight
-
-    def get_source(self, file_name, index):
-        """
-        :param file_name: the file containing the modification point
-        :param index: the index of the modification point
-        :type file_name: str
-        :type index: int
-        :return: the sources of the modification point
-        :rtype: str
-        """
-        return self.engines[file_name].get_source(self, file_name, index)
+            self.locations[file_name] = engine.get_locations(self.contents[file_name])
 
     def random_file(self, engine=None):
         if engine:
@@ -140,28 +113,27 @@ class AbstractProgram(ABC):
             files = self.target_files
         return random.choice(files)
 
-    def random_target(self, target_file=None, method="random"):
-        """
-        :param str target_file: The modification point is chosen within target_file
-        :param str method: The way how to choose a modification point, *'random'* or *'weighted'*
-        :return: The **index** of modification point
-        :rtype: int
-        """
+    def random_target(self, target_file=None, target_type=None):
         if target_file is None:
-            target_file = target_file or random.choice(self.target_files)
-        assert target_file in self.target_files
-        assert method in ['random', 'weighted']
-        candidates = self.modification_points[target_file]
-        if method == 'random' or target_file not in self.modification_weights:
-            return (target_file, random.randrange(len(candidates)))
-        elif method == 'weighted':
-            weighted_choice = lambda s : random.choice(sum(([v] * wt for v,wt in s),[]))
-            point = weighted_choice(list(zip(list(range(len(candidates))),
-                self.modification_weights[target_file])))
-            return (target_file, point)
-            #cumulated_weights = sum(self.modification_weights[target_file])
-            #list_of_prob = list(map(lambda w: float(w)/cumulated_weights, self.modification_weights[target_file]))
-            #return (target_file, random.choices(list(range(len(candidates))), weights=list_of_prob, k=1)[0])
+            target_file = random.choice(self.target_files)
+        if target_type is None:
+            target_type = random.choice(self.locations[target_file])
+        assert target_file in self.target_files, target_file
+        assert target_type in self.locations[target_file], target_type
+        try:
+          if self.locations_weights[target_file][target_type]:
+              # untested
+              sum_proba = sum(self.locations_weights[target_file][target_type])
+              assert sum_proba > 0
+              r = random.random()*sum_proba
+              for i,w in enumerate(self.locations_weights[target_file][target_type]):
+                  if r <= r:
+                      return (target_file, target_type, i)
+                  r -= w
+              assert False
+        except KeyError:
+            pass
+        return (target_file, target_type, random.randrange(len(self.locations[target_file][target_type])))
 
     def reset_tmp_variant(self):
         # TODO: be more like rsync
@@ -223,12 +195,12 @@ class AbstractProgram(ABC):
         return self.engines[file_name].dump(contents[file_name])
 
     def get_modified_contents(self, patch):
-        modification_points = copy.deepcopy(self.modification_points)
+        new_locations = copy.deepcopy(self.locations)
         new_contents = copy.deepcopy(self.contents)
         for target_file in self.contents.keys():
             edits = list(filter(lambda a: a.target[0] == target_file, patch.edit_list))
             for edit in edits:
-                edit.apply(self, new_contents, modification_points)
+                edit.apply(self, new_contents, new_locations)
         return new_contents
 
     def apply(self, patch):

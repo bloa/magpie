@@ -4,13 +4,12 @@ from xml.etree import ElementTree
 from . import XmlEngine
 
 class SrcmlEngine(XmlEngine):
+    INTERNODES = ['block']
     TAG_RENAME = {
         'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},
-        'operator_comp': {'operator_comp'},
-        'operator_arith': {'operator_arith'},
         'number': {'literal_number'}
     }
-    TAG_FOCUS = { t for tl in TAG_RENAME.values() for t in tl }
+    TAG_FOCUS = {'block', 'stmt', 'operator_comp', 'operator_arith', 'number'}
     PROCESS_PSEUDO_BLOCKS = True
     PROCESS_LITERALS = True
     PROCESS_OPERATORS = True
@@ -23,10 +22,10 @@ class SrcmlEngine(XmlEngine):
             cls.process_literals(tree)
         if cls.PROCESS_OPERATORS:
             cls.process_operators(tree)
-        if len(cls.TAG_FOCUS) > 0:
-            cls.focus_tags(tree, cls.TAG_FOCUS)
         for tag in cls.TAG_RENAME:
             cls.rewrite_tags(tree, cls.TAG_RENAME[tag], tag)
+        if len(cls.TAG_FOCUS) > 0:
+            cls.focus_tags(tree, cls.TAG_FOCUS)
 
     @classmethod
     def process_pseudo_blocks(cls, element, sp_element=''):
