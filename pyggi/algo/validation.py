@@ -31,7 +31,8 @@ class ValidSingle(ValidSearch):
         self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(cleaned_patch), len(self.debug_patch))
 
     def explore(self, current_patch, current_fitness):
-        assert self.debug_patch is not None
+        if self.debug_patch is None:
+            raise ValueError()
         self.report['best_fitness'] = None
         self.report['best_patch'] = None
 
@@ -67,7 +68,8 @@ class ValidTest(ValidSearch):
         self.debug_patch = Patch()
 
     def explore(self, current_patch, current_fitness):
-        assert self.debug_patch is not None
+        if self.debug_patch is None:
+            raise ValueError()
         self.cleaned_patch = self.clean_patch(self.debug_patch)
         self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
         self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch), len(self.debug_patch))
@@ -97,7 +99,8 @@ class ValidRanking(ValidSearch):
         self.debug_patch = None
 
     def explore(self, current_patch, current_fitness):
-        assert self.debug_patch is not None
+        if self.debug_patch is None:
+            raise ValueError()
         self.cleaned_patch = self.clean_patch(self.debug_patch)
         self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
         self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch), len(self.debug_patch))

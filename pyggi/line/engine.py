@@ -19,7 +19,8 @@ class LineEngine(AbstractLineEngine):
     def do_replace(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, "line", line index
         o_f, o_t, o_i = target_orig # file name, "line", line index
-        assert d_t == o_t == 'line'
+        if not (d_t == o_t == 'line'):
+            raise ValueError()
         if new_locations[d_f][d_t][d_i] is None:
             return False
         old_line = new_contents[d_f][new_locations[d_f][d_t][d_i]]
@@ -34,8 +35,8 @@ class LineEngine(AbstractLineEngine):
     def do_insert(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, "_inter_line", interline index
         o_f, o_t, o_i = target_orig # file name, "line", line index
-        assert d_t == '_inter_line'
-        assert o_t == 'line'
+        if d_t != '_inter_line' or o_t != 'line':
+            raise ValueError()
         new_contents[d_f].insert(new_locations[d_f][d_t][d_i],
                                  contents[o_f][locations[o_f][o_t][o_i]])
         # fix locations
@@ -49,7 +50,8 @@ class LineEngine(AbstractLineEngine):
     @classmethod
     def do_delete(cls, contents, locations, new_contents, new_locations, target):
         d_f, d_t, d_i = target # file name, "line", interline index
-        assert d_t == 'line'
+        if d_t != 'line':
+            raise ValueError()
         old_line = new_contents[d_f][new_locations[d_f][d_t][d_i]]
         if old_line is None:
             return False

@@ -50,7 +50,6 @@ class Patch:
         :type edit: :py:class:`.base.AbstractEdit`
         :return: None
         """
-        assert isinstance(edit, AbstractEdit)
         self.edit_list.append(edit)
 
     def remove(self, index: int):

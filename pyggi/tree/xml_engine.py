@@ -46,13 +46,15 @@ class XmlEngine(AbstractTreeEngine):
     @classmethod
     def write_to_tmp_dir(cls, contents_of_file, tmp_path):
         root, ext = os.path.splitext(tmp_path)
-        assert ext == '.xml'
+        if ext != '.xml':
+            raise ValueError()
         super().write_to_tmp_dir(contents_of_file, root)
 
     @classmethod
     def reset_in_tmp_dir(cls, target_file, ref_path, tmp_path):
         root, ext = os.path.splitext(target_file)
-        assert ext == '.xml'
+        if ext != '.xml':
+            raise ValueError()
         super().reset_in_tmp_dir(root, ref_path, tmp_path)
 
     @classmethod
@@ -78,17 +80,20 @@ class XmlEngine(AbstractTreeEngine):
 
     @staticmethod
     def split_xpath(xpath, prefix=None):
-        assert xpath != '.'
+        if xpath == '.':
+            raise ValueError()
         if prefix is None:
             pattern = re.compile(r'^(.*)/([^\[]+)(?:\[([^\]]+)\])?$')
             match = re.match(pattern, xpath)
-            assert match
+            if match is None:
+                raise LookupError()
             return (match.group(1), match.group(2), int(match.group(3)), None)
         else:
             if xpath[:len(prefix)+1] == prefix+'/':
                 pattern = re.compile(r'^/([^\[]+)(?:\[([^\]]+)\])?(?:/(.*))?$')
                 match = re.match(pattern, xpath[len(prefix):])
-                assert match
+                if match is None:
+                    raise LookupError()
                 return (prefix, match.group(1), int(match.group(2)), match.group(3))
             else:
                 return (None, None, None, None)
@@ -180,7 +185,7 @@ class XmlEngine(AbstractTreeEngine):
                     break
                 sp = cls.guess_spacing(child.tail)
             else:
-                assert False
+                raise RuntimeError
 
         # update modification points
         for i, xpath in enumerate(new_locations[d_f][o_t]):

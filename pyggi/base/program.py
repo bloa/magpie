@@ -118,19 +118,16 @@ class AbstractProgram(ABC):
             target_file = random.choice(self.target_files)
         if target_type is None:
             target_type = random.choice(self.locations[target_file])
-        assert target_file in self.target_files, target_file
-        assert target_type in self.locations[target_file], target_type
         try:
           if self.locations_weights[target_file][target_type]:
               # untested
               sum_proba = sum(self.locations_weights[target_file][target_type])
-              assert sum_proba > 0
-              r = random.random()*sum_proba
-              for i,w in enumerate(self.locations_weights[target_file][target_type]):
-                  if r <= r:
-                      return (target_file, target_type, i)
-                  r -= w
-              assert False
+              if sum_proba > 0:
+                  r = random.random()*sum_proba
+                  for i,w in enumerate(self.locations_weights[target_file][target_type]):
+                      if r <= r:
+                          return (target_file, target_type, i)
+                      r -= w
         except KeyError:
             pass
         return (target_file, target_type, random.randrange(len(self.locations[target_file][target_type])))
@@ -284,7 +281,6 @@ class AbstractProgram(ABC):
         else:
             result = RunResult('SUCCESS', None)
             self.compute_fitness(result, return_code, stdout.decode("ascii"), stderr.decode("ascii"), elapsed_time)
-            assert not (result.status == 'SUCCESS' and result.fitness is None)
             return result
 
     def diff(self, patch) -> str:

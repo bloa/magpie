@@ -51,7 +51,8 @@ class LocalSearch(Algorithm):
             l = 'INITIAL' if i == 1 else 'WARM'
             self.hook_warmup_evaluation(l, empty_patch, run)
             self.program.logger.debug(run)
-            assert run.status == 'SUCCESS', 'initial solution has failed'
+            if run.status != 'SUCCESS':
+                raise RuntimeError('initial solution has failed')
             current_fitness = run.fitness
         self.report['initial_fitness'] = current_fitness
         if self.report['best_patch'] is None:
@@ -115,7 +116,7 @@ class LocalSearch(Algorithm):
         # elif self.config['trapped_strategy'] == 'continue':
         #     pass
         # else:
-        #     assert(False, 'unknown strategy: {}'.format(self.config['trapped_strategy']))
+        #     raise ValueError('unknown strategy: {}'.format(self.config['trapped_strategy']))
 
 
 class DummySearch(LocalSearch):

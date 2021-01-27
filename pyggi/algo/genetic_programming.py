@@ -47,7 +47,8 @@ class GeneticProgramming(Algorithm):
             run = self.evaluate_patch(empty_patch, force=True)
             l = 'INITIAL' if i == 1 else 'WARM'
             self.hook_warmup_evaluation(l, empty_patch, run)
-            assert run.status == 'SUCCESS', 'initial solution has failed'
+            if run.status != 'SUCCESS':
+                raise RuntimeError('initial solution has failed')
         self.report['initial_fitness'] = run.fitness
         self.report['best_fitness'] = run.fitness
         self.report['best_patch'] = empty_patch
