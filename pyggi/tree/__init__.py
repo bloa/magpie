@@ -1,5 +1,8 @@
+from .. import config as pyggi_config
+
 from .abstract_engine import AbstractTreeEngine
-from .astor_engine import AstorEngine
+if pyggi_config.enable_astor:
+    from .astor_engine import AstorEngine
 from .xml_engine import XmlEngine
 from .srcml_engine import SrcmlEngine
 from .program import TreeProgram

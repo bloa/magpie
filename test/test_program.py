@@ -5,6 +5,8 @@ import re
 import shutil
 
 import pyggi
+pyggi.config.enable_astor = True
+
 from pyggi.base import Patch
 from pyggi.line import LineProgram, LineInsertion, LineEngine
 from pyggi.tree import TreeProgram, StmtInsertion, AstorEngine

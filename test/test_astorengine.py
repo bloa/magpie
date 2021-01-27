@@ -3,6 +3,9 @@ import os
 import pytest
 import re
 
+import pyggi
+pyggi.config.enable_astor = True
+
 from pyggi.tree import AstorEngine
 from util import assert_diff
 

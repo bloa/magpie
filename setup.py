@@ -16,6 +16,6 @@ setup(
     author_email='',
     license='MIT',
     packages=find_packages(),
-    install_requires=['argparse', 'astor'],
+    install_requires=['argparse'],
     dependency_links=[],
     zip_safe=False)
