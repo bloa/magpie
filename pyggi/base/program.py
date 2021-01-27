@@ -32,6 +32,7 @@ class AbstractProgram(ABC):
     def __init__(self, path, config={}):
         self.path = os.path.abspath(path.strip())
         self.basename = os.path.basename(self.path)
+        self.work_dir = None
         self.target_files = []
         self.logger = None
         self.setup(config)
@@ -41,7 +42,17 @@ class AbstractProgram(ABC):
         self.close_logger()
         self.timestamp = str(int(time.time()))
         self.run_label = '{}_{}'.format(self.basename, self.timestamp)
-        self.work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
+        new_work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
+        if self.work_dir:
+            self.work_dir = shutil.move(self.work_dir, new_work_dir)
+            if pyggi_config.local_original_copy:
+                self.path = os.path.join(self.work_dir, pyggi_config.local_original_name)
+        else:
+            self.work_dir = new_work_dir
+            if pyggi_config.local_original_copy:
+                new_path = os.path.join(self.work_dir, pyggi_config.local_original_name)
+                if self.path != new_path:
+                    self.path = shutil.copytree(self.path, new_path)
         self.work_path = os.path.join(self.work_dir, self.basename)
         self.setup_logger()
         self.reset_tmp_variant()
@@ -145,6 +156,7 @@ class AbstractProgram(ABC):
         try:
             try:
                 os.rmdir(self.work_dir)
+                self.work_dir = None
             except FileNotFoundError:
                 pass
             os.rmdir(pyggi_config.work_dir)
@@ -157,6 +169,7 @@ class AbstractProgram(ABC):
     def clean_work_dir(self):
         try:
             shutil.rmtree(self.work_dir)
+            self.work_dir = None
         except FileNotFoundError:
             pass
         try:
