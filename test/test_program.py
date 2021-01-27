@@ -123,7 +123,7 @@ class TestLineProgram(object):
     def test_remove_tmp_variant(self, setup_line):
         program = setup_line
         program.remove_tmp_variant()
-        assert not os.path.exists(program.work_dir)
+        assert not os.path.exists(program.work_path)
 
 class TestTreeProgram(object):
 
@@ -185,6 +185,11 @@ class TestTreeProgram(object):
     def test_remove_tmp_variant(self, setup_tree):
         program = setup_tree
         program.remove_tmp_variant()
+        assert not os.path.exists(program.work_path)
+
+    def test_clean_work_dir(self, setup_tree):
+        program = setup_tree
+        program.clean_work_dir()
         assert not os.path.exists(program.work_dir)
 
 @pytest.fixture(scope="session", autouse=True)

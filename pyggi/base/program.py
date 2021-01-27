@@ -43,7 +43,7 @@ class AbstractProgram(ABC):
         self.timestamp = str(int(time.time()))
         self.run_label = '{}_{}'.format(self.basename, self.timestamp)
         new_work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
-        if self.work_dir:
+        if self.work_dir and os.path.exists(self.work_dir):
             self.work_dir = shutil.move(self.work_dir, new_work_dir)
             if pyggi_config.local_original_copy:
                 self.path = os.path.join(self.work_dir, pyggi_config.local_original_name)
@@ -153,23 +153,10 @@ class AbstractProgram(ABC):
             shutil.rmtree(self.work_path)
         except FileNotFoundError:
             pass
-        try:
-            try:
-                os.rmdir(self.work_dir)
-                self.work_dir = None
-            except FileNotFoundError:
-                pass
-            os.rmdir(pyggi_config.work_dir)
-        except FileNotFoundError:
-            pass
-        except OSError as e:
-            if e.errno != errno.ENOTEMPTY:
-                raise
 
     def clean_work_dir(self):
         try:
             shutil.rmtree(self.work_dir)
-            self.work_dir = None
         except FileNotFoundError:
             pass
         try:
