@@ -41,8 +41,25 @@ class AbstractProgram(ABC):
     def reset(self):
         self.close_logger()
         self.timestamp = str(int(time.time()))
-        self.run_label = '{}_{}'.format(self.basename, self.timestamp)
-        new_work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
+
+        # ensures the timestamp is unique
+        while True:
+            self.run_label = '{}_{}'.format(self.basename, self.timestamp)
+            new_work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
+            lock_file = '{}.lock'.format(new_work_dir)
+            try:
+                os.open(lock_file, os.O_CREAT | os.O_EXCL).close()
+                try:
+                    os.mkdir(new_work_dir)
+                    os.rmdir(new_work_dir)
+                    break
+                except FileExistsError:
+                    os.remove(lock_file)
+            except FileExistsError:
+                pass
+            self.timestamp = str(int(self.timestamp)+1)
+
+        # creates or move current work_dir
         if self.work_dir and os.path.exists(self.work_dir):
             self.work_dir = shutil.move(self.work_dir, new_work_dir)
             if pyggi_config.local_original_copy:
@@ -53,6 +70,8 @@ class AbstractProgram(ABC):
                 new_path = os.path.join(self.work_dir, pyggi_config.local_original_name)
                 if self.path != new_path:
                     self.path = shutil.copytree(self.path, new_path)
+        os.remove(lock_file)
+
         self.work_path = os.path.join(self.work_dir, self.basename)
         self.setup_logger()
         self.reset_tmp_variant()
