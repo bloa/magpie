@@ -43,12 +43,17 @@ class AbstractProgram(ABC):
         self.timestamp = str(int(time.time()))
 
         # ensures the timestamp is unique
+        try:
+            os.makedirs(pyggi_config.work_dir)
+        except FileExistsError:
+            pass
         while True:
             self.run_label = '{}_{}'.format(self.basename, self.timestamp)
             new_work_dir = os.path.join(os.path.abspath(pyggi_config.work_dir), self.run_label)
             lock_file = '{}.lock'.format(new_work_dir)
             try:
-                os.open(lock_file, os.O_CREAT | os.O_EXCL).close()
+                fd = os.open(lock_file, os.O_CREAT | os.O_EXCL)
+                os.close(fd)
                 try:
                     os.mkdir(new_work_dir)
                     os.rmdir(new_work_dir)
@@ -124,7 +129,10 @@ class AbstractProgram(ABC):
         # Associate each file to its engine
         self.engines = dict()
         for file_name in self.target_files:
-            self.engines[file_name] = self.get_engine(file_name)
+            engine = self.get_engine(file_name)
+            if engine is None:
+                raise RuntimeError('Unknown engine for "{}"'.format(file_name))
+            self.engines[file_name] = engine
 
     def load_contents(self):
         self.load_engines()
@@ -174,10 +182,11 @@ class AbstractProgram(ABC):
             pass
 
     def clean_work_dir(self):
-        try:
-            shutil.rmtree(self.work_dir)
-        except FileNotFoundError:
-            pass
+        if self.work_dir:
+            try:
+                shutil.rmtree(self.work_dir)
+            except FileNotFoundError:
+                pass
         try:
             os.rmdir(pyggi_config.work_dir)
         except FileNotFoundError:
