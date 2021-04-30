@@ -21,6 +21,7 @@ class LocalSearch(Algorithm):
         self.program.logger.info('==== WARMUP ====')
 
     def hook_warmup_evaluation(self, count, patch, run):
+        self.program.logger.debug(run)
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, patch)
 
     def hook_evaluation(self, patch, run, accept, best):
@@ -30,12 +31,19 @@ class LocalSearch(Algorithm):
             c = '+'
         else:
             c = ' '
+        self.program.logger.debug(run)
         self.aux_log_eval(self.stats['steps']+1, run.status, c, run.fitness, self.report['initial_fitness'], patch)
         if accept or best:
             self.program.logger.debug(self.program.diff(patch))
 
     def aux_log_eval(self, counter, status, c, fitness, baseline, data):
-        s = ' ({}%)'.format(round(100*fitness/baseline, 2)) if fitness and baseline else ''
+        if fitness and baseline:
+            if isinstance(fitness, list):
+                s = ' ({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
+            else:
+                s = ' ({}%)'.format(round(100*fitness/baseline, 2))
+        else:
+            s = ''
         self.program.logger.info('{}\t{}\t{}{}{}\t{}'.format(counter, status, c, fitness, s, data))
 
     def run(self):
@@ -50,7 +58,6 @@ class LocalSearch(Algorithm):
             run = self.evaluate_patch(empty_patch, force=True)
             l = 'INITIAL' if i == 1 else 'WARM'
             self.hook_warmup_evaluation(l, empty_patch, run)
-            self.program.logger.debug(run)
             if run.status != 'SUCCESS':
                 raise RuntimeError('initial solution has failed')
             current_fitness = run.fitness

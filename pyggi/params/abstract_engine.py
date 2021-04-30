@@ -53,7 +53,7 @@ class AbstractParamsEngine(AbstractEngine):
     @classmethod
     def do_set(cls, contents, locations, new_contents, new_locations, target, value):
         config = new_contents[target[0]]
-        key = cls.KEYS[target[2]]
+        key = cls.KEYS[target[1]]
         used = cls.would_be_valid(config, key, value) and not cls.would_be_ignored(config, key, value)
         if used:
             config[key] = value

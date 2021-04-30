@@ -177,6 +177,7 @@ class XmlEngine(AbstractTreeEngine):
             tmp.tail = "\n" + sp
             parent.insert(insert_index, tmp)
         else:
+            child = None
             for i, child in enumerate(parent):
                 if i == insert_index-1:
                     tmp.tail = child.tail
@@ -185,7 +186,10 @@ class XmlEngine(AbstractTreeEngine):
                     break
                 sp = cls.guess_spacing(child.tail)
             else:
-                raise RuntimeError
+                tmp.tail = child.tail
+                child.tail = "\n" + sp
+                parent.insert(i+1, tmp)
+                # raise RuntimeError
 
         # update modification points
         for i, xpath in enumerate(new_locations[d_f][o_t]):

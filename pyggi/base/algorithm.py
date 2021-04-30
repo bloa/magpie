@@ -46,6 +46,7 @@ class Algorithm(ABC):
 
     def hook_end(self):
         self.stats['wallclock_end'] = time.time()
+        self.stats['wallclock_total'] = self.stats['wallclock_end'] - self.stats['wallclock_start']
         self.program.logger.info('==== END ====')
         self.program.logger.info('Reason: {}'.format(self.report['stop']))
 
@@ -126,7 +127,7 @@ class Algorithm(ABC):
             if self.stats['steps'] >= self.stop['steps']:
                 self.report['stop'] = 'step budget'
                 return True
-        if self.stop['fitness'] is not None:
+        if self.stop['fitness'] is not None: # todo: list
             if self.report['best_fitness'] <= self.stop['fitness']:
                 self.report['stop'] = 'target fitness reached'
                 return True

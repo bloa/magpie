@@ -34,7 +34,13 @@ class GeneticProgramming(Algorithm):
             self.program.logger.debug(self.program.diff(patch))
 
     def aux_log_eval(self, counter, status, c, fitness, baseline, data):
-        s = ' ({}%)'.format(round(100*fitness/baseline, 2)) if fitness and baseline else ''
+        if fitness and baseline:
+            if isinstance(fitness, list):
+                s = ' ({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
+            else:
+                s = ' ({}%)'.format(round(100*fitness/baseline, 2))
+        else:
+            s = ''
         self.program.logger.info('{}\t{}\t{}{}{}\t{}'.format(counter, status, c, fitness, s, data))
 
     def run(self):
