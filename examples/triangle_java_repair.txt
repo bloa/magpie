@@ -1,0 +1,12 @@
+[program]
+path = examples/triangle_java_bug
+target_files =
+  Triangle.java
+
+[exec]
+compile = ./compile.sh
+run = ./run.sh
+
+[search]
+max_iter = 100
+max_time = 60

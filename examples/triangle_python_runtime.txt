@@ -1,0 +1,15 @@
+[magpie]
+run_timeout = 1
+
+[program]
+path = examples/triangle_python_slow
+target_files =
+  triangle.py
+
+[exec]
+compile = pytest
+run = python run_triangle.py
+
+[search]
+max_iter = 100
+max_time = 60

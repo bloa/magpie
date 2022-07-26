@@ -3,29 +3,29 @@ import os
 import pytest
 import re
 
-import pyggi
-pyggi.config.enable_astor = True
+import magpie
+magpie.config.enable_astor = True
 
-from pyggi.tree import AstorEngine
+from magpie.astor import AstorEngine
 from util import assert_diff
 
 @pytest.fixture
 def file_contents():
     file_name = 'triangle.py'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
     with open(path, 'r') as myfile:
         return myfile.read()
 
 @pytest.fixture
 def engine_contents():
     file_name = 'triangle.py'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
     return {file_name: AstorEngine.get_contents(path)}
 
 @pytest.fixture
 def engine_locations(engine_contents):
     file_name = 'triangle.py'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
     contents = AstorEngine.get_contents(path)
     return {file_name: AstorEngine.get_locations(contents)}
 
@@ -109,7 +109,7 @@ def test_replacement2(engine_contents, engine_locations):
  
  def classify_triangle(a, b, c):
 -    delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
      if a > b:
          tmp = a
          a = b
@@ -143,7 +143,7 @@ def test_insertion1(engine_contents, engine_locations):
  
  def classify_triangle(a, b, c):
      delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
      if a > b:
          tmp = a
          a = b
@@ -169,7 +169,7 @@ def test_insertion2(engine_contents, engine_locations):
  
  def classify_triangle(a, b, c):
 +    delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
      delay()
      if a > b:
          tmp = a
@@ -198,15 +198,15 @@ def test_insertion3(engine_contents, engine_locations):
  
  
  def classify_triangle(a, b, c):
-+    time.sleep(0.01)
++    time.sleep(0.001)
 +    delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
      delay()
      if a > b:
          tmp = a
          a = b
          b = tmp
-+    time.sleep(0.01)
++    time.sleep(0.001)
      if a > c:
          tmp = a
          a = c

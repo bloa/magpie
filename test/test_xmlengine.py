@@ -2,26 +2,26 @@ import copy
 import os
 import pytest
 
-from pyggi.tree import XmlEngine
+from magpie.xml import XmlEngine
 from util import assert_diff
 
 @pytest.fixture
 def file_contents():
     file_name = 'Triangle.java'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-java_slow', file_name)
     with open(path, 'r') as myfile:
         return myfile.read()
 
 @pytest.fixture
 def engine_contents():
     file_name = 'Triangle.java.xml'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-java_slow', file_name)
     return {file_name: XmlEngine.get_contents(path)}
 
 @pytest.fixture
 def engine_locations(engine_contents):
     file_name = 'Triangle.java.xml'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-java_slow', file_name)
     contents = XmlEngine.get_contents(path)
     return {file_name: XmlEngine.get_locations(contents)}
 

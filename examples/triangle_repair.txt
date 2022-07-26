@@ -1,0 +1,10 @@
+[program]
+path = old_examples/sample/Triangle_bug2_java
+target_files =
+  Triangle.java
+
+[exec]
+test = ./run.sh
+
+[algo]
+max_iter = 100

@@ -1,41 +1,10 @@
+_magpie*
+
 # Compiled python modules.
 *.pyc
-
-paper/
-
-ast_test.py
-line_test.py
 
 # Setuptools distribution folder.
 /dist/
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
-
-.pyggi/*
-*/.pyggi/*
-
-# Pyenv
-.python-version
-
-# Gradle
-.gradle
-**/build/
-
-# Log
-*.log
-
-#OS X
-.DS_Store
-
-#LaTeX
-*.aux
-*.bbl
-*.blg
-*.fdb_latexmk
-*.fls
-*.out
-*.synctex.gz
-
-# Document
-doc/_build/

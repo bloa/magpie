@@ -2,26 +2,26 @@ import copy
 import os
 import pytest
 
-from pyggi.line import LineEngine
+from magpie.line import LineEngine
 from util import assert_diff
 
 @pytest.fixture
 def file_contents():
     file_name = 'triangle.py'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
     with open(path, 'r') as myfile:
         return myfile.read()
 
 @pytest.fixture
 def engine_contents():
     file_name = 'triangle.py'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
     return {file_name: LineEngine.get_contents(path)}
 
 @pytest.fixture
 def engine_locations(engine_contents):
     file_name = 'triangle.py'
-    path = os.path.join('test_src', file_name)
+    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
     contents = LineEngine.get_contents(path)
     return {file_name: LineEngine.get_locations(contents)}
 
@@ -127,7 +127,7 @@ def test_insertion1(engine_contents, engine_locations):
  def classify_triangle(a, b, c):
  
      delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
  
      # Sort the sides so that a <= b <= c
      if a > b:
@@ -153,11 +153,10 @@ def test_insertion2(engine_contents, engine_locations):
  def classify_triangle(a, b, c):
  
 +    delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
      delay()
  
      # Sort the sides so that a <= b <= c
-     if a > b:
 """
     assert_diff(dump, new_dump, expected)
 
@@ -183,14 +182,14 @@ def test_insertion3(engine_contents, engine_locations):
  
  
  def classify_triangle(a, b, c):
-+    time.sleep(0.01)
++    time.sleep(0.001)
  
 +    delay()
-+    time.sleep(0.01)
++    time.sleep(0.001)
      delay()
  
      # Sort the sides so that a <= b <= c
-+    time.sleep(0.01)
++    time.sleep(0.001)
      if a > b:
          tmp = a
          a = b

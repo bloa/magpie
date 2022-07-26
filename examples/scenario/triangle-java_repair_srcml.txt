@@ -1,0 +1,13 @@
+[program]
+path = examples/code/triangle-java_bug
+target_files =
+  Triangle.java.xml
+
+[exec]
+compile = javac -cp junit-4.10.jar Triangle.java TriangleTest.java
+test = java -cp junit-4.10.jar:. org.junit.runner.JUnitCore TriangleTest
+run =
+
+[search]
+max_iter = 100
+max_time = 120

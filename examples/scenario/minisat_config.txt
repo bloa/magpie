@@ -1,0 +1,16 @@
+[magpie]
+run_timeout = 20
+run_output = 1e6
+
+[program]
+path = examples/code/minisat
+target_files =
+  minisat_simplified.params
+
+[exec]
+compile = ./compile.sh
+test = ./test.sh
+run = ./run.sh
+
+[search]
+max_iter = 100
