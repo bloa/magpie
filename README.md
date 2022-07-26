@@ -111,8 +111,7 @@ See also:
 
 #### Patch Minification
 
-    python -m bin.minify_patch --mode config --config examples/scenario/minisat_config.txt --patch "ParamSetting(('minisat_simplified.params', 3), 2.0836703732914756) | ParamSetting(('minisat_simplified.params', 1), 'True') | ParamSetting(('minisat_simplified.params', 13), 'True') | ParamSetting(('mini
-sat_simplified.params', 12), '2') | ParamSetting(('minisat_simplified.params', 11), 'True') | ParamSetting(('minisat_simplified.params', 7), 531563643)"
+    python -m bin.minify_patch --mode config --config examples/scenario/minisat_config.txt --patch "ParamSetting(('minisat_simplified.params', 'rinc'), 3.8204404817425397) | ParamSetting(('minisat_simplified.params', 'rnd-seed'), 454275209) | ParamSetting(('minisat_simplified.params', 'luby'), 'False') | ParamSetting(('minisat_simplified.params', 'ccmin-mode'), 1)"
 
 
 ### MAGPIE's Output

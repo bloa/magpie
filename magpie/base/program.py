@@ -146,13 +146,7 @@ class Program():
     def random_target(self, target_file=None, target_type=None):
         if target_file is None:
             target_file = random.choice(self.target_files)
-        if target_type is None:
-            target_type = random.choice(self.locations[target_file])
-        try:
-            loc = random.randrange(len(self.locations[target_file][target_type]))
-            return (target_file, target_type, loc)
-        except (KeyError, ValueError):
-            return None
+        return self.get_engine(target_file).random_target(self.locations, target_file, target_type)
 
     def apply_patch(self, patch):
         # process modified files

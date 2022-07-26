@@ -41,6 +41,16 @@ class AbstractParamsEngine(AbstractEngine):
         return "\n".join(['{} := {}'.format(k, repr(v)) for k,v in contents_of_file.items() if not cls.would_be_ignored(contents_of_file, k, v)])
 
     @classmethod
+    def random_target(cls, locations, target_file, target_type=None):
+        if target_type is None:
+            target_type = random.choice(locations[target_file])
+        try:
+            loc = random.choice(locations[target_file][target_type])
+            return (target_file, target_type, loc)
+        except (KeyError, ValueError):
+            return None
+
+    @classmethod
     def resolve_cli(cls, params):
         return ' '.join([s for s in [cls.resolve_cli_param(params, k, v) for k,v in params.items() if not cls.would_be_ignored(params, k, v)] if s != ''])
 
@@ -77,13 +87,13 @@ class AbstractParamsEngine(AbstractEngine):
     @classmethod
     def do_set(cls, contents, locations, new_contents, new_locations, target, value):
         config = new_contents[target[0]]
-        key = cls.KEYS[target[1]]
+        key = target[1]
         used = cls.would_be_valid(config, key, value) and not cls.would_be_ignored(config, key, value)
         if used:
             config[key] = value
         return used
 
     @classmethod
-    def random_value(cls, param_id):
-        realm = cls.PARAMS[cls.KEYS[param_id]][1]
+    def random_value(cls, param_key):
+        realm = cls.PARAMS[param_key][1]
         return Realm.random_value_from_realm(realm)
