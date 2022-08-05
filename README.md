@@ -19,13 +19,6 @@ MAGPIE: your software, but more efficient!
 
 And... that's it.
 
-### Credits ###
-
-If you use MAGPIE for a publication, we kindly ask you to cite the following paper that describes MAGPIE's approach:
-"MAGPIE: Machine Automated General Performance Improvement via Evolution of Software" (2022) by Aymeric Blot and Justyna Petke
-https://arxiv.org/abs/2208.02811
-
-
 <!---
 ### Installation
 
@@ -40,6 +33,23 @@ or
 ### Running Unit Tests
 
     python -m pytest test
+
+
+### Citation
+
+If you use MAGPIE for a publication, we kindly ask you to cite the following paper that describes MAGPIE's approach:
+
+```
+@article{blot:2022:corr_1,
+  author    = {Aymeric Blot and
+               Justyna Petke},
+  title     = {{MAGPIE:} {M}achine Automated General Performance Improvement via Evolution of Software},
+  journal   = {Computing Research Repository},
+  volume    = {abs/2208.02811},
+  url       = {https://arxiv.org/abs/2208.02811},
+  year      = {2022},
+}
+```
 
 
 ## First Steps
@@ -131,3 +141,10 @@ TODO
     python -m examples.magpie_repair_xml_java --config examples/scenario/triangle-java_repair_srcml.txt
 
     python -m examples.magpie_config_minisat --config examples/scenario/minisat_config_advanced.txt
+
+
+## Acknowledgments
+
+MAGPIE is based on [PyGGI 2.0](https://github.com/coinse/pyggi), developped at [COINSE KAIST](https://coinse.kaist.ac.kr/) in collaboration with [UCL SOLAR](https://solar.cs.ucl.ac.uk/).
+
+Part of its development was supported by UK EPSRC Fellowship EP/P023991/1.
