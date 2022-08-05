@@ -19,6 +19,12 @@ MAGPIE: your software, but more efficient!
 
 And... that's it.
 
+### Credits ###
+
+If you use MAGPIE for a publication, we kindly ask you to cite the following paper that describes MAGPIE's approach:
+"MAGPIE: Machine Automated General Performance Improvement via Evolution of Software" (2022) by Aymeric Blot and Justyna Petke
+https://arxiv.org/abs/2208.02811
+
 
 <!---
 ### Installation
