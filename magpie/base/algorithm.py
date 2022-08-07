@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import random
 import time
 
+from .patch import Patch
+
 class Algorithm(ABC):
     def __init__(self):
         self.setup()
@@ -36,21 +38,90 @@ class Algorithm(ABC):
         pass
 
     def hook_warmup(self):
+        self.stats['wallclock_start'] = time.time()
         self.program.logger.info('==== WARMUP ====')
 
+    def hook_warmup_evaluation(self, count, patch, run):
+        self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
+        if run.status != 'SUCCESS':
+            self.program.logger.info('Initial software failed to run!')
+            self.program.logger.info('STDOUT:\n{}'.format(self.program.last_stdout.decode('ascii')))
+            self.program.logger.info('STDERR:\n{}'.format(self.program.last_stderr.decode('ascii')))
+
     def hook_start(self):
-        self.stats['wallclock_start'] = time.time()
+        self.stats['wallclock_start'] = time.time() # discards warmup time
         self.program.logger.info('==== START ====')
 
     def hook_main_loop(self):
         pass
 
+    def hook_evaluation(self, patch, run, accept, best):
+        if best:
+            c = '*'
+        elif accept:
+            c = '+'
+        else:
+            c = ' '
+        self.program.logger.debug(patch)
+        self.program.logger.debug(run)
+        self.aux_log_eval(self.stats['steps']+1, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
+        if accept or best:
+            self.program.logger.debug(self.program.diff_patch(patch)) # recomputes contents but meh
+        elif run.log == 'wtf': # DEBUG
+            self.program.logger.info(self.program.diff_patch(patch))
+
+    def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
+        if fitness and baseline:
+            if isinstance(fitness, list):
+                s = ' ({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
+            else:
+                s = ' ({}%)'.format(round(100*fitness/baseline, 2))
+        else:
+            s = ''
+        if patch_size is not None:
+            s2 = ' [{} edit(s)]'.format(patch_size)
+        else:
+            s2 = ''
+        self.program.logger.info('{}\t{}\t{}{}{}{}\t{}'.format(counter, status, c, fitness, s, s2, data))
+
+    def aux_log_counter(self):
+        return str(self.stats['steps']+1)
+
     def hook_end(self):
         self.stats['wallclock_end'] = time.time()
         self.stats['wallclock_total'] = self.stats['wallclock_end'] - self.stats['wallclock_start']
-        self.report['diff'] = self.program.diff_patch(self.report['best_patch'])
+        if self.report['best_patch']:
+            self.report['diff'] = self.program.diff_patch(self.report['best_patch'])
         self.program.logger.info('==== END ====')
         self.program.logger.info('Reason: {}'.format(self.report['stop']))
+
+    def warmup(self):
+        empty_patch = Patch()
+        if self.report['initial_patch'] is None:
+            self.report['initial_patch'] = empty_patch
+        for i in range(self.config['warmup']+1, 0, -1):
+            self.program.base_fitness = None
+            self.program.truth_table = {}
+            run = self.evaluate_patch(empty_patch, force=True)
+            l = 'INITIAL' if i == 1 else 'WARM'
+            self.hook_warmup_evaluation(l, empty_patch, run)
+            if run.status != 'SUCCESS':
+                raise RuntimeError('initial solution has failed')
+            current_fitness = run.fitness
+        self.report['initial_fitness'] = current_fitness
+        if self.report['best_patch'] is None:
+            self.report['best_fitness'] = current_fitness
+            self.report['best_patch'] = empty_patch
+        else:
+            run = self.evaluate_patch(self.report['best_patch'], force=True)
+            self.hook_warmup_evaluation('BEST', empty_patch, run)
+            if self.dominates(run.fitness, current_fitness):
+                self.report['best_fitness'] = run.fitness
+            else:
+                self.report['best_patch'] = empty_patch
+                self.report['best_fitness'] = current_fitness
+        if self.program.base_fitness is None:
+            self.program.base_fitness = current_fitness
 
     def evaluate_patch(self, patch, force=False, forget=False):
         contents = self.program.apply_patch(patch)

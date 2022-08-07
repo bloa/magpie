@@ -41,6 +41,8 @@ class Program():
         self.compile_cmd = None
         self.test_cmd = None
         self.run_cmd = None
+        self.last_stdout = '(not set)'
+        self.last_stderr = '(not set)'
 
     def setup(self):
         pass
@@ -270,48 +272,53 @@ class Program():
         # 1e6 bytes is 1Mb
         sprocess = None
         start = time.time()
-        sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
-        if max_output:
-            stdout = b''
-            stderr = b''
-            stdout_size = 0
-            stderr_size = 0
-            while sprocess.poll() is None:
+        try:
+            sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+            if max_output:
+                stdout = b''
+                stderr = b''
+                stdout_size = 0
+                stderr_size = 0
+                while sprocess.poll() is None:
+                    end = time.time()
+                    if end-start > timeout:
+                        os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                        _, _ = sprocess.communicate()
+                        return ExecResult('TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
+                    a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
+                    if sprocess.stdout in a:
+                        for _ in range(1024):
+                            if not len(select.select([sprocess.stdout], [], [], 0)[0]):
+                                break
+                            stdout += sprocess.stdout.read(1)
+                            stdout_size += 1
+                    if sprocess.stderr in a:
+                        for _ in range(1024):
+                            if not len(select.select([sprocess.stderr], [], [], 0)[0]):
+                                break
+                            stderr += sprocess.stderr.read(1)
+                            stderr_size += 1
+                    if stdout_size+stderr_size >= max_output:
+                        os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                        _, _ = sprocess.communicate()
+                        return ExecResult('OUTPUT_LIMIT', sprocess.returncode, stdout, stderr, end-start)
                 end = time.time()
-                if end-start > timeout:
+                stdout += sprocess.stdout.read()
+                stderr += sprocess.stderr.read()
+            else:
+                try:
+                    stdout, stderr = sprocess.communicate(timeout=timeout)
+                except subprocess.TimeoutExpired:
                     os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                    _, _ = sprocess.communicate()
+                    stdout, stderr = sprocess.communicate()
+                    end = time.time()
                     return ExecResult('TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
-                a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
-                if sprocess.stdout in a:
-                    for _ in range(1024):
-                        if not len(select.select([sprocess.stdout], [], [], 0)[0]):
-                            break
-                        stdout += sprocess.stdout.read(1)
-                        stdout_size += 1
-                if sprocess.stderr in a:
-                    for _ in range(1024):
-                        if not len(select.select([sprocess.stderr], [], [], 0)[0]):
-                            break
-                        stderr += sprocess.stderr.read(1)
-                        stderr_size += 1
-                if stdout_size+stderr_size >= max_output:
-                    os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                    _, _ = sprocess.communicate()
-                    return ExecResult('OUTPUT_LIMIT', sprocess.returncode, stdout, stderr, end-start)
-            end = time.time()
-            stdout += sprocess.stdout.read()
-            stderr += sprocess.stderr.read()
-        else:
-            try:
-                stdout, stderr = sprocess.communicate(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                stdout, stderr = sprocess.communicate()
                 end = time.time()
-                return ExecResult('TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
-            end = time.time()
-        return ExecResult('SUCCESS', sprocess.returncode, stdout, stderr, end-start)
+            return ExecResult('SUCCESS', sprocess.returncode, stdout, stderr, end-start)
+
+        finally:
+            self.last_stdout = stdout
+            self.last_stderr = stderr
 
     def process_compile_exec(self, run_result, exec_result):
         if exec_result.return_code != 0:

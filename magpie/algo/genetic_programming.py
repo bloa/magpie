@@ -18,56 +18,19 @@ class GeneticProgramming(Algorithm):
         self.config['nb_instances'] = None
         self.stats['gen'] = 0
 
-    def hook_warmup(self):
-        self.program.logger.info('==== WARMUP ====')
-
-    def hook_warmup_evaluation(self, count, patch, run):
-        self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, patch)
-
-    def hook_evaluation(self, patch, run, best):
-        if best:
-            c = '*'
-        else:
-            c = ' '
-        self.aux_log_eval('{} {}'.format(self.stats['gen'], self.stats['steps']+1), run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
-        if best:
-            self.program.logger.debug(self.program.diff_patch(patch))
-
-    def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
-        if fitness and baseline:
-            if isinstance(fitness, list):
-                s = ' ({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
-            else:
-                s = ' ({}%)'.format(round(100*fitness/baseline, 2))
-        else:
-            s = ''
-        if patch_size is not None:
-            s2 = ' [{} edit(s)]'.format(patch_size)
-        else:
-            s2 = ''
-        self.program.logger.info('{}\t{}\t{}{}{}{}\t{}'.format(counter, status, c, fitness, s, s2, data))
+    def aux_log_counter(self):
+        return '{} {}'.format(self.stats['gen'], self.stats['steps']+1)
 
     def run(self):
-        # warmup
-        self.hook_warmup()
-        empty_patch = Patch()
-        for i in range(self.config['warmup']+1, 0, -1):
-            self.program.base_fitness = None
-            self.program.truth_table = {}
-            run = self.evaluate_patch(empty_patch, force=True)
-            l = 'INITIAL' if i == 1 else 'WARM'
-            self.hook_warmup_evaluation(l, empty_patch, run)
-            if run.status != 'SUCCESS':
-                raise RuntimeError('initial solution has failed')
-        self.report['initial_fitness'] = run.fitness
-        self.report['best_fitness'] = run.fitness
-        self.report['best_patch'] = empty_patch
-
-        # start!
-        self.stats['steps'] = 0
-        self.hook_start()
-
         try:
+            # warmup
+            self.hook_warmup()
+            self.warmup()
+
+            # start!
+            self.stats['steps'] = 0
+            self.hook_start()
+
             # initial pop
             pop = dict()
             local_best = None
@@ -162,6 +125,9 @@ class GeneticProgramming(Algorithm):
                     self.report['best_patch'] = local_best
                 # next
                 self.stats['gen'] += 1
+
+        except KeyboardInterrupt:
+            self.report['reason'] = 'keyboard interrupt'
 
         finally:
             # the end
