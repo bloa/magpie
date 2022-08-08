@@ -41,6 +41,7 @@ class Program():
         self.compile_cmd = None
         self.test_cmd = None
         self.run_cmd = None
+        self.last_cmd = '(not set)'
         self.last_stdout = '(not set)'
         self.last_stderr = '(not set)'
 
@@ -271,12 +272,13 @@ class Program():
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, max_output=1e6):
         # 1e6 bytes is 1Mb
         sprocess = None
+        stdout = b''
+        stderr = b''
         start = time.time()
         try:
+            self.last_cmd = str(cmd)
             sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
             if max_output:
-                stdout = b''
-                stderr = b''
                 stdout_size = 0
                 stderr_size = 0
                 while sprocess.poll() is None:

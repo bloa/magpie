@@ -45,6 +45,7 @@ class Algorithm(ABC):
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
         if run.status != 'SUCCESS':
             self.program.logger.info('Initial software failed to run!')
+            self.program.logger.info('CMD:\n{}'.format(self.program.last_cmd))
             self.program.logger.info('STDOUT:\n{}'.format(self.program.last_stdout.decode('ascii')))
             self.program.logger.info('STDERR:\n{}'.format(self.program.last_stderr.decode('ascii')))
 
