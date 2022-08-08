@@ -26,13 +26,10 @@ class ExpProtocol:
 
         logger = self.program.logger
         result = {'stop': None, 'best_patch': []}
-        try:
-            self.search.run()
-            result.update(self.search.report)
-            result['diff'] = self.program.diff_patch(result['best_patch'])
-            logger.info('')
-        except KeyboardInterrupt:
-            result['stop'] = 'keyboard interrupt'
+        self.search.run()
+        result.update(self.search.report)
+        result['diff'] = self.program.diff_patch(result['best_patch'])
+        logger.info('')
 
         logger.info('==== REPORT ====')
         logger.info('Termination: {}'.format(result['stop']))

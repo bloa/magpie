@@ -35,7 +35,7 @@ class LocalSearch(Algorithm):
                 current_patch, current_fitness = self.explore(current_patch, current_fitness)
 
         except KeyboardInterrupt:
-            self.report['reason'] = 'keyboard interrupt'
+            self.report['stop'] = 'keyboard interrupt'
 
         finally:
             # the end
