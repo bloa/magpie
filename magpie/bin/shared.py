@@ -33,6 +33,9 @@ class ExpProtocol:
 
         logger.info('==== REPORT ====')
         logger.info('Termination: {}'.format(result['stop']))
+        for handler in logger.handlers:
+            if handler.__class__.__name__ == 'FileHandler':
+                logger.info('Log file: {}'.format(handler.baseFilename))
         if result['best_patch']:
             logger.info('Best fitness: {}'.format(result['best_fitness']))
             logger.info('Best patch: {}'.format(result['best_patch']))
