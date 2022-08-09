@@ -16,6 +16,6 @@ class Edit:
     def __str__(self):
         return '{}({}{})'.format(
             self.__class__.__name__,
-            self.target,
+            repr(self.target),
             ''.join([', {}'.format(repr(d)) for d in self.data])
         )
