@@ -65,7 +65,8 @@ class Algorithm(ABC):
             c = ' '
         self.program.logger.debug(patch)
         self.program.logger.debug(run)
-        self.aux_log_eval(self.stats['steps']+1, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
+        counter = self.aux_log_counter()
+        self.aux_log_eval(counter, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
         if accept or best:
             self.program.logger.debug(self.program.diff_patch(patch)) # recomputes contents but meh
         elif run.log == 'wtf': # DEBUG
