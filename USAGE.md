@@ -1,6 +1,6 @@
 # Basic Usage
 
-We provide four generic entry points for optimsiation/learning/training.
+We provide four generic entry points for optimisation/learning/training.
 
     bin
     ├── magpie_bloat.py
@@ -8,12 +8,79 @@ We provide four generic entry points for optimsiation/learning/training.
     ├── magpie_repair.py
     └── magpie_runtime.py
 
-Because they are located in a sub-folder and not at top-level, they require a little bit of Python magic speach (e.g., `python -m bin.magpie_runtime` instead of `python magpie_runtime.py`).
-To simplify usage we strongly recommend writting your own customised entry point and running it from top-level.
+Because they are located in a sub-folder and not at top-level, they require a little bit of Python magic speech (e.g., `python -m bin.magpie_runtime` instead of `python magpie_runtime.py`).
+To simplify usage we strongly recommend writing your own customised entry point and running it from top-level.
 
 For the sake of genericity, note that all four scripts only target lines of code mutations and use a basic local search.
 To target AST nodes, change the search algorithm, the fitness function, or modify the experimental protocol in general please refer to [ADVANCED.md](/ADVANCED.md).
 
+
+## Reading Magpie's output
+
+Here we look at the output of the running time minimisation example.
+
+    ==== WARMUP ====
+    WARM	SUCCESS	 0.1097	
+    WARM	SUCCESS	 0.1236	
+    WARM	SUCCESS	 0.1243	
+    INITIAL	SUCCESS	 0.1279
+
+First, Magpie will evaluate multiple times the original software fitness score (default: four times) in order to set the base fitness to improve.
+This warming up step ensures that the all fitness values are fairly compared, as the first few values may exhibit significant variance.
+
+    ==== START ====
+    ... (lines eluded for clarity) ...
+    6	SUCCESS	*0.1175 (91.87%) [1 edit(s)]	
+    7	TEST_ERROR	 None [2 edit(s)]	
+    8	SUCCESS	 0.1279 (100.0%) [0 edit(s)]	
+    9	TEST_ERROR	 None [2 edit(s)]	
+    10	SUCCESS	*0.106 (82.88%) [2 edit(s)]	
+    11	SUCCESS	 0.1175 (91.87%) [1 edit(s)]
+    ... (lines eluded for clarity) ...
+    99	TEST_ERROR	 None [3 edit(s)]	
+    100	SUCCESS	 0.1318 (103.05%) [3 edit(s)]	
+    ==== END ====
+    Reason: step budget
+
+Then, Magpie will use the chosen evolutionary algorithm to modify the original software.
+For each evaluation Magpie reports the evaluation id, the final status of the mutated software execution, the fitness value, and finally some optional comment (here, the size of the patch).
+The two statuses visible here are `SUCCESS` (the execution completed successfully) and `TEST_ERROR` (the mutated code failed to comply to the given test suite).
+Fitness values are given both directly and in percentage relatively to the initial fitness.
+Values below 100% correspond here to faster variants, while values over 100% correspond to slower one (note that the status is still `SUCCESS` and not, e.g., `RUNTIME_ERROR`, because the variant is still semantically sound).
+An asterisk (`*`) indicates that a new best fitness values have been found, whilst a plus sign (`+`) indicates repeated best values.
+
+Finally, Magpie will show the stopping criteria reached: here the 100 steps have completed.
+Other possible criteria include  for example a target fitness value, or a manual interruption (`C-c`).
+
+    ==== REPORT ====
+    Termination: step budget
+    Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-py_slow_1664546789.log
+    Best fitness: 0.0383
+    Best patch: LineDeletion(('triangle.py', 'line', 14)) | LineDeletion(('triangle.py', 'line', 2))
+    Diff:
+    --- before: triangle.py
+    +++ after: triangle.py
+    @@ -1,6 +1,5 @@
+     import time
+     from enum import Enum
+    -
+    
+     class TriangleType(Enum):
+         INVALID, EQUILATERAL, ISOCELES, SCALENE = 0, 1, 2, 3
+    @@ -12,7 +11,6 @@
+    
+     def classify_triangle(a, b, c):
+    
+    -    delay()
+    
+         # Sort the sides so that a <= b <= c
+         if a > b:
+
+Finally, Magpie reports on its execution and eventually details the found improved software variant.
+Note that a much more detailed log is also stored in the `_magpie_logs` folder.
+
+
+# Evolution
 
 ## Running Time Minimisation
 
