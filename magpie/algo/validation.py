@@ -7,6 +7,24 @@ from ..base import Algorithm, Patch
 from . import LocalSearch
 
 class ValidSearch(LocalSearch):
+    def setup(self):
+        super().setup()
+        self.debug_patch = None
+
+    def hook_warmup(self):
+        super().hook_warmup()
+        if self.debug_patch is None:
+            raise ValueError()
+
+    def hook_start(self):
+        super().hook_start()
+        self.cleaned_patch = self.do_clean_patch(self.debug_patch)
+        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
+        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
+        self.report['best_fitness'] = None
+        self.report['best_patch'] = None
+        self.report['cleaned_patch'] = self.cleaned_patch
+
     def do_clean_patch(self, patch):
         cleaned = copy.deepcopy(patch)
         cleaned_diff = self.program.diff_patch(cleaned)
@@ -44,19 +62,8 @@ class ValidSingle(ValidSearch):
     def setup(self):
         super().setup()
         self.name = 'Validation Single'
-        self.debug_patch = None
-
-    def hook_main_loop(self):
-        self.cleaned_patch = self.do_clean_patch(self.debug_patch)
-        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
-        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
 
     def explore(self, current_patch, current_fitness):
-        if self.debug_patch is None:
-            raise ValueError()
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = None
-
         # eval every single patch
         for edit in self.debug_patch.edits:
             patch = Patch([edit])
@@ -70,18 +77,8 @@ class ValidTest(ValidSearch):
     def setup(self):
         super().setup()
         self.name = 'Validation Ranking'
-        self.debug_patch = Patch()
 
     def explore(self, current_patch, current_fitness):
-        if self.debug_patch is None:
-            raise ValueError()
-        self.cleaned_patch = self.do_clean_patch(self.debug_patch)
-        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
-        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = None
-        self.report['cleaned_patch'] = self.cleaned_patch
-
         # full patch only
         self.do_eval_patch(self.cleaned_patch)
 
@@ -93,18 +90,8 @@ class ValidRanking(ValidSearch):
     def setup(self):
         super().setup()
         self.name = 'Validation Ranking'
-        self.debug_patch = None
 
     def explore(self, current_patch, current_fitness):
-        if self.debug_patch is None:
-            raise ValueError()
-        self.cleaned_patch = self.do_clean_patch(self.debug_patch)
-        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
-        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = None
-        self.report['cleaned_patch'] = self.cleaned_patch
-
         # full patch first
         if self.debug_patch.edits:
             self.do_eval_patch(self.debug_patch)
@@ -150,18 +137,8 @@ class ValidSimplify(ValidSearch):
     def setup(self):
         super().setup()
         self.name = 'Validation Simplify'
-        self.debug_patch = None
 
     def explore(self, current_patch, current_fitness):
-        if self.debug_patch is None:
-            raise ValueError()
-        self.cleaned_patch = self.do_clean_patch(self.debug_patch)
-        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
-        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = None
-        self.report['cleaned_patch'] = self.cleaned_patch
-
         # full patch first
         if self.debug_patch.edits:
             run = self.do_eval_patch(self.debug_patch)
@@ -190,18 +167,8 @@ class ValidRankingSimplify(ValidSearch):
     def setup(self):
         super().setup()
         self.name = 'Validation Simplify'
-        self.debug_patch = None
 
     def explore(self, current_patch, current_fitness):
-        if self.debug_patch is None:
-            raise ValueError()
-        self.cleaned_patch = self.do_clean_patch(self.debug_patch)
-        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
-        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = None
-        self.report['cleaned_patch'] = self.cleaned_patch
-
         # full patch first
         if self.debug_patch.edits:
             run = self.do_eval_patch(self.debug_patch)

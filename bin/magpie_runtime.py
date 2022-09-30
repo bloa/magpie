@@ -40,7 +40,7 @@ class MyProgram(magpie.base.Program):
 # ================================================================================
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MAGPIE Runtime Example')
+    parser = argparse.ArgumentParser(description='MAGPIE Running Time Example')
     parser.add_argument('--config', type=pathlib.Path, required=True)
     args = parser.parse_args()
 

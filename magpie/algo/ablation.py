@@ -58,7 +58,7 @@ class AblationAnalysis(ValidSearch):
         for i in removed_edits_ids:
             edit = patch.edits.pop(i)
             run = self.evaluate_patch(patch) # should be already cached
-            self.hook_analysis(patch, edit, run)
+            self.hook_analysis(patch, 'removing {}'.format(edit), run)
 
         self.report['stop'] = 'ablation end'
         return current_patch, current_fitness
