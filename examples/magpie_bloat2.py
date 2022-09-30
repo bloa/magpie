@@ -19,8 +19,9 @@ class MyEngine(magpie.line.LineEngine):
         n = len(file_contents)
         locations = {'line': list(range(n)), '_inter_line': list(range(n+1))}
         for (k, line) in enumerate(file_contents):
-            # remove empty lines and comments from the location list
-            m = re.match('^\s*(?:#.*)?$', line)
+            # remove empty lines and single line comments from the location list
+            m = (re.match('^\s*(?:#.*)?$', line) or # false-positive on C preprocessor
+                 re.match('^\s*(?://.*)?$', line))
             if m:
                 locations['line'].remove(k)
                 locations['_inter_line'].remove(k)

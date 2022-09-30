@@ -1,17 +1,18 @@
 # short term
 
-- more/better examples
-
-
-# medium term
-
 - comprehensive tutorials
 - more/better unit tests
 
 
 # long term
 
-- native multi-objective support
-- batch size support
-- grammar evolution support?
-- direct evolution?
+- better multi-objective support
+- instances / batch size support
+- distributed evaluation
+- cleaner pipelining
+
+
+# other possible extensions
+
+- grammar evolution support
+- direct evolution

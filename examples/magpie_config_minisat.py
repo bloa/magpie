@@ -4,13 +4,8 @@ import pathlib
 
 import magpie
 
-
-# ================================================================================
-# Experimental protocol
-# ================================================================================
-
-from bin.magpie_runtime import ExpProtocol
-
+from magpie.bin.shared import ExpProtocol
+from magpie.bin.shared import apply_global_config
 
 # ================================================================================
 # Target software specifics
@@ -60,11 +55,6 @@ class MyProgram(magpie.base.Program):
 
     def process_run_exec(self, run_result, exec_result):
         run_result.fitness = round(exec_result.runtime, 4)
-
-
-# ================================================================================
-
-from bin.magpie_runtime import apply_global_config
 
 
 # ================================================================================
