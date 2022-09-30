@@ -5,7 +5,7 @@ import pathlib
 import magpie
 
 from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import apply_global_config
+from magpie.bin.shared import apply_global_config, setup_protocol
 
 
 # ================================================================================
@@ -52,10 +52,8 @@ if __name__ == "__main__":
     # setup protocol
     protocol = ExpProtocol()
     protocol.search = magpie.algo.FirstImprovement()
-    if 'max_iter' in config['search']:
-        protocol.search.stop['steps'] = int(config['search']['max_iter'])
-    if 'max_time' in config['search']:
-        protocol.search.stop['wall'] = int(config['search']['max_time'])
+    setup_protocol(protocol, config)
+    print(protocol.search.config)
     protocol.program = MyProgram(config)
 
     # run experiments

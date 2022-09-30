@@ -9,7 +9,6 @@ class GeneticProgramming(Algorithm):
     def setup(self):
         super().setup()
         self.name = 'Genetic Programming'
-        self.config['warmup'] = 3
         self.config['horizon'] = 1
         self.config['pop_size'] = 10
         self.config['offspring_elitism'] = 0.1

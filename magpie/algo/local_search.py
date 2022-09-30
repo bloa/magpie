@@ -9,7 +9,6 @@ class LocalSearch(Algorithm):
         super().setup()
         self.name = 'Local Search'
         self.config['strategy'] = 'first'
-        self.config['warmup'] = 3
         self.config['horizon'] = 1
         self.config['delete_prob'] = 0.5
         self.config['max_neighbours'] = None

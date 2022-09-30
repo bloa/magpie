@@ -10,6 +10,8 @@ class Algorithm(ABC):
 
     def setup(self):
         self.config = {}
+        self.config['warmup'] = 3
+        self.config['warmup_strategy'] = 'last'
         self.config['cache'] = True
         self.config['cache_maxsize'] = 40
         self.config['cache_keep'] = 0.2
@@ -101,15 +103,30 @@ class Algorithm(ABC):
         empty_patch = Patch()
         if self.report['initial_patch'] is None:
             self.report['initial_patch'] = empty_patch
-        for i in range(self.config['warmup']+1, 0, -1):
+        warmup_values = []
+        for i in range(max(self.config['warmup'] or 1, 1), 0, -1):
             self.program.base_fitness = None
             self.program.truth_table = {}
             run = self.evaluate_patch(empty_patch, force=True)
             l = 'INITIAL' if i == 1 else 'WARM'
-            self.hook_warmup_evaluation(l, empty_patch, run)
+            self.hook_warmup_evaluation('WARM', empty_patch, run)
             if run.status != 'SUCCESS':
                 raise RuntimeError('initial solution has failed')
-            current_fitness = run.fitness
+            warmup_values.append(run.fitness)
+        if self.config['warmup_strategy'] == 'last':
+            current_fitness = warmup_values[-1]
+        elif self.config['warmup_strategy'] == 'min':
+            current_fitness = min(warmup_values)
+        elif self.config['warmup_strategy'] == 'max':
+            current_fitness = max(warmup_values)
+        elif self.config['warmup_strategy'] == 'mean':
+            current_fitness = sum(warmup_values)/len(warmup_values)
+        elif self.config['warmup_strategy'] == 'median':
+            current_fitness = sorted(warmup_values)[len(warmup_values)//2]
+        else:
+            raise ValueError('unknown warmup strategy')
+        run.fitness = current_fitness
+        self.hook_warmup_evaluation('INITIAL', empty_patch, run)
         self.report['initial_fitness'] = current_fitness
         if self.report['best_patch'] is None:
             self.report['best_fitness'] = current_fitness

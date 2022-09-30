@@ -1,7 +1,4 @@
-import argparse
-import configparser
 import os
-import pathlib
 
 import magpie
 
@@ -21,7 +18,6 @@ class ExpProtocol:
         if self.search is None:
             raise AssertionError('Search not specified')
 
-        self.search.config['warmup'] = 3
         self.search.program = self.program
 
         logger = self.program.logger
@@ -46,33 +42,6 @@ class ExpProtocol:
             with open('{}.diff'.format(base_path), 'w') as f:
                 f.write(result['diff'])
         self.program.clean_work_dir()
-
-
-# ================================================================================
-# Target software specifics
-# ================================================================================
-
-# class MyProgram(magpie.base.Program):
-#     def __init__(self, config):
-#         self.base_init(config['program']['path'])
-#         self.possible_edits = [
-#             magpie.line.LineReplacement,
-#             magpie.line.LineInsertion,
-#             magpie.line.LineDeletion,
-#         ]
-#         self.target_files = config['program']['target_files'].split()
-#         self.compile_cmd = config['exec']['compile']
-#         self.test_cmd = config['exec']['test']
-#         self.run_cmd = config['exec']['run']
-#         self.reset_timestamp()
-#         self.reset_logger()
-#         self.reset_contents()
-
-#     def get_engine(self, target_file):
-#         return magpie.line.LineEngine
-
-#     def process_run_exec(self, run_result, exec_result):
-#         run_result.fitness = round(exec_result.runtime, 4)
 
 
 # ================================================================================
@@ -102,29 +71,16 @@ def apply_global_config(config):
         else:
             magpie.config.run_output = float(config['magpie']['run_output'])
 
-
-# ================================================================================
-# Main function
-# ================================================================================
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MAGPIE Runtime Example')
-    parser.add_argument('--config', type=pathlib.Path, required=True)
-    args = parser.parse_args()
-
-    # read config file
-    config = configparser.ConfigParser()
-    config.read(args.config)
-    apply_global_config(config)
-
-    # setup protocol
-    protocol = ExpProtocol()
-    protocol.search = magpie.algo.FirstImprovement()
-    if 'max_iter' in config['search']:
-        protocol.search.stop['steps'] = int(config['search']['max_iter'])
-    if 'max_time' in config['search']:
-        protocol.search.stop['wall'] = int(config['search']['max_time'])
-    protocol.program = MyProgram(config)
-
-    # run experiments
-    protocol.run()
+def setup_protocol(protocol, config):
+    if 'warmup' in config:
+        if 'n' in config['warmup']:
+            protocol.search.config['warmup'] = int(config['warmup']['n'])
+        if 'strategy' in config['warmup']:
+            protocol.search.config['warmup_strategy'] = config['warmup']['strategy']
+    if 'search' in config:
+        if 'max_iter' in config['search']:
+            protocol.search.stop['steps'] = int(config['search']['max_iter'])
+        if 'max_time' in config['search']:
+            protocol.search.stop['wall'] = int(config['search']['max_time'])
+        if 'target_fitness' in config['search']:
+            protocol.search.stop['fitness'] = int(config['search']['target_fitness'])
