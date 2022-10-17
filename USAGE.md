@@ -46,7 +46,7 @@ Then, Magpie will use the chosen evolutionary algorithm to modify the original s
 For each evaluation Magpie reports the evaluation id, the final status of the mutated software execution, the fitness value, and finally some optional comment (here, the size of the patch).
 The two statuses visible here are `SUCCESS` (the execution completed successfully) and `TEST_ERROR` (the mutated code failed to comply to the given test suite).
 Fitness values are given both directly and in percentage relatively to the initial fitness.
-Values below 100% correspond here to faster variants, while values over 100% correspond to slower one (note that the status is still `SUCCESS` and not, e.g., `RUNTIME_ERROR`, because the variant is still semantically sound).
+Values below 100% correspond here to faster variants, while values over 100% correspond to slower ones (note that the status is still `SUCCESS` and not, e.g., `RUNTIME_ERROR`, because the variant is still semantically sound).
 An asterisk (`*`) indicates that a new best fitness values have been found, whilst a plus sign (`+`) indicates repeated best values.
 
 Finally, Magpie will show the stopping criteria reached: here the 100 steps have completed.
@@ -175,6 +175,7 @@ Then setup the MiniSAT directory with files used by Magpie.
     cp examples/code/minisat_setup/data examples/code/minisat
     cp examples/code/minisat_setup/*.sh examples/code/minisat
     cp examples/code/minisat_setup/Solver.cc.xml examples/code/minisat/core
+    cp examples/code/minisat_setup/minisat*.params examples/code/minisat/core
 
 In particular:
 
@@ -184,6 +185,7 @@ In particular:
 - `test.sh` checks MiniSAT's output on 5 SAT and 5 UNSAT instances
 - `run.sh` runs MiniSAT on all 20 instances
 - `Solver.cc.xml` contains the AST of the MiniSAT's `core/Solver.cc` file as provided by [SrcML](https://www.srcml.org/).
+- `minisat.params` and two variants define the MiniSAT's configuration space
 
 To optimise running time:
 

@@ -1,0 +1,32 @@
+CLI_PREFIX = "-"
+CLI_GLUE = "="
+CLI_BOOLEAN = "prefix"
+
+# core
+luby      {True, False}[True]
+rnd-init  {True, False}[False]
+gc-frac   (0.0, 1.0)[0.2]
+rinc      (1, 32767.0)[2]
+var-decay (0.0, 1.0)[0.95]
+cla-decay (0.0, 1.0)[0.999]
+rnd-freq  (0.0, 1.0)[0.0]
+rnd-seed  [0, 4294967295][91648253]
+
+# main
+verb {0, 1, 2}[0]
+pre  {True, False}[True]
+
+# simp
+asymm             {True, False}[False]
+rcheck            {True, False}[False]
+elim              {True, False}[False]
+grow              [-65535, 65535][0]
+cl-lim-unbounded  {True, False}[False]
+cl-lim            [0, 65535][20]
+sub-lim-unbounded {True, False}[False]
+sub-lim           [0, 65535][1000]
+simp-gc-frac      (0.0, 1.0)[0.5]
+
+# conditionals
+cl-lim | cl-lim-unbounded == False
+sub-lim | sub-lim-unbounded == False

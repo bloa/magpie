@@ -1,0 +1,30 @@
+CLI_PREFIX = "-"
+CLI_GLUE = "="
+CLI_BOOLEAN = "prefix"
+
+# core
+luby      {True, False}[True]
+rnd-init  {True, False}[False]
+gc-frac   e(0, 65535)[0.2]
+rinc      e(1, 65535)[2]
+var-decay (0, 1)[0.95]
+cla-decay (0, 1)[0.999]
+rnd-freq  (0, 1)[0.0]
+rnd-seed  [0, 2147483647][91648253]
+
+phase-saving [0, 2][2]
+ccmin-mode   [0, 2][2]
+rfirst       g[1, 65535][100]
+
+# main
+pre  {True, False}[True]
+verb {0, 1, 2}[1]
+
+# simp
+rcheck       {True, False}[False]
+asymm        {True, False}[False]
+elim         {True, False}[True]
+simp-gc-frac e(0, 2147483647)[0.5]
+sub-lim      [-1, 65535][1000]     # <-- special parameter that needs more work
+cl-lim       [-1, 65535][20]       # <-- special parameter that needs more work
+grow         g[-65535, 65535][0]
