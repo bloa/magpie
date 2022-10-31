@@ -39,8 +39,14 @@ class Program():
         self.possible_edits = []
         self.work_dir = None
         self.compile_cmd = None
+        self.compile_timeout = None
+        self.compile_output = None
         self.test_cmd = None
+        self.test_timeout = None
+        self.test_output = None
         self.run_cmd = None
+        self.run_timeout = None
+        self.run_output = None
         self.last_cmd = '(not set)'
         self.last_stdout = '(not set)'
         self.last_stderr = '(not set)'
@@ -227,9 +233,11 @@ class Program():
 
             # compile if needed
             if self.compile_cmd:
+                timeout = self.compile_timeout or magpie_config.default_timeout
+                max_output = self.compile_output or magpie_config.default_output
                 exec_result = self.exec_cmd(shlex.split(self.compile_cmd),
-                                            timeout=magpie_config.compile_timeout,
-                                            max_output=magpie_config.compile_output)
+                                            timeout=timeout,
+                                            max_output=max_output)
                 run_result.status = exec_result.status
                 if run_result.status == 'SUCCESS':
                     self.process_compile_exec(run_result, exec_result)
@@ -246,9 +254,11 @@ class Program():
             # test if needed
             if self.test_cmd:
                 test_cmd = '{} {}'.format(self.test_cmd, cli).strip()
+                timeout = self.test_timeout or magpie_config.default_timeout
+                max_output = self.test_output or magpie_config.default_output
                 exec_result = self.exec_cmd(shlex.split(test_cmd),
-                                            timeout=magpie_config.test_timeout,
-                                            max_output=magpie_config.test_output)
+                                            timeout=timeout,
+                                            max_output=max_output)
                 run_result.status = exec_result.status
                 if run_result.status == 'SUCCESS':
                     self.process_test_exec(run_result, exec_result)
@@ -258,9 +268,11 @@ class Program():
             # run if needed
             if self.run_cmd:
                 run_cmd = '{} {}'.format(self.run_cmd, cli).strip()
+                timeout = self.run_timeout or magpie_config.default_timeout
+                max_output = self.run_output or magpie_config.default_output
                 exec_result = self.exec_cmd(shlex.split(run_cmd),
-                                            timeout=magpie_config.run_timeout,
-                                            max_output=magpie_config.run_output)
+                                            timeout=timeout,
+                                            max_output=max_output)
                 run_result.status = exec_result.status
                 if run_result.status == 'SUCCESS':
                     self.process_run_exec(run_result, exec_result)

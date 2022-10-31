@@ -39,7 +39,7 @@ def patch_from_string(s):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MAGPIE Validation Example')
-    parser.add_argument('--mode', type=str, choices=['repair','runtime', 'bloat', 'config'], required=True)
+    parser.add_argument('--mode', type=str, choices=['repair', 'runtime', 'bloat', 'config'], required=True)
     parser.add_argument('--config', type=pathlib.Path, required=True)
     parser.add_argument('--patch', type=str, required=True)
     args = parser.parse_args()

@@ -190,7 +190,7 @@ In particular:
 To optimise running time:
 
     python -m bin.magpie_runtime --config examples/scenario/minisat_runtime.txt
-    python -m example.magpie_runtime_xml --config examples/scenario/minisat_runtime_xml.txt
+    python -m examples.magpie_runtime_xml --config examples/scenario/minisat_runtime_xml.txt
 
 To remove any unnecessary code:
 

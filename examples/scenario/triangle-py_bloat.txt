@@ -1,16 +1,12 @@
-[magpie]
-run_timeout = 1
-
-[program]
+[software]
 path = examples/code/triangle-py_bloat
 target_files =
   triangle.py
 
-[exec]
-compile = 
-test = pytest
-run = 
+compile_cmd = 
+test_cmd = pytest
+test_timeout = 1
 
 [search]
-max_iter = 100
+max_steps = 100
 max_time = 60

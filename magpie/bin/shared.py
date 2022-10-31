@@ -47,39 +47,58 @@ class ExpProtocol:
 # ================================================================================
 
 def apply_global_config(config):
-    if 'magpie' not in config:
-        return
-    if 'compile_timeout' in config['magpie']:
-        magpie.config.compile_timeout = float(config['magpie']['compile_timeout'])
-    if 'compile_output' in config['magpie']:
-        if config['magpie']['compile_output'] == '':
-            magpie.config.compile_output = None
-        else:
-            magpie.config.compile_output = float(config['magpie']['compile_output'])
-    if 'test_timeout' in config['magpie']:
-        magpie.config.test_timeout = float(config['magpie']['test_timeout'])
-    if 'test_output' in config['magpie']:
-        if config['magpie']['test_output'] == '':
-            magpie.config.test_output = None
-        else:
-            magpie.config.test_output = float(config['magpie']['test_output'])
-    if 'run_timeout' in config['magpie']:
-        magpie.config.run_timeout = float(config['magpie']['run_timeout'])
-    if 'run_output' in config['magpie']:
-        if config['magpie']['run_output'] == '':
-            magpie.config.run_output = None
-        else:
-            magpie.config.run_output = float(config['magpie']['run_output'])
+    if 'magpie' in config:
+        if 'log_dir' in config['magpie']:
+            magpie.config.log_dir = config['magpie']['log_dir']
+        if 'work_dir' in config['magpie']:
+            magpie.config.log_dir = config['magpie']['work_dir']
+        if 'local_original_copy' in config['magpie']:
+            magpie.config.local_original_copy = config['magpie']['local_original_copy']
+        if 'local_original_name' in config['magpie']:
+            magpie.config.local_original_copy = config['magpie']['local_original_name']
+        if 'edit_retries' in config['magpie']:
+            magpie.config.edit_retries = config['magpie']['edit_retries']
+        if 'default_timeout' in config['magpie']:
+            magpie.config.default_timeout = float(config['magpie']['default_timeout'])
+        if 'default_output' in config['magpie']:
+            if config['magpie']['default_output'] == '':
+                magpie.config.default_output = None
+            else:
+                magpie.config.default_output = float(config['magpie']['default_output'])
+        if 'diff_method' in config['magpie']:
+            magpie.config.diff_method = config['magpie']['diff_method']
+
+    if 'software' in config:
+        if 'compile_timeout' in config['software']:
+            magpie.config.compile_timeout = float(config['software']['compile_timeout'])
+        if 'compile_output' in config['software']:
+            if config['software']['compile_output'] == '':
+                magpie.config.compile_output = None
+            else:
+                magpie.config.compile_output = float(config['software']['compile_output'])
+        if 'test_timeout' in config['software']:
+            magpie.config.test_timeout = float(config['software']['test_timeout'])
+        if 'test_output' in config['software']:
+            if config['software']['test_output'] == '':
+                magpie.config.test_output = None
+            else:
+                magpie.config.test_output = float(config['software']['test_output'])
+        if 'run_timeout' in config['software']:
+            magpie.config.run_timeout = float(config['software']['run_timeout'])
+        if 'run_output' in config['software']:
+            if config['software']['run_output'] == '':
+                magpie.config.run_output = None
+            else:
+                magpie.config.run_output = float(config['software']['run_output'])
 
 def setup_protocol(protocol, config):
-    if 'warmup' in config:
-        if 'n' in config['warmup']:
-            protocol.search.config['warmup'] = int(config['warmup']['n'])
-        if 'strategy' in config['warmup']:
-            protocol.search.config['warmup_strategy'] = config['warmup']['strategy']
     if 'search' in config:
-        if 'max_iter' in config['search']:
-            protocol.search.stop['steps'] = int(config['search']['max_iter'])
+        if 'warmup' in config['search']:
+            protocol.search.config['warmup'] = int(config['search']['n'])
+        if 'warmup_strategy' in config['search']:
+            protocol.search.config['warmup_strategy'] = config['search']['strategy']
+        if 'max_steps' in config['search']:
+            protocol.search.stop['steps'] = int(config['search']['max_steps'])
         if 'max_time' in config['search']:
             protocol.search.stop['wall'] = int(config['search']['max_time'])
         if 'target_fitness' in config['search']:

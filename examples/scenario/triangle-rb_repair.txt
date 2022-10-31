@@ -1,12 +1,11 @@
-[program]
+[software]
 path = examples/code/triangle-rb_bug
 target_files =
   triangle.rb
 
-[exec]
-compile =
-test = ruby test_triangle.rb
-run =
+compile_cmd =
+test_cmd = ruby test_triangle.rb
+run_cmd =
 
 [search]
-max_iter = 100
+max_steps = 100

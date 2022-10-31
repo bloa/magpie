@@ -1,16 +1,15 @@
 [magpie]
-run_timeout = 20
-run_output = 1e6
+default_timeout = 30
+default_output = 1e6
 
-[program]
+[software]
 path = examples/code/minisat
 target_files =
   core/Solver.cc
 
-[exec]
-compile = ./compile.sh
-test = ./test.sh
-run = ./run.sh
+compile_cmd = ./compile.sh
+test_cmd = ./test.sh
+run_cmd = ./run.sh
 
 [search]
-max_iter = 100
+max_steps = 100

@@ -75,18 +75,18 @@ class Algorithm(ABC):
             self.program.logger.info(self.program.diff_patch(patch))
 
     def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
-        if fitness and baseline:
+        if fitness is not None and baseline is not None:
             if isinstance(fitness, list):
-                s = ' ({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
+                s = '({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
             else:
-                s = ' ({}%)'.format(round(100*fitness/baseline, 2))
+                s = '({}%)'.format(round(100*fitness/baseline, 2))
         else:
             s = ''
         if patch_size is not None:
-            s2 = ' [{} edit(s)]'.format(patch_size)
+            s2 = '[{} edit(s)] '.format(patch_size)
         else:
             s2 = ''
-        self.program.logger.info('{}\t{}\t{}{}{}{}\t{}'.format(counter, status, c, fitness, s, s2, data))
+        self.program.logger.info('{:<7} {:<12} {:>1}{:<24}{}'.format(counter, status, c, str(fitness) + ' ' + s + ' ' + s2, data))
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
