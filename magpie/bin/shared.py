@@ -94,9 +94,9 @@ def apply_global_config(config):
 def setup_protocol(protocol, config):
     if 'search' in config:
         if 'warmup' in config['search']:
-            protocol.search.config['warmup'] = int(config['search']['n'])
+            protocol.search.config['warmup'] = int(config['search']['warmup'])
         if 'warmup_strategy' in config['search']:
-            protocol.search.config['warmup_strategy'] = config['search']['strategy']
+            protocol.search.config['warmup_strategy'] = config['search']['warmup_strategy']
         if 'max_steps' in config['search']:
             protocol.search.stop['steps'] = int(config['search']['max_steps'])
         if 'max_time' in config['search']:
