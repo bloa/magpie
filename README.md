@@ -4,8 +4,17 @@
   <img alt="MAGPIE logo" src="./logo_magpie.png" />
 </p>
 
-MAGPIE: your software, but more efficient!
+Magpie: your software, but more efficient!
 
+## Introduction
+
+Magpie is a tool for automated software improvement.
+It implements [MAGPIE](#citation), using the genetic improvement methodology to traverse the search space of different software variants to find improved software.
+
+Magpie provides support for improvement of both functional (automated bug fixing) and non-functional (e.g., execution time) properties of software.  
+Two types of language-agnostic source code representations are supported: line-by-line, and XML trees.
+For the later we recommend the [srcML](https://www.srcml.org/) tool with out-of-the-box support for C/C++/C# and Java.  
+Finally, Magpie also enables parameter tuning and algorithm configuration, both independently and concurrently of the source code search process.
 
 ## Getting Started
 
