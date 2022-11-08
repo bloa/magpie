@@ -13,7 +13,7 @@ It implements [MAGPIE](#citation), using the genetic improvement methodology to 
 
 Magpie provides support for improvement of both functional (automated bug fixing) and non-functional (e.g., execution time) properties of software.  
 Two types of language-agnostic source code representations are supported: line-by-line, and XML trees.
-For the later we recommend the [srcML](https://www.srcml.org/) tool with out-of-the-box support for C/C++/C# and Java.  
+For the latter we recommend the [srcML](https://www.srcml.org/) tool with out-of-the-box support for C/C++/C# and Java.  
 Finally, Magpie also enables parameter tuning and algorithm configuration, both independently and concurrently of the source code search process.
 
 ## Getting Started
