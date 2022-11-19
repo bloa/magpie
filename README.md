@@ -21,6 +21,8 @@ Finally, Magpie also enables parameter tuning and algorithm configuration, both 
 ### Prerequisites
 
 - Python 3.5+
+- [Astor](https://astor.readthedocs.io/) [optional: for native Python AST manipulation]
+- [Pytest](https://docs.pytest.org/) [optional: for running tests]
 
 ### Getting Magpie
 
