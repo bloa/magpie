@@ -32,7 +32,7 @@ And... that's it.
 
 ### Running Unit Tests
 
-    python -m pytest test
+    python3 -m pytest test
 
 ### Citation
 

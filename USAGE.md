@@ -8,7 +8,7 @@ We provide four generic entry points for optimisation/learning/training.
     ├── magpie_repair.py
     └── magpie_runtime.py
 
-Because they are located in a sub-folder and not at top-level, they require a little bit of Python magic speech (e.g., `python -m bin.magpie_runtime` instead of `python magpie_runtime.py`).
+Because they are located in a sub-folder and not at top-level, they require a little bit of Python magic speech (e.g., `python3 -m bin.magpie_runtime` instead of `python3 magpie_runtime.py`).
 To simplify usage we strongly recommend writing your own customised entry point and running it from top-level.
 
 For the sake of genericity, note that all four scripts only target lines of code mutations and use a basic local search.
@@ -86,7 +86,7 @@ Note that a much more detailed log is also stored in the `_magpie_logs` folder.
 
 Example:
 
-    python -m bin.magpie_runtime --config examples/scenario/triangle-py_runtime.txt
+    python3 -m bin.magpie_runtime --config examples/scenario/triangle-py_runtime.txt
 
 Note: the `triangle-py_runtime.txt` scenario requires Python 3.7+ and [`pytest`](docs.pytest.org).
 
@@ -95,13 +95,13 @@ Note: the `triangle-py_runtime.txt` scenario requires Python 3.7+ and [`pytest`]
 
 Example:
 
-    python -m bin.magpie_repair --config examples/scenario/triangle-rb_repair.txt
+    python3 -m bin.magpie_repair --config examples/scenario/triangle-rb_repair.txt
 
 Note: the `triangle-rb_repair.txt` scenario requires Ruby and [`minitest`](docs.seattlerb.org/minitest/).
 
 See also: (with expression and operator mutations)
 
-    python -m examples.magpie_repair_xml_java --config examples/scenario/triangle-java_repair_srcml.txt
+    python3 -m examples.magpie_repair_xml_java --config examples/scenario/triangle-java_repair_srcml.txt
 
 Note: the `triangle-java_repair_srcml.txt` scenario only requires Java, as both `junit` and the SrcML file are already provided.
 
@@ -110,11 +110,11 @@ Note: the `triangle-java_repair_srcml.txt` scenario only requires Java, as both 
 
 Example:
 
-    python -m bin.magpie_bloat --config examples/scenario/triangle-py_bloat.txt
+    python3 -m bin.magpie_bloat --config examples/scenario/triangle-py_bloat.txt
 
 See also: (to remove empty lines and comments from the location list)
 
-    python -m examples.magpie_bloat2 --config examples/scenario/triangle-py_bloat.txt
+    python3 -m examples.magpie_bloat2 --config examples/scenario/triangle-py_bloat.txt
 
 Note: both `triangle-py_bloat.txt` and `triangle-py_bloat2.txt` scenarios require Python 3.7+ and [`pytest`](docs.pytest.org).
 
@@ -125,11 +125,11 @@ See the [real world example](#real-world-example) for instructions on how to set
 
 Example:
 
-    python -m bin.magpie_config --config examples/scenario/minisat_config.txt
+    python3 -m bin.magpie_config --config examples/scenario/minisat_config.txt
 
 See also: (for fine-tuned parameter handling)
 
-    python -m examples.magpie_config_minisat --config examples/scenario/minisat_config_advanced.txt
+    python3 -m examples.magpie_config_minisat --config examples/scenario/minisat_config_advanced.txt
 
 
 # Validation
@@ -150,21 +150,21 @@ Again, please refer to [ADVANCED.md](/ADVANCED.md) to help modifying entry point
 
 Example: (using the running time minimisation example)
 
-    python -m bin.revalidate --mode runtime --config examples/scenario/triangle-py_runtime.txt --patch "LineReplacement(('triangle.py', 'line', 31), ('triangle.py', 'line', 25)) | LineDeletion(('triangle.py', 'line', 11)) | LineDeletion(('triangle.py', 'line', 14))"
+    python3 -m bin.revalidate --mode runtime --config examples/scenario/triangle-py_runtime.txt --patch "LineReplacement(('triangle.py', 'line', 31), ('triangle.py', 'line', 25)) | LineDeletion(('triangle.py', 'line', 11)) | LineDeletion(('triangle.py', 'line', 14))"
 
 
 ## Patch Minification
 
 Example: (using the automated bug fixing example)
 
-    python -m bin.minify_patch --mode repair --config examples/scenario/triangle-rb_repair.txt --patch "LineReplacement(('triangle.rb', 'line', 11), ('triangle.rb', 'line', 1)) | LineDeletion(('triangle.rb', 'line', 12)) | LineReplacement(('triangle.rb', 'line', 25), ('triangle.rb', 'line', 27)) | LineReplacement(('triangle.rb', 'line', 6), ('triangle.rb', 'line', 6)) | LineReplacement(('triangle.rb', 'line', 3), ('triangle.rb', 'line', 3)) | LineInsertion(('triangle.rb', '_inter_line', 25), ('triangle.rb', 'line', 29)) | LineInsertion(('triangle.rb', '_inter_line', 3), ('triangle.rb', 'line', 9)) | LineInsertion(('triangle.rb', '_inter_line', 2), ('triangle.rb', 'line', 20)) | LineReplacement(('triangle.rb', 'line', 11), ('triangle.rb', 'line', 1))"
+    python3 -m bin.minify_patch --mode repair --config examples/scenario/triangle-rb_repair.txt --patch "LineReplacement(('triangle.rb', 'line', 11), ('triangle.rb', 'line', 1)) | LineDeletion(('triangle.rb', 'line', 12)) | LineReplacement(('triangle.rb', 'line', 25), ('triangle.rb', 'line', 27)) | LineReplacement(('triangle.rb', 'line', 6), ('triangle.rb', 'line', 6)) | LineReplacement(('triangle.rb', 'line', 3), ('triangle.rb', 'line', 3)) | LineInsertion(('triangle.rb', '_inter_line', 25), ('triangle.rb', 'line', 29)) | LineInsertion(('triangle.rb', '_inter_line', 3), ('triangle.rb', 'line', 9)) | LineInsertion(('triangle.rb', '_inter_line', 2), ('triangle.rb', 'line', 20)) | LineReplacement(('triangle.rb', 'line', 11), ('triangle.rb', 'line', 1))"
 
 
 ## Ablation Analysis
 
 Example: (using the algorithm configuration example)
 
-    python -m bin.ablation_analysis --mode config --config examples/scenario/minisat_config.txt --patch "ParamSetting(('minisat_simplified.params', 'rinc'), 3.8204404817425397) | ParamSetting(('minisat_simplified.params', 'rnd-seed'), 454275209) | ParamSetting(('minisat_simplified.params', 'luby'), 'False') | ParamSetting(('minisat_simplified.params', 'ccmin-mode'), 1)"
+    python3 -m bin.ablation_analysis --mode config --config examples/scenario/minisat_config.txt --patch "ParamSetting(('minisat_simplified.params', 'rinc'), 3.8204404817425397) | ParamSetting(('minisat_simplified.params', 'rnd-seed'), 454275209) | ParamSetting(('minisat_simplified.params', 'luby'), 'False') | ParamSetting(('minisat_simplified.params', 'ccmin-mode'), 1)"
 
 
 
@@ -197,15 +197,15 @@ In particular:
 
 To optimise running time:
 
-    python -m bin.magpie_runtime --config examples/scenario/minisat_runtime.txt
-    python -m examples.magpie_runtime_xml --config examples/scenario/minisat_runtime_xml.txt
+    python3 -m bin.magpie_runtime --config examples/scenario/minisat_runtime.txt
+    python3 -m examples.magpie_runtime_xml --config examples/scenario/minisat_runtime_xml.txt
 
 To remove any unnecessary code:
 
-    python -m bin.magpie_bloat --config examples/scenario/minisat_debloat.txt
-    python -m examples.magpie_bloat2 --config examples/scenario/minisat_debloat.txt
+    python3 -m bin.magpie_bloat --config examples/scenario/minisat_debloat.txt
+    python3 -m examples.magpie_bloat2 --config examples/scenario/minisat_debloat.txt
 
 To optimise command line parameters:
 
-    python -m bin.magpie_config --config examples/scenario/minisat_config.txt
-    python -m examples.magpie_config_minisat --config examples/scenario/minisat_config_advanced.txt
+    python3 -m bin.magpie_config --config examples/scenario/minisat_config.txt
+    python3 -m examples.magpie_config_minisat --config examples/scenario/minisat_config_advanced.txt
