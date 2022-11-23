@@ -13,6 +13,9 @@ class Edit:
             self.data == other.data
         )
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __str__(self):
         return '{}({}{})'.format(
             self.__class__.__name__,
