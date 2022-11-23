@@ -349,7 +349,7 @@ class Program():
             run_result.status = 'TEST_ERROR'
 
     def process_run_exec(self, run_result, exec_result):
-        stdout = exec_result.stdout.decode('ascii')
+        stdout = exec_result.stdout.decode(magpie_config.output_encoding)
         m = re.search('MAGPIE_FITNESS: (.*)', stdout)
         if m:
             try:

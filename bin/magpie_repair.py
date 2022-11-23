@@ -32,7 +32,7 @@ class MyProgram(magpie.base.Program):
         return magpie.line.LineEngine
 
     def process_test_exec(self, run_result, exec_result):
-        stdout = exec_result.stdout.decode('ascii')
+        stdout = exec_result.stdout.decode(magpie.config.output_encoding)
         matches = re.findall(' (\d+) (?:fail|error)', stdout)
         fails = 0
         if matches:

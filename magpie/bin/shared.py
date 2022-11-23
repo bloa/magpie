@@ -56,6 +56,8 @@ def setup_magpie(config):
             magpie.config.local_original_copy = config['magpie']['local_original_copy']
         if 'local_original_name' in config['magpie']:
             magpie.config.local_original_copy = config['magpie']['local_original_name']
+        if 'output_encoding' in config['magpie']:
+            magpie.config.output_encoding = config['magpie']['output_encoding']
         if 'edit_retries' in config['magpie']:
             magpie.config.edit_retries = config['magpie']['edit_retries']
         if 'default_timeout' in config['magpie']:

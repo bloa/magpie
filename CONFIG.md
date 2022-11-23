@@ -15,6 +15,7 @@ Default values:
     work_dir = '_magpie_work'
     local_original_copy = False
     local_original_name = '__original__'
+    output_encoding = 'ascii'
     edit_retries = 10
     default_timeout = 30
     default_output = 1e4
@@ -24,6 +25,7 @@ Default values:
 - `work_dir`: the folder in which mutated software variants are cloned, modified, compiled, and run
 - `local_original_copy`: whether an intermediary copy of the original software is also cloned in `work_dir` (useful e.g. in cluster to clone everything in `/tmp`.
 - `local_original_name`: the name of the intermerdiary copy in `work_dir` (only if `local_original_copy` is `True`)
+- `output_encoding`: the character encoding used to decode the target software's stdout/stderr
 - `edit_retries`: how many invalid edits Magpie tries to generate in a row before completely giving up on .
 - `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
 - `default_output`: maximum output file size Magpie records before discarding a software variant (used if `compile_output`, `test_output`, or `run_output` is not specified in `[software]`)
