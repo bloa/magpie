@@ -8,12 +8,13 @@ import sys
 import magpie
 
 from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import apply_global_config
+from magpie.bin.shared import setup_magpie, setup_protocol
 
 from .magpie_runtime import MyProgram as MyRuntimeProgram
 from .magpie_repair import MyProgram as MyRepairProgram
 from .magpie_bloat import MyProgram as MyBloatProgram
 from .magpie_config import MyProgram as MyConfigProgram
+
 
 # ================================================================================
 
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     # read config file
     config = configparser.ConfigParser()
     config.read(args.config)
-    apply_global_config(config)
+    setup_magpie(config)
 
     # recreate patch
     patch = patch_from_string(args.patch)
@@ -64,6 +65,7 @@ if __name__ == "__main__":
         protocol.program = MyBloatProgram(config)
     elif args.mode == 'config':
         protocol.program = MyConfigProgram(config)
+    setup_protocol(protocol, config)
 
     # run experiments
     protocol.run()

@@ -6,7 +6,7 @@ import magpie
 import magpie.astor # not by default
 
 from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import apply_global_config
+from magpie.bin.shared import setup_magpie, setup_protocol
 
 
 # ================================================================================
@@ -48,16 +48,13 @@ if __name__ == "__main__":
     # read config file
     config = configparser.ConfigParser()
     config.read(args.config)
-    apply_global_config(config)
+    setup_magpie(config)
 
     # setup protocol
     protocol = ExpProtocol()
     protocol.search = magpie.algo.FirstImprovement()
-    if 'max_steps' in config['search']:
-        protocol.search.stop['steps'] = int(config['search']['max_steps'])
-    if 'max_time' in config['search']:
-        protocol.search.stop['wall'] = int(config['search']['max_time'])
     protocol.program = MyProgram(config)
+    setup_protocol(protocol, config)
 
     # run experiments
     protocol.run()

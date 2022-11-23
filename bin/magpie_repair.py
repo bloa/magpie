@@ -6,7 +6,7 @@ import re
 import magpie
 
 from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import apply_global_config, setup_protocol
+from magpie.bin.shared import setup_magpie, setup_protocol
 
 # ================================================================================
 # Target software specifics
@@ -62,14 +62,14 @@ if __name__ == "__main__":
     # read config file
     config = configparser.ConfigParser()
     config.read(args.config)
-    apply_global_config(config)
+    setup_magpie(config)
 
     # setup protocol
     protocol = ExpProtocol()
     protocol.search = magpie.algo.FirstImprovement()
-    setup_protocol(protocol, config)
     protocol.search.stop['fitness'] = 0 # early stop when no bug left
     protocol.program = MyProgram(config)
+    setup_protocol(protocol, config)
 
     # run experiments
     protocol.run()

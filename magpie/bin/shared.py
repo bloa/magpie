@@ -46,7 +46,7 @@ class ExpProtocol:
 
 # ================================================================================
 
-def apply_global_config(config):
+def setup_magpie(config):
     if 'magpie' in config:
         if 'log_dir' in config['magpie']:
             magpie.config.log_dir = config['magpie']['log_dir']
@@ -68,38 +68,46 @@ def apply_global_config(config):
         if 'diff_method' in config['magpie']:
             magpie.config.diff_method = config['magpie']['diff_method']
 
+def setup_protocol(protocol, config):
+    setup_search(protocol.search, config)
+    setup_program(protocol.program, config)
+
+def setup_program(program, config):
     if 'software' in config:
         if 'compile_timeout' in config['software']:
-            magpie.config.compile_timeout = float(config['software']['compile_timeout'])
+            if config['software']['compile_timeout'] != '':
+                program.compile_timeout = float(config['software']['compile_timeout'])
         if 'compile_output' in config['software']:
             if config['software']['compile_output'] == '':
-                magpie.config.compile_output = None
+                program.compile_output = None
             else:
-                magpie.config.compile_output = float(config['software']['compile_output'])
+                program.compile_output = float(config['software']['compile_output'])
         if 'test_timeout' in config['software']:
-            magpie.config.test_timeout = float(config['software']['test_timeout'])
+            if config['software']['test_timeout'] != '':
+                program.test_timeout = float(config['software']['test_timeout'])
         if 'test_output' in config['software']:
             if config['software']['test_output'] == '':
-                magpie.config.test_output = None
+                program.test_output = None
             else:
-                magpie.config.test_output = float(config['software']['test_output'])
+                program.test_output = float(config['software']['test_output'])
         if 'run_timeout' in config['software']:
-            magpie.config.run_timeout = float(config['software']['run_timeout'])
+            if config['software']['run_timeout'] != '':
+                program.run_timeout = float(config['software']['run_timeout'])
         if 'run_output' in config['software']:
             if config['software']['run_output'] == '':
-                magpie.config.run_output = None
+                program.run_output = None
             else:
-                magpie.config.run_output = float(config['software']['run_output'])
+                program.run_output = float(config['software']['run_output'])
 
-def setup_protocol(protocol, config):
+def setup_search(search, config):
     if 'search' in config:
         if 'warmup' in config['search']:
-            protocol.search.config['warmup'] = int(config['search']['warmup'])
+            search.config['warmup'] = int(config['search']['warmup'])
         if 'warmup_strategy' in config['search']:
-            protocol.search.config['warmup_strategy'] = config['search']['warmup_strategy']
+            search.config['warmup_strategy'] = config['search']['warmup_strategy']
         if 'max_steps' in config['search']:
-            protocol.search.stop['steps'] = int(config['search']['max_steps'])
+            search.stop['steps'] = int(config['search']['max_steps'])
         if 'max_time' in config['search']:
-            protocol.search.stop['wall'] = int(config['search']['max_time'])
+            search.stop['wall'] = int(config['search']['max_time'])
         if 'target_fitness' in config['search']:
-            protocol.search.stop['fitness'] = int(config['search']['target_fitness'])
+            search.stop['fitness'] = int(config['search']['target_fitness'])
