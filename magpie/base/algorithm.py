@@ -27,6 +27,7 @@ class Algorithm(ABC):
         self.stats['cache_hits'] = 0
         self.stats['cache_misses'] = 0
         self.stats['budget'] = 0
+        self.stats['steps'] = 0
         self.report = {}
         self.report['initial_patch'] = None
         self.report['initial_fitness'] = None

@@ -27,7 +27,6 @@ class GeneticProgramming(Algorithm):
             self.warmup()
 
             # start!
-            self.stats['steps'] = 0
             self.hook_start()
 
             # initial pop

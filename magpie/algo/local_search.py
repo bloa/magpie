@@ -15,6 +15,10 @@ class LocalSearch(Algorithm):
         self.config['trapped_strategy'] = 'continue'
         self.config['mutate_strategy'] = None
 
+    def reset(self):
+        super().reset()
+        self.stats['neighbours'] = 0
+
     def run(self):
         try:
             # warmup
@@ -22,8 +26,6 @@ class LocalSearch(Algorithm):
             self.warmup()
 
             # start!
-            self.stats['steps'] = 0
-            self.stats['neighbours'] = 0
             self.hook_start()
 
             # main loop
