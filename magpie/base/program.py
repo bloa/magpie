@@ -289,7 +289,11 @@ class Program():
         start = time.time()
         try:
             self.last_cmd = str(cmd)
-            sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+            sprocess = None
+            try:
+                sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+            except FileNotFoundError:
+                return ExecResult('CLI_ERROR', -1, b"", b"", 0)
             if max_output:
                 stdout_size = 0
                 stderr_size = 0
