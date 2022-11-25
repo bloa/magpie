@@ -88,7 +88,7 @@ Example:
 
     python3 -m bin.magpie_runtime --config examples/scenario/triangle-py_runtime.txt
 
-Note: the `triangle-py_runtime.txt` scenario requires Python 3.7+ and [`pytest`](docs.pytest.org).
+Note: the `triangle-py_runtime.txt` scenario requires Python 3.7+ and [`pytest`](https://docs.pytest.org).
 
 
 ## Automated Bug Fixing
@@ -97,7 +97,7 @@ Example:
 
     python3 -m bin.magpie_repair --config examples/scenario/triangle-rb_repair.txt
 
-Note: the `triangle-rb_repair.txt` scenario requires Ruby and [`minitest`](docs.seattlerb.org/minitest/).
+Note: the `triangle-rb_repair.txt` scenario requires Ruby and [`minitest`](https://docs.seattlerb.org/minitest/).
 
 See also: (with expression and operator mutations)
 
@@ -116,7 +116,7 @@ See also: (to remove empty lines and comments from the location list)
 
     python3 -m examples.magpie_bloat2 --config examples/scenario/triangle-py_bloat.txt
 
-Note: both `triangle-py_bloat.txt` and `triangle-py_bloat2.txt` scenarios require Python 3.7+ and [`pytest`](docs.pytest.org).
+Note: both `triangle-py_bloat.txt` and `triangle-py_bloat2.txt` scenarios require Python 3.7+ and [`pytest`](https://docs.pytest.org).
 
 
 ## Algorithm Configuration
