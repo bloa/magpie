@@ -60,7 +60,7 @@ class Algorithm(ABC):
     def hook_main_loop(self):
         pass
 
-    def hook_evaluation(self, patch, run, accept, best):
+    def hook_evaluation(self, patch, run, accept=False, best=False):
         if best:
             c = '*'
         elif accept:
