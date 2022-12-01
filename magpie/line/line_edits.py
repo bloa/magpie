@@ -52,12 +52,13 @@ class LineDeletion(Edit):
 class LineMoving(Edit):
     def apply(self, program, new_contents, new_locations):
         engine = program.engines[self.target[0]]
-        engine.do_insert(program.contents, program.locations,
-                                       new_contents, new_locations,
-                                       self.target, self.data[0])
-        return engine.do_delete(program.contents, program.locations,
-                                new_contents, new_locations,
-                                self.data[0])
+        return (engine.do_insert(program.contents, program.locations,
+                                 new_contents, new_locations,
+                                 self.target, self.data[0])
+                and
+                engine.do_delete(program.contents, program.locations,
+                                 new_contents, new_locations,
+                                 self.data[0]))
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None):
