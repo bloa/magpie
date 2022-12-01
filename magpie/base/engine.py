@@ -14,14 +14,23 @@ class AbstractEngine(ABC):
             tmp_file.write(cls.dump(new_contents[target_file]))
 
     @classmethod
-    def random_target(cls, locations, target_file, target_type=None):
+    def random_target(cls, locations, weights, target_file, target_type=None):
         if target_type is None:
             target_type = random.choice(locations[target_file])
-        try:
-            loc = random.randrange(len(locations[target_file][target_type]))
-            return (target_file, target_type, loc)
-        except (KeyError, ValueError):
+        if weights and target_file in weights and target_type in weights[target_file]:
+            total_weight = sum(weights[target_file][target_type])
+            r = random.uniform(0, total_weight)
+            for loc, w in zip(locations[target_file][target_type], weights[target_file][target_type]):
+                if r < w:
+                    return (target_file, target_type, loc)
+                r -= w
             return None
+        else:
+            try:
+                loc = random.randrange(len(locations[target_file][target_type]))
+                return (target_file, target_type, loc)
+            except (KeyError, ValueError):
+                return None
 
     @classmethod
     @abstractmethod

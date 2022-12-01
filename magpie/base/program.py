@@ -36,6 +36,7 @@ class Program():
         self.contents = {}
         self.local_contents = {}
         self.locations = {}
+        self.location_weights = {}
         self.possible_edits = []
         self.work_dir = None
         self.compile_cmd = None
@@ -155,7 +156,7 @@ class Program():
     def random_target(self, target_file=None, target_type=None):
         if target_file is None:
             target_file = random.choice(self.target_files)
-        return self.get_engine(target_file).random_target(self.locations, target_file, target_type)
+        return self.get_engine(target_file).random_target(self.locations, self.location_weights, target_file, target_type)
 
     def apply_patch(self, patch):
         # process modified files
