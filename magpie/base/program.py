@@ -241,6 +241,8 @@ class Program():
                 run_result.status = exec_result.status
                 if run_result.status == 'SUCCESS':
                     self.process_compile_exec(run_result, exec_result)
+                elif run_result.status in ['TIMEOUT', 'LENGTHOUT']:
+                    run_result.status = 'COMPILE_{}'.format(run_result.status)
                 if run_result.status != 'SUCCESS':
                     return run_result
 
@@ -262,6 +264,8 @@ class Program():
                 run_result.status = exec_result.status
                 if run_result.status == 'SUCCESS':
                     self.process_test_exec(run_result, exec_result)
+                elif run_result.status in ['TIMEOUT', 'LENGTHOUT']:
+                    run_result.status = 'TEST_{}'.format(run_result.status)
                 if run_result.status != 'SUCCESS':
                     return run_result
 
@@ -276,6 +280,8 @@ class Program():
                 run_result.status = exec_result.status
                 if run_result.status == 'SUCCESS':
                     self.process_run_exec(run_result, exec_result)
+                elif run_result.status in ['TIMEOUT', 'LENGTHOUT']:
+                    run_result.status = 'RUN_{}'.format(run_result.status)
         finally:
             # make sure to go back to main directory
             os.chdir(cwd)
@@ -319,7 +325,7 @@ class Program():
                     if stdout_size+stderr_size >= max_output:
                         os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
                         _, _ = sprocess.communicate()
-                        return ExecResult('OUTPUT_LIMIT', sprocess.returncode, stdout, stderr, end-start)
+                        return ExecResult('LENGTHOUT', sprocess.returncode, stdout, stderr, end-start)
                 end = time.time()
                 stdout += sprocess.stdout.read()
                 stderr += sprocess.stderr.read()
