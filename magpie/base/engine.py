@@ -20,7 +20,7 @@ class AbstractEngine(ABC):
         if weights and target_file in weights and target_type in weights[target_file]:
             total_weight = sum(weights[target_file][target_type])
             r = random.uniform(0, total_weight)
-            for loc, w in zip(locations[target_file][target_type], weights[target_file][target_type]):
+            for loc, w in enumerate(weights[target_file][target_type]):
                 if r < w:
                     return (target_file, target_type, loc)
                 r -= w
