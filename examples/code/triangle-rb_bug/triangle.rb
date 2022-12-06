@@ -24,9 +24,9 @@ def classify_triangle(a, b, c)
     return :invalid
   when a == b && b == c
     # should be be "return :equilateral"
-    return :isoceles
+    return :isosceles
   when a == b || b == c
-    # should be be "return :isoceles"
+    # should be be "return :isosceles"
     return :equilateral
   else
     return :scalene

@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class TriangleType(Enum):
-    INVALID, EQUILATERAL, ISOCELES, SCALENE = 0, 1, 2, 3
+    INVALID, EQUILATERAL, ISOSCELES, SCALENE = 0, 1, 2, 3
 
 
 # never used
@@ -34,7 +34,7 @@ def classify_triangle(a, b, c):
     elif a == b and b == c:
         return TriangleType.EQUILATERAL
     elif a == b or b == c:
-        return TriangleType.ISOCELES
+        return TriangleType.ISOSCELES
     else:
         return TriangleType.SCALENE
 

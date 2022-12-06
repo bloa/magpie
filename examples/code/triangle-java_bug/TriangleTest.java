@@ -27,12 +27,12 @@ public class TriangleTest {
     }
 
     @org.junit.Test
-    public void testIsocelesTriangles() throws Exception {
-        int[][] isocelesTriangles = {
+    public void testIsoscelesTriangles() throws Exception {
+        int[][] isoscelesTriangles = {
           {2, 2, 3}, {2, 3, 2}, {3, 2, 2},
           {1, 2, 2}, {2, 1, 2}, {2, 2, 1}
         };
-        checkClassification(isocelesTriangles, Triangle.TriangleType.ISOCELES);
+        checkClassification(isoscelesTriangles, Triangle.TriangleType.ISOSCELES);
     }
 
     @org.junit.Test

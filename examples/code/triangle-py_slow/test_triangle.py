@@ -19,10 +19,10 @@ def test_equalateral_triangles():
     check_classification(triangles, TriangleType.EQUILATERAL)
 
 
-def test_isoceles_triangles():
+def test_isosceles_triangles():
     triangles = [(100, 90, 90), (90, 100, 90), (90, 90, 100), (2, 2, 3)]
 
-    check_classification(triangles, TriangleType.ISOCELES)
+    check_classification(triangles, TriangleType.ISOSCELES)
 
 
 def test_scalene_triangles():

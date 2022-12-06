@@ -21,9 +21,9 @@ class TestTriangle < MiniTest::Unit::TestCase
     check_classification(triangles, :equilateral)
   end
 
-  def test_isoceles_triangles()
+  def test_isosceles_triangles()
     triangles = [[100, 90, 90], [90, 100, 90], [90, 90, 100], [2, 2, 3]]
-    check_classification(triangles, :isoceles)
+    check_classification(triangles, :isosceles)
   end
 
   def test_scalene_triangles()

@@ -1,7 +1,7 @@
 public class Triangle {
 
     public enum TriangleType {
-        INVALID, SCALENE, EQUILATERAL, ISOCELES
+        INVALID, SCALENE, EQUILATERAL, ISOSCELES
     }
 
     public static TriangleType classifyTriangle(int a, int b, int c) {
@@ -28,7 +28,7 @@ public class Triangle {
         } else if (a == b && b == c) {
             return TriangleType.EQUILATERAL;
         } else if (a == b || b == c) {
-            return TriangleType.ISOCELES;
+            return TriangleType.ISOSCELES;
         } else {
             return TriangleType.SCALENE;
         }
