@@ -45,6 +45,35 @@ class ExpProtocol:
 
 
 # ================================================================================
+# ExampleProgram
+# ================================================================================
+
+class ExampleProgram(magpie.base.Program):
+    def __init__(self, config):
+        self.base_init(config['software']['path'])
+        self.possible_edits = [
+            magpie.line.LineReplacement,
+            magpie.line.LineInsertion,
+            magpie.line.LineDeletion,
+        ]
+        self.target_files = config['software']['target_files'].split()
+        self.compile_cmd = config['software']['compile_cmd']
+        self.test_cmd = config['software']['test_cmd']
+        self.run_cmd = config['software']['run_cmd']
+        self.reset_timestamp()
+        self.reset_logger()
+        self.reset_contents()
+
+    def get_engine(self, target_file):
+        if target_file[-7:] == '.params':
+            return magpie.params.ConfigFileParamsEngine
+        elif target_file[-4:] == '.xml':
+            return magpie.xml.XmlEngine
+        else:
+            return magpie.line.LineEngine
+
+
+# ================================================================================
 
 def setup_magpie(config):
     if 'magpie' in config:

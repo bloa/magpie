@@ -44,5 +44,15 @@ class AbstractEngine(ABC):
 
     @classmethod
     @abstractmethod
+    def location_names(cls, file_locations, target_file, target_type):
+        return list(range(len(file_locations[target_file][target_type])))
+
+    @classmethod
+    @abstractmethod
     def dump(cls, file_contents):
         pass
+
+    @classmethod
+    def show_location(cls, file_contents, file_locations, target_file, target_type, target_loc):
+        return '(unsupported)'
+

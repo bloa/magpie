@@ -68,6 +68,39 @@ class XmlEngine(AbstractEngine):
     def dump(cls, contents_of_file):
         return cls.strip_xml_from_tree(contents_of_file)
 
+    @classmethod
+    def show_location(cls, contents, locations, target_file, target_type, target_loc):
+        out = '(unsupported target_type)'
+        if target_type[:7] == '_inter_':
+            fakepath = locations[target_file][target_type][target_loc]
+            parent_xpath, insert_index = fakepath.split('><')
+            insert_index = int(insert_index)
+            parent = copy.deepcopy(contents[target_file].find(parent_xpath))
+            sp = cls.guess_spacing(parent.text)
+            if insert_index == 0:
+                parent.text = (parent.text or '') + '(INSERTION POINT)'
+            else:
+                child = None
+                for i, child in enumerate(parent):
+                    if i == insert_index-1:
+                        child.tail = (child.tail or '') + sp + '(INSERTION POINT)'
+                        break
+                    sp = cls.guess_spacing(child.tail)
+                else:
+                    child.tail = (child.tail or '') + sp + '(INSERTION POINT)'
+                    parent.insert(i+1, tmp)
+            out = '# {}: {}\n{}'.format(
+                target_loc,
+                fakepath,
+                cls.tree_to_string(parent))
+        else:
+            xpath = locations[target_file][target_type][target_loc]
+            out = '# {}: {}\n{}'.format(
+                target_loc,
+                xpath,
+                cls.tree_to_string(contents[target_file].find(xpath)))
+        return out
+
     @staticmethod
     def string_to_tree(s):
         xml = re.sub(r'(?:\s+xmlns[^=]*="[^"]+")+', '', s, count=1)
@@ -181,20 +214,20 @@ class XmlEngine(AbstractEngine):
         sp = cls.guess_spacing(parent.text)
         tmp = copy.deepcopy(ingredient)
         if insert_index == 0:
-            tmp.tail = "\n" + sp
+            tmp.tail = sp
             parent.insert(insert_index, tmp)
         else:
             child = None
             for i, child in enumerate(parent):
                 if i == insert_index-1:
                     tmp.tail = child.tail
-                    child.tail = "\n" + sp
+                    child.tail = sp
                     parent.insert(insert_index, tmp)
                     break
                 sp = cls.guess_spacing(child.tail)
             else:
                 tmp.tail = child.tail
-                child.tail = "\n" + sp
+                child.tail = sp
                 parent.insert(i+1, tmp)
                 # raise RuntimeError
 
@@ -360,5 +393,5 @@ class XmlEngine(AbstractEngine):
     def guess_spacing(cls, text):
         if text is None:
             return ''
-        m = [''] + re.findall(r"\n(\s*)", text, re.MULTILINE)
+        m = [''] + re.findall(r"(\n\s*)", text, re.MULTILINE)
         return m[-1]

@@ -135,6 +135,12 @@ class Program():
     def get_engine(self, target_file):
         raise RuntimeError('Unknown engine for "{}"'.format(target_file))
 
+    def location_names(self, target_file, target_type):
+        return self.get_engine(target_file).location_names(self.locations, target_file, target_type)
+
+    def show_location(self, target_file, target_type, target_loc):
+        return self.get_engine(target_file).show_location(self.contents, self.locations, target_file, target_type, target_loc)
+
     def create_edit(self):
         if self.possible_edits:
             edit = random.choice(self.possible_edits).create(self)

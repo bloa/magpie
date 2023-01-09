@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument('--mode', type=str, choices=['repair', 'runtime', 'bloat', 'config'], required=True)
     parser.add_argument('--config', type=pathlib.Path, required=True)
     parser.add_argument('--patch', type=str, required=True)
+    parser.add_argument('--keep', action='store_true')
     args = parser.parse_args()
 
     # read config file
@@ -55,19 +56,26 @@ if __name__ == "__main__":
     # recreate patch
     patch = patch_from_string(args.patch)
 
-    # setup protocol
-    protocol = ExpProtocol()
-    protocol.search = magpie.algo.ValidRankingSimplify()
-    protocol.search.debug_patch = patch
+    # setup program
     if args.mode == 'repair':
-        protocol.program = MyRepairProgram(config)
+        program = MyRepairProgram(config)
     elif args.mode == 'runtime':
-        protocol.program = MyRuntimeProgram(config)
-    elif args.mode == 'bloat':
-        protocol.program = MyBloatProgram(config)
+        program = MyRuntimeProgram(config)
+    elif mode == 'bloat':
+        program = MyBloatProgram(config)
     elif args.mode == 'config':
-        protocol.program = MyConfigProgram(config)
-    setup_protocol(protocol, config)
+        program = MyConfigProgram(config)
 
-    # run experiments
-    protocol.run()
+    # apply patch
+    new_contents = program.apply_patch(patch)
+
+    # show patch
+    program.logger.info('==== REPORT ====')
+    program.logger.info('Patch: {}'.format(patch))
+    program.logger.info('Diff:\n{}'.format(program.diff_contents(new_contents)))
+    if args.keep:
+        program.logger.info('==== PATH ====')
+        program.logger.info(program.work_dir)
+        program.write_contents(new_contents)
+    else:
+        program.clean_work_dir()

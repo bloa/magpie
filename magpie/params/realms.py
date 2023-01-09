@@ -59,6 +59,9 @@ class CategoricalRealm(Realm):
     def __init__(self, data):
         self.data = data
 
+    def __str__(self):
+        return 'CategoricalRealm({})'.format(self.data)
+
     def random_value(self):
         return random.choice(self.data)
 
@@ -67,6 +70,11 @@ class UniformRealm(Realm):
         self.start = start
         self.stop = stop
         self.step = step
+
+    def __str__(self):
+        if self.step is None:
+            return 'UniformRealm({}, {})'.format(self.start, self.stop)
+        return 'UniformRealm({}, {}, {})'.format(self.start, self.stop, self.step)
 
     def random_value(self):
         if self.step is None:
@@ -80,6 +88,11 @@ class UniformIntRealm(Realm):
         self.stop = stop
         self.step = step
 
+    def __str__(self):
+        if self.step is None:
+            return 'UniformIntRealm({}, {})'.format(self.start, self.stop)
+        return 'UniformIntRealm({}, {}, {})'.format(self.start, self.stop, self.step)
+
     def random_value(self):
         if self.step is None:
             return random.randint(self.start, self.stop)
@@ -91,6 +104,11 @@ class ExponentialRealm(Realm):
         self.start = start
         self.stop = stop
         self.lambd = lambd
+
+    def __str__(self):
+        if self.lambd is None:
+            return 'ExponentialRealm({}, {})'.format(self.start, self.stop)
+        return 'ExponentialRealm({}, {}, {})'.format(self.start, self.stop, self.lambd)
 
     def random_value(self):
         if self.start >= 0:
@@ -121,6 +139,11 @@ class GeometricRealm(Realm):
         self.stop = stop
         self.lambd = lambd
 
+    def __str__(self):
+        if self.lambd is None:
+            return 'GeometricRealm({}, {})'.format(self.start, self.stop)
+        return 'GeometricRealm({}, {}, {})'.format(self.start, self.stop, self.lambd)
+
     def random_value(self):
         if self.start >= 0:
             return self.random_positive_value(self.start, self.stop, self.lambd)
@@ -149,6 +172,9 @@ class LambdaRealm(Realm):
     def __init__(self, lambd, realm):
         self.lambd = lambd
         self.realm = realm
+
+    def __str__(self):
+        return 'LambdaRealm(<unsupported>, {})'.format(self.realm)
 
     def random_value(self):
         x = Realm.random_value(self.realm)

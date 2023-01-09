@@ -17,6 +17,18 @@ class LineEngine(AbstractLineEngine):
         return ''.join(s + '\n' for s in file_contents if s is not None)
 
     @classmethod
+    def show_location(cls, contents, locations, target_file, target_type, target_loc):
+        out = '(unsupported target_type)'
+        if target_type == 'line':
+            out = '{}:{}'.format(target_loc, contents[target_file][locations[target_file][target_type][target_loc]])
+        elif target_type == '_inter_line':
+            if target_loc == 0:
+                out = '0=before initial line'
+            else:
+                out = '{}=after:{}'.format(target_loc, contents[target_file][locations[target_file][target_type][target_loc-1]])
+        return out
+
+    @classmethod
     def do_replace(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, "line", line index
         o_f, o_t, o_i = target_orig # file name, "line", line index

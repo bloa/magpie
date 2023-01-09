@@ -132,6 +132,45 @@ See also: (for fine-tuned parameter handling)
     python3 -m examples.magpie_config_minisat --config examples/scenario/minisat_config_advanced.txt
 
 
+# Utilities
+
+We provide several miscellaneous scripts that may be helpful.
+
+    bin
+    ├── line_xml.py
+    ├── show_locations.py
+    └── show_patch.py
+
+
+## Line to XML Converter
+
+Example:
+
+    python3 bin/line_xml.py --file examples/code/triangle-java_slow/Triangle.java
+
+
+## Locations from Software
+
+The `show_location.py` utility provides a way to quickly verify which location points are defined for a given software.
+The `--filename` and `--type` options allow for specifying a specific subset of locations; by default all locations of all targeted files are showed.
+
+Examples:
+
+    python3 -m bin.show_locations --config examples/scenario/triangle-rb_repair.txt
+    python3 -m bin.show_locations --config examples/scenario/triangle-rb_repair.txt --filename=triangle.rb --type=line
+
+
+## Diff from Patch
+
+The `show_patch.py` utility provides a way to quickly (without evaluation) apply a Magpie patch and show the resulting diff.
+
+Example: (using the runtime minimisation example)
+
+    python3 -m bin.show_patch --mode=runtime --config examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+
+In addition, using the `--keep` option will also instruct Magpie to leave a copy of the mutated software for further manual investigation.
+
+
 # Validation
 
 We provide three generic entry points for validation/test.

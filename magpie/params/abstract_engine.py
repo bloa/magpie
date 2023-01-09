@@ -37,8 +37,18 @@ class AbstractParamsEngine(AbstractEngine):
         pass
 
     @classmethod
+    def location_names(cls, file_locations, target_file, target_type):
+        return file_locations[target_file][target_type]
+
+    @classmethod
     def dump(cls, contents_of_file):
         return "\n".join(['{} := {}'.format(k, repr(v)) for k,v in contents_of_file.items() if not cls.would_be_ignored(contents_of_file, k, v)])
+
+    @classmethod
+    def show_location(cls, file_contents, file_locations, target_file, target_type, target_loc):
+        if target_type != 'param':
+            return '(unsupported)'
+        return '{}: {} default={}'.format(target_loc, str(cls.PARAMS[target_loc][1]), repr(cls.PARAMS[target_loc][0]))
 
     @classmethod
     def random_target(cls, locations, target_file, target_type=None):
