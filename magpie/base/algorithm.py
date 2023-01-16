@@ -13,7 +13,6 @@ class Algorithm(ABC):
         self.config = {}
         self.config['warmup'] = 3
         self.config['warmup_strategy'] = 'last'
-        self.config['cache'] = True
         self.config['cache_maxsize'] = 40
         self.config['cache_keep'] = 0.2
         self.stop = {}
@@ -147,13 +146,13 @@ class Algorithm(ABC):
     def evaluate_patch(self, patch, force=False, forget=False):
         contents = self.program.apply_patch(patch)
         diff = None
-        if self.config['cache'] and not force:
+        if self.config['cache_maxsize'] > 0 and not force:
             diff = self.program.diff_contents(contents)
             run = self.cache_get(diff)
             if run:
                 return run
         run = self.program.evaluate_contents(contents)
-        if self.config['cache'] and not forget:
+        if self.config['cache_maxsize'] > 0 and not forget:
             if not diff:
                 diff = self.program.diff_contents(contents)
             self.cache_set(diff, run)

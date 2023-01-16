@@ -148,8 +148,6 @@ def setup_search(search, config):
         if 'target_fitness' in config['search']:
             search.stop['fitness'] = int(config['search']['target_fitness'])
         # cache
-        if 'cache' in config['search']:
-            search.config['cache'] = config['search']['cache']
         if 'cache_maxsize' in config['search']:
             search.config['cache_maxsize'] = int(config['search']['cache_maxsize'])
         if 'cache_keep' in config['search']:
