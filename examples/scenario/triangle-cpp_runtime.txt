@@ -1,0 +1,13 @@
+[software]
+path = examples/code/triangle-cpp_slow
+target_files =
+  triangle.cpp
+
+compile_cmd = ./compile.sh
+test_cmd = ./build/test_triangle
+run_cmd = ./build/run_triangle
+run_timeout = 1
+
+[search]
+max_steps = 100
+max_time = 60

@@ -1,0 +1,12 @@
+[software]
+path = examples/code/triangle-c_bug
+target_files =
+  triangle.c
+
+compile_cmd = make test_triangle
+test_cmd = ./test_triangle
+run_cmd =
+
+[search]
+max_steps = 100
+max_time = 60
