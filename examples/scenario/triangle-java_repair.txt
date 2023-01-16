@@ -1,4 +1,4 @@
-[softare]
+[software]
 path = examples/code/triangle-java_bug
 target_files =
   Triangle.java

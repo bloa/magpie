@@ -57,9 +57,12 @@ class ExampleProgram(magpie.base.Program):
             magpie.line.LineDeletion,
         ]
         self.target_files = config['software']['target_files'].split()
-        self.compile_cmd = config['software']['compile_cmd']
-        self.test_cmd = config['software']['test_cmd']
-        self.run_cmd = config['software']['run_cmd']
+        if 'compile_cmd' in config['software']:
+            self.compile_cmd = config['software']['compile_cmd']
+        if 'test_cmd' in config['software']:
+            self.test_cmd = config['software']['test_cmd']
+        if 'run_cmd' in config['software']:
+            self.run_cmd = config['software']['run_cmd']
         self.reset_timestamp()
         self.reset_logger()
         self.reset_contents()

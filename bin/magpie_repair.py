@@ -5,14 +5,14 @@ import re
 
 import magpie
 
-from magpie.bin.shared import ExpProtocol
+from magpie.bin.shared import ExpProtocol, ExampleProgram
 from magpie.bin.shared import setup_magpie, setup_protocol
 
 # ================================================================================
 # Target software specifics
 # ================================================================================
 
-class MyProgram(magpie.base.Program):
+class MyProgram(ExampleProgram):
     def process_test_exec(self, run_result, exec_result):
         stdout = exec_result.stdout.decode(magpie.config.output_encoding)
         matches = re.findall(' (\d+) (?:fail|error)', stdout)

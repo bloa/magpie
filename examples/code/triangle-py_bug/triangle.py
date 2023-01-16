@@ -1,4 +1,3 @@
-import time
 from enum import Enum
 
 
@@ -6,13 +5,7 @@ class TriangleType(Enum):
     INVALID, EQUILATERAL, ISOSCELES, SCALENE = 0, 1, 2, 3
 
 
-def delay():
-    time.sleep(0.001)
-
-
 def classify_triangle(a, b, c):
-
-    delay()
 
     # Sort the sides so that a <= b <= c
     if a > b:
@@ -33,8 +26,10 @@ def classify_triangle(a, b, c):
     if a + b <= c:
         return TriangleType.INVALID
     elif a == b and b == c:
-        return TriangleType.EQUILATERAL
-    elif a == b or b == c:
+        # should be EQUILATERAL
         return TriangleType.ISOSCELES
+    elif a == b or b == c:
+        # should be ISOSCELES
+        return TriangleType.EQUILATERAL
     else:
         return TriangleType.SCALENE
