@@ -135,13 +135,22 @@ def setup_program(program, config):
 
 def setup_search(search, config):
     if 'search' in config:
+        # warmup
         if 'warmup' in config['search']:
             search.config['warmup'] = int(config['search']['warmup'])
         if 'warmup_strategy' in config['search']:
             search.config['warmup_strategy'] = config['search']['warmup_strategy']
+        # stopping criteria
         if 'max_steps' in config['search']:
             search.stop['steps'] = int(config['search']['max_steps'])
         if 'max_time' in config['search']:
             search.stop['wall'] = int(config['search']['max_time'])
         if 'target_fitness' in config['search']:
             search.stop['fitness'] = int(config['search']['target_fitness'])
+        # cache
+        if 'cache' in config['search']:
+            search.config['cache'] = config['search']['cache']
+        if 'cache_maxsize' in config['search']:
+            search.config['cache_maxsize'] = int(config['search']['cache_maxsize'])
+        if 'cache_keep' in config['search']:
+            search.config['cache_keep'] = float(config['search']['cache_keep'])

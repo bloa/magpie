@@ -72,9 +72,15 @@ Default values:
     max_steps = None
     max_time = None
     target_fitness = None
+    cache = True
+    cache_maxsize = 40
+    cache_keep = 0.2
 
 - `warmup`: number of initial evaluation to consider
 - `warmup_strategy`: which warmup fitness value to use (possible: "last", "min", "max", "mean", "median")
 - `max_steps`: maximum number of steps before Magpie terminates
 - `max_time`: maximum execution time before Magpie terminates
 - `target_fitness`: if not "None", Magpie terminates as soon as a smaller or equal fitness value is found
+- `cache`: enables or disable caching runs results (recommended)
+- `cache_maxsize`: maximum number of cached run results
+- `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
