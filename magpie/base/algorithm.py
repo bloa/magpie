@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import random
+import os
 import time
 
 from .. import config as magpie_config
@@ -47,10 +48,16 @@ class Algorithm(ABC):
     def hook_warmup_evaluation(self, count, patch, run):
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
         if run.status != 'SUCCESS':
-            self.program.logger.info('Initial software failed to run!')
-            self.program.logger.info('CMD:\n{}'.format(self.program.last_cmd))
+            self.program.logger.info('!*'*40)
+            self.program.logger.info('Magpie stopped because it was unable to run the (unmodified) target software')
+            self.program.logger.info('Self-diagnostic:')
+            self.program.self_diagnostic(run)
+            self.program.logger.info('!*'*40)
+            self.program.logger.info('CWD: {}'.format(os.path.join(self.program.work_dir, self.program.basename)))
+            self.program.logger.info('CMD: {}'.format(self.program.last_cmd))
             self.program.logger.info('STDOUT:\n{}'.format(self.program.last_stdout.decode(magpie_config.output_encoding)))
             self.program.logger.info('STDERR:\n{}'.format(self.program.last_stderr.decode(magpie_config.output_encoding)))
+            self.program.logger.info('!*'*40)
 
     def hook_start(self):
         self.stats['wallclock_start'] = time.time() # discards warmup time

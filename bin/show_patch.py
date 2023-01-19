@@ -7,9 +7,6 @@ import sys
 
 import magpie
 
-from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import setup_magpie, setup_protocol
-
 from .magpie_runtime import MyProgram as MyRuntimeProgram
 from .magpie_repair import MyProgram as MyRepairProgram
 from .magpie_bloat import MyProgram as MyBloatProgram
@@ -41,7 +38,7 @@ def patch_from_string(s):
 # ================================================================================
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MAGPIE Patch Minifier Example')
+    parser = argparse.ArgumentParser(description='MAGPIE Show Patch')
     parser.add_argument('--mode', type=str, choices=['repair', 'runtime', 'bloat', 'config'], required=True)
     parser.add_argument('--config', type=pathlib.Path, required=True)
     parser.add_argument('--patch', type=str, required=True)
@@ -51,7 +48,6 @@ if __name__ == "__main__":
     # read config file
     config = configparser.ConfigParser()
     config.read(args.config)
-    setup_magpie(config)
 
     # recreate patch
     patch = patch_from_string(args.patch)

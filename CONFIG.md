@@ -3,8 +3,6 @@
 Magpie's default entry points (see [USAGE.md](/USAGE.md)) all use configuration files to quickly fine-tune execution.
 There are three main sections, detailed below.
 
-Note that when writing custom entry points, configuration files may be completely bypassed (see [`magpie/bin/shared.py`](magpie/bin/shared.py)).
-
 
 ## `[magpie]`
 
@@ -51,9 +49,12 @@ Default values:
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the files (relatively to `path`) targeted by Magpie
-- `compile_cmd`: command line to execute during the compilation step (or "None", in which case it is skipped)
-- `compile_timeout`: maximum execution time during the compilation step (or "None", in which case `default_timeout` from `[magpie]` is used)
-- `compile_output`: maximum output file size during the compilation step (or "None", in which case `default_output` from `[magpie]` is used)
+- `setup_cmd`: command line to execute during the setup step (or "" or "None", in which case it is skipped)
+- `setup_timeout`: maximum execution time during the setup step (or "" or "None", in which case `default_timeout` from `[magpie]` is used)
+- `setup_output`: maximum output file size during the setup step (or "" or "None", in which case `default_output` from `[magpie]` is used)
+- `compile_cmd`
+- `compile_timeout`
+- `compile_output`
 - `test_cmd`
 - `test_timeout`
 - `test_output`

@@ -5,7 +5,6 @@ import pathlib
 import random
 import collections
 import subprocess
-import shlex
 import copy
 import difflib
 import select
@@ -16,18 +15,9 @@ import re
 
 from .. import config as magpie_config
 from .execresult import ExecResult
-from .runresult import RunResult
-from ..params import AbstractParamsEngine
 
-class Program():
+class AbstractProgram():
     def __init__(self, path):
-        self.base_init(path)
-        self.setup()
-        self.reset_timestamp()
-        self.reset_logger()
-        self.reset_contents()
-
-    def base_init(self, path):
         self.logger = None
         self.path = os.path.abspath(path.strip())
         self.basename = os.path.basename(self.path)
@@ -39,21 +29,14 @@ class Program():
         self.location_weights = {}
         self.possible_edits = []
         self.work_dir = None
-        self.compile_cmd = None
-        self.compile_timeout = None
-        self.compile_output = None
-        self.test_cmd = None
-        self.test_timeout = None
-        self.test_output = None
-        self.run_cmd = None
-        self.run_timeout = None
-        self.run_output = None
         self.last_cmd = '(not set)'
         self.last_stdout = '(not set)'
         self.last_stderr = '(not set)'
 
-    def setup(self):
-        pass
+        self.reset_timestamp()
+        self.reset_logger()
+        self.reset_workdir()
+        # self.reset_contents()
 
     def reset_timestamp(self):
         # ensures a unique timestamp unique
@@ -79,19 +62,6 @@ class Program():
                 pass
             self.timestamp = str(int(self.timestamp)+1)
 
-        # creates or move current work_dir
-        if self.work_dir and os.path.exists(self.work_dir):
-            self.work_dir = shutil.move(self.work_dir, new_work_dir)
-            if magpie_config.local_original_copy:
-                self.path = os.path.join(self.work_dir, magpie_config.local_original_name)
-        else:
-            self.work_dir = new_work_dir
-            if magpie_config.local_original_copy:
-                new_path = os.path.join(self.work_dir, magpie_config.local_original_name)
-                if self.path != new_path:
-                    self.path = shutil.copytree(self.path, new_path)
-        os.remove(lock_file)
-
     def reset_logger(self):
         # just in case
         if self.logger:
@@ -116,6 +86,22 @@ class Program():
         stream_handler.setLevel(logging.INFO)
         self.logger.addHandler(stream_handler)
 
+    def reset_workdir(self):
+        # creates or move current work_dir
+        new_work_dir = os.path.join(os.path.abspath(magpie_config.work_dir), self.run_label)
+        if self.work_dir and os.path.exists(self.work_dir):
+            self.work_dir = shutil.move(self.work_dir, new_work_dir)
+            if magpie_config.local_original_copy:
+                self.path = os.path.join(self.work_dir, magpie_config.local_original_name)
+        else:
+            self.work_dir = new_work_dir
+            if magpie_config.local_original_copy:
+                new_path = os.path.join(self.work_dir, magpie_config.local_original_name)
+                if self.path != new_path:
+                    self.path = shutil.copytree(self.path, new_path)
+        lock_file = '{}.lock'.format(new_work_dir)
+        os.remove(lock_file)
+
     def reset_contents(self):
         self.contents = {}
         self.locations = {}
@@ -133,7 +119,7 @@ class Program():
                                   self.path, ",".join(self.target_files))
 
     def get_engine(self, target_file):
-        raise RuntimeError('Unknown engine for "{}"'.format(target_file))
+        raise NotImplementedError
 
     def location_names(self, target_file, target_type):
         return self.get_engine(target_file).location_names(self.locations, target_file, target_type)
@@ -232,67 +218,7 @@ class Program():
         return self.evaluate_local()
 
     def evaluate_local(self):
-        cwd = os.getcwd()
-        run_result = RunResult('SETUP_ERROR')
-        try:
-            # go to work directory
-            os.chdir(os.path.join(self.work_dir, self.basename))
-
-            # compile if needed
-            if self.compile_cmd:
-                timeout = self.compile_timeout or magpie_config.default_timeout
-                max_output = self.compile_output or magpie_config.default_output
-                exec_result = self.exec_cmd(shlex.split(self.compile_cmd),
-                                            timeout=timeout,
-                                            max_output=max_output)
-                run_result.status = exec_result.status
-                if run_result.status == 'SUCCESS':
-                    self.process_compile_exec(run_result, exec_result)
-                elif run_result.status in ['TIMEOUT', 'LENGTHOUT']:
-                    run_result.status = 'COMPILE_{}'.format(run_result.status)
-                if run_result.status != 'SUCCESS':
-                    return run_result
-
-            # update command lines if needed
-            cli = ''
-            for target in self.target_files:
-                engine = self.engines[target]
-                if issubclass(engine, AbstractParamsEngine):
-                    cli = '{} {}'.format(cli, engine.resolve_cli(self.local_contents[target]))
-
-            # test if needed
-            if self.test_cmd:
-                test_cmd = '{} {}'.format(self.test_cmd, cli).strip()
-                timeout = self.test_timeout or magpie_config.default_timeout
-                max_output = self.test_output or magpie_config.default_output
-                exec_result = self.exec_cmd(shlex.split(test_cmd),
-                                            timeout=timeout,
-                                            max_output=max_output)
-                run_result.status = exec_result.status
-                if run_result.status == 'SUCCESS':
-                    self.process_test_exec(run_result, exec_result)
-                elif run_result.status in ['TIMEOUT', 'LENGTHOUT']:
-                    run_result.status = 'TEST_{}'.format(run_result.status)
-                if run_result.status != 'SUCCESS':
-                    return run_result
-
-            # run if needed
-            if self.run_cmd:
-                run_cmd = '{} {}'.format(self.run_cmd, cli).strip()
-                timeout = self.run_timeout or magpie_config.default_timeout
-                max_output = self.run_output or magpie_config.default_output
-                exec_result = self.exec_cmd(shlex.split(run_cmd),
-                                            timeout=timeout,
-                                            max_output=max_output)
-                run_result.status = exec_result.status
-                if run_result.status == 'SUCCESS':
-                    self.process_run_exec(run_result, exec_result)
-                elif run_result.status in ['TIMEOUT', 'LENGTHOUT']:
-                    run_result.status = 'RUN_{}'.format(run_result.status)
-        finally:
-            # make sure to go back to main directory
-            os.chdir(cwd)
-        return run_result
+        raise NotImplementedError
 
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, max_output=1e6):
         # 1e6 bytes is 1Mb
@@ -307,7 +233,7 @@ class Program():
                 sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
             except FileNotFoundError:
                 return ExecResult('CLI_ERROR', -1, b"", b"", 0)
-            if max_output:
+            if max_output > 0:
                 stdout_size = 0
                 stderr_size = 0
                 while sprocess.poll() is None:
@@ -350,29 +276,6 @@ class Program():
         finally:
             self.last_stdout = stdout
             self.last_stderr = stderr
-
-    def process_compile_exec(self, run_result, exec_result):
-        if exec_result.return_code != 0:
-            run_result.debug = exec_result
-            run_result.status = 'COMPILE_ERROR'
-
-    def process_test_exec(self, run_result, exec_result):
-        if exec_result.return_code != 0:
-            run_result.debug = exec_result
-            run_result.status = 'TEST_ERROR'
-
-    def process_run_exec(self, run_result, exec_result):
-        stdout = exec_result.stdout.decode(magpie_config.output_encoding)
-        m = re.search('MAGPIE_FITNESS: (.*)', stdout)
-        if m:
-            try:
-                run_result.fitness = float(m.group(1))
-            except ValueError:
-                run_result.debug = exec_result
-                run_result.status = 'PARSE_ERROR'
-        else:
-            run_result.debug = exec_result
-            run_result.status = 'PARSE_ERROR'
 
     def clean_work_dir(self):
         try:
@@ -417,3 +320,6 @@ class Program():
                                     tofile="after: " + new_filename):
                 diffs += diff
         return diffs
+
+    def self_diagnose(self, run):
+        pass

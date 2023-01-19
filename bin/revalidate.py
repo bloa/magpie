@@ -7,8 +7,8 @@ import sys
 
 import magpie
 
-from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import setup_magpie, setup_protocol
+from magpie.bin import BasicProtocol
+from magpie.bin import setup_magpie, setup_protocol
 
 from .magpie_runtime import MyProgram as MyRuntimeProgram
 from .magpie_repair import MyProgram as MyRepairProgram
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     patch = patch_from_string(args.patch)
 
     # setup protocol
-    protocol = ExpProtocol()
+    protocol = BasicProtocol()
     protocol.search = magpie.algo.ValidTest()
     protocol.search.debug_patch = patch
     if args.mode == 'repair':

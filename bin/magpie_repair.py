@@ -5,14 +5,15 @@ import re
 
 import magpie
 
-from magpie.bin.shared import ExpProtocol, ExampleProgram
-from magpie.bin.shared import setup_magpie, setup_protocol
+from magpie.bin import BasicProgram, BasicProtocol
+from magpie.bin import setup_magpie, setup_protocol
+
 
 # ================================================================================
 # Target software specifics
 # ================================================================================
 
-class MyProgram(ExampleProgram):
+class MyProgram(BasicProgram):
     def process_test_exec(self, run_result, exec_result):
         stdout = exec_result.stdout.decode(magpie.config.output_encoding)
         matches = re.findall(' (\d+) (?:fail|error)', stdout)
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     setup_magpie(config)
 
     # setup protocol
-    protocol = ExpProtocol()
+    protocol = BasicProtocol()
     protocol.search = magpie.algo.FirstImprovement()
     protocol.search.stop['fitness'] = 0 # early stop when no bug left
     protocol.program = MyProgram(config)

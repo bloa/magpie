@@ -1,8 +1,12 @@
+[magpie]
+local_original_copy = True
+
 [software]
 path = examples/code/triangle-cpp_bug
 target_files =
   triangle.cpp
 
+setup_cmd = ./setup.sh
 compile_cmd = ./compile.sh
 test_cmd = ./build/test_triangle
 run_cmd =

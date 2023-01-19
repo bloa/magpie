@@ -6,17 +6,17 @@ import re
 
 import magpie
 
-from magpie.bin.shared import ExpProtocol, ExampleProgram
-from magpie.bin.shared import setup_magpie, setup_protocol
+from magpie.bin import BasicProgram, BasicProtocol
+from magpie.bin import setup_magpie, setup_protocol
 
 
 # ================================================================================
 # Target software specifics
 # ================================================================================
 
-class MyProgram(ExampleProgram):
+class MyProgram(BasicProgram):
     def __init__(self, config):
-        super(config)
+        super().__init__(config)
         self.possible_edits = [
             magpie.line.LineDeletion,
         ]
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     setup_magpie(config)
 
     # setup protocol
-    protocol = ExpProtocol()
+    protocol = BasicProtocol()
     protocol.search = magpie.algo.FirstImprovement()
     protocol.program = MyProgram(config)
     setup_protocol(protocol, config)

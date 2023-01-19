@@ -4,8 +4,8 @@ import pathlib
 
 import magpie
 
-from magpie.bin.shared import ExpProtocol
-from magpie.bin.shared import setup_magpie, setup_protocol
+from magpie.bin import BasicProgram, BasicProtocol
+from magpie.bin import setup_magpie, setup_protocol
 
 
 # ================================================================================
@@ -37,19 +37,12 @@ class MyEngine(magpie.params.ConfigFileParamsEngine):
         return super().resolve_cli_param(all_params, param, value)
 
 
-class MyProgram(magpie.base.Program):
+class MyProgram(BasicProgram):
     def __init__(self, config):
-        self.base_init(config['software']['path'])
+        super().__init__(config)
         self.possible_edits = [
             magpie.params.ParamSetting,
         ]
-        self.target_files = config['software']['target_files'].split()
-        self.compile_cmd = config['software']['compile_cmd']
-        self.test_cmd = config['software']['test_cmd']
-        self.run_cmd = config['software']['run_cmd']
-        self.reset_timestamp()
-        self.reset_logger()
-        self.reset_contents()
 
     def get_engine(self, target_file):
         return MyEngine
@@ -73,7 +66,7 @@ if __name__ == "__main__":
     setup_magpie(config)
 
     # setup protocol
-    protocol = ExpProtocol()
+    protocol = BasicProtocol()
     protocol.search = magpie.algo.FirstImprovement()
     protocol.program = MyProgram(config)
     setup_protocol(protocol, config)
