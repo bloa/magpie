@@ -6,6 +6,10 @@ default_output = 1e6
 path = examples/code/minisat
 target_files =
   minisat_advanced.params
+possible_edits =
+  ParamSetting
+
+fitness = time
 
 compile_cmd = ./compile.sh
 test_cmd = ./test.sh

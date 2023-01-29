@@ -6,6 +6,12 @@ default_output = 1e6
 path = examples/code/minisat
 target_files =
   core/Solver.cc
+possible_edits =
+  LineReplacement
+  LineInsertion
+  LineDeletion
+
+fitness = time
 
 compile_cmd = ./compile.sh
 test_cmd = ./test.sh

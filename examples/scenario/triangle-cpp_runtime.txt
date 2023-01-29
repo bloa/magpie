@@ -5,6 +5,12 @@ local_original_copy = True
 path = examples/code/triangle-cpp_slow
 target_files =
   triangle.cpp
+possible_edits =
+  LineReplacement
+  LineInsertion
+  LineDeletion
+
+fitness = time
 
 setup_cmd = ./setup.sh
 compile_cmd = ./compile.sh

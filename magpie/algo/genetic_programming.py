@@ -9,12 +9,14 @@ class GeneticProgramming(Algorithm):
     def setup(self):
         super().setup()
         self.name = 'Genetic Programming'
-        self.config['horizon'] = 1
         self.config['pop_size'] = 10
+        self.config['delete_prob'] = 0.5
         self.config['offspring_elitism'] = 0.1
         self.config['offspring_crossover'] = 0.5
         self.config['offspring_mutation'] = 0.4
-        self.config['nb_instances'] = None
+
+    def reset(self):
+        super().reset()
         self.stats['gen'] = 0
 
     def aux_log_counter(self):
@@ -34,10 +36,8 @@ class GeneticProgramming(Algorithm):
             local_best = None
             local_best_fitness = None
             while len(pop) < self.config['pop_size']:
-                dist = 1 + int(random.random()*self.config['horizon']-1)
                 sol = Patch()
-                for _ in range(dist):
-                    self.mutate(sol)
+                self.mutate(sol)
                 if sol in pop:
                     continue
                 run = self.evaluate_patch(sol)
@@ -85,10 +85,8 @@ class GeneticProgramming(Algorithm):
                     offsprings.append(parent)
                 # regrow
                 while len(offsprings) < self.config['pop_size']:
-                    dist = 1 + int(random.random()*self.config['horizon']-1)
                     sol = Patch()
-                    for _ in range(dist):
-                        self.mutate(sol)
+                    self.mutate(sol)
                     if sol in pop:
                         continue
                     offsprings.append(sol)
@@ -125,7 +123,7 @@ class GeneticProgramming(Algorithm):
             self.hook_end()
 
     def mutate(self, patch):
-        if patch.edits and random.random() < 0.5:
+        if patch.edits and random.random() < self.config['delete_prob']:
             del patch.edits[random.randrange(0, len(patch.edits))]
         else:
             patch.edits.append(self.program.create_edit())

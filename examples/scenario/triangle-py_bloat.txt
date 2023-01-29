@@ -2,8 +2,11 @@
 path = examples/code/triangle-py_bloat
 target_files =
   triangle.py
+possible_edits =
+  LineDeletion
 
-compile_cmd = 
+fitness = bloat_lines
+
 test_cmd = pytest
 test_timeout = 1
 

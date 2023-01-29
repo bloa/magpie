@@ -1,19 +1,14 @@
-[magpie]
-default_timeout = 30
-default_output = 1e6
-
 [software]
 path = examples/code/minisat
 target_files =
-  minisat_simplified.params
+  core/Solver.cc
 possible_edits =
-  ParamSetting
+  LineDeletion
 
-fitness = time
+fitness = bloat_words
 
 compile_cmd = ./compile.sh
 test_cmd = ./test.sh
-run_cmd = ./run.sh
 
 [search]
 max_steps = 100

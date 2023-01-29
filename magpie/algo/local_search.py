@@ -8,12 +8,9 @@ class LocalSearch(Algorithm):
     def setup(self):
         super().setup()
         self.name = 'Local Search'
-        self.config['strategy'] = 'first'
-        self.config['horizon'] = 1
         self.config['delete_prob'] = 0.5
         self.config['max_neighbours'] = None
-        self.config['trapped_strategy'] = 'continue'
-        self.config['mutate_strategy'] = None
+        self.config['when_trapped'] = 'continue'
 
     def reset(self):
         super().reset()
@@ -43,37 +40,25 @@ class LocalSearch(Algorithm):
             self.hook_end()
 
     def mutate(self, patch, force=None):
-        if self.config['mutate_strategy'] == 'clean':
-            n = len(patch.edits)
-            if n > 0:
-                for _ in range(random.randint(1, min(n, self.config['horizon']))):
-                    del patch.edits[random.randrange(0, n)]
-                    n -= 1
-            else:
+        n = len(patch.edits)
+        if n == 0:
+            if self.config['delete_prob'] == 1:
                 self.report['stop'] = 'trapped'
-        elif self.config['mutate_strategy'] == 'grow':
-            for _ in range(random.randint(1, self.config['horizon'])):
+            else:
                 patch.edits.append(self.program.create_edit())
+        elif random.random() < self.config['delete_prob']:
+            del patch.edits[random.randrange(0, n)]
         else:
-            n = len(patch.edits)
-            for _ in range(random.randint(1, self.config['horizon'])):
-                if n > 0 and random.random() < self.config['delete_prob']:
-                    del patch.edits[random.randrange(0, n)]
-                    n -= 1
-                else:
-                    patch.edits.append(self.program.create_edit())
+            patch.edits.append(self.program.create_edit())
 
     def check_if_trapped(self):
         if self.config['max_neighbours'] is None:
             return
         if self.stats['neighbours'] < self.config['max_neighbours']:
             return
-        if self.config['trapped_strategy'] == 'fail':
+        if self.config['when_trapped'] == 'stop':
             self.report['stop'] = 'trapped'
-        # elif self.config['trapped_strategy'] == 'continue':
-        #     pass
-        # else:
-        #     raise ValueError('unknown strategy: {}'.format(self.config['trapped_strategy']))
+        # TODO: restart, others?
 
 
 class DummySearch(LocalSearch):

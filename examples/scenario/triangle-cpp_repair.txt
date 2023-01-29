@@ -5,6 +5,12 @@ local_original_copy = True
 path = examples/code/triangle-cpp_bug
 target_files =
   triangle.cpp
+possible_edits =
+  LineReplacement
+  LineInsertion
+  LineDeletion
+
+fitness = repair
 
 setup_cmd = ./setup.sh
 compile_cmd = ./compile.sh
@@ -12,5 +18,5 @@ test_cmd = ./build/test_triangle
 run_cmd =
 
 [search]
+target_fitness = 0
 max_steps = 100
-max_time = 60

@@ -2,6 +2,12 @@
 path = examples/code/triangle-c_slow
 target_files =
   triangle.c
+possible_edits =
+  LineReplacement
+  LineInsertion
+  LineDeletion
+
+fitness = time
 
 compile_cmd = make test_triangle run_triangle
 test_cmd = ./test_triangle

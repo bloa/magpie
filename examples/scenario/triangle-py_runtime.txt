@@ -2,8 +2,13 @@
 path = examples/code/triangle-py_slow
 target_files =
   triangle.py
+possible_edits =
+  LineReplacement
+  LineInsertion
+  LineDeletion
 
-compile_cmd = 
+fitness = time
+
 test_cmd = pytest
 run_cmd = python run_triangle.py
 run_timeout = 1

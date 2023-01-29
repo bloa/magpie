@@ -7,10 +7,7 @@ import sys
 
 import magpie
 
-from .magpie_runtime import MyProgram as MyRuntimeProgram
-from .magpie_repair import MyProgram as MyRepairProgram
-from .magpie_bloat import MyProgram as MyBloatProgram
-from .magpie_config import MyProgram as MyConfigProgram
+from magpie.bin import BasicProgram
 
 
 # ================================================================================
@@ -18,6 +15,7 @@ from .magpie_config import MyProgram as MyConfigProgram
 from magpie.line import LineReplacement
 from magpie.line import LineInsertion
 from magpie.line import LineDeletion
+from magpie.line import LineMoving
 from magpie.params import ParamSetting
 
 def patch_from_string(s):
@@ -39,28 +37,23 @@ def patch_from_string(s):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MAGPIE Show Patch')
-    parser.add_argument('--mode', type=str, choices=['repair', 'runtime', 'bloat', 'config'], required=True)
-    parser.add_argument('--config', type=pathlib.Path, required=True)
+    parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--patch', type=str, required=True)
     parser.add_argument('--keep', action='store_true')
     args = parser.parse_args()
 
     # read config file
     config = configparser.ConfigParser()
-    config.read(args.config)
+    config.read(args.scenario)
 
     # recreate patch
+    if args.patch.endswith('.patch'):
+        with open(args.patch) as f:
+            args.patch = f.read().strip()
     patch = patch_from_string(args.patch)
 
     # setup program
-    if args.mode == 'repair':
-        program = MyRepairProgram(config)
-    elif args.mode == 'runtime':
-        program = MyRuntimeProgram(config)
-    elif mode == 'bloat':
-        program = MyBloatProgram(config)
-    elif args.mode == 'config':
-        program = MyConfigProgram(config)
+    program = BasicProgram(config)
 
     # apply patch
     new_contents = program.apply_patch(patch)

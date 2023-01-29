@@ -94,7 +94,7 @@ class Algorithm(ABC):
             s2 = '[{} edit(s)] '.format(patch_size)
         else:
             s2 = ''
-        self.program.logger.info('{:<7} {:<16} {:>1}{:<24}{}'.format(counter, status, c, str(fitness) + ' ' + s + ' ' + s2, data))
+        self.program.logger.info('{:<7} {:<20} {:>1}{:<24}{}'.format(counter, status, c, str(fitness) + ' ' + s + ' ' + s2, data))
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)

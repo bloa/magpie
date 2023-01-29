@@ -51,14 +51,23 @@ class AbstractParamsEngine(AbstractEngine):
         return '{}: {} default={}'.format(target_loc, str(cls.PARAMS[target_loc][1]), repr(cls.PARAMS[target_loc][0]))
 
     @classmethod
-    def random_target(cls, locations, target_file, target_type=None):
+    def random_target(cls, locations, weights, target_file, target_type=None):
         if target_type is None:
             target_type = random.choice(locations[target_file])
-        try:
-            loc = random.choice(locations[target_file][target_type])
-            return (target_file, target_type, loc)
-        except (KeyError, ValueError):
+        if weights and target_file in weights and target_type in weights[target_file]:
+            total_weight = sum(weights[target_file][target_type].values())
+            r = random.uniform(0, total_weight)
+            for loc, w in weights[target_file][target_type].items():
+                if r < w:
+                    return (target_file, target_type, loc)
+                r -= w
             return None
+        else:
+            try:
+                loc = random.choice(locations[target_file][target_type])
+                return (target_file, target_type, loc)
+            except (KeyError, ValueError):
+                return None
 
     @classmethod
     def resolve_cli(cls, params):

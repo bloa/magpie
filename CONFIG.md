@@ -37,6 +37,9 @@ Default values:
     [software]
     path = 
     target_files =
+    setup_cmd = None
+    setup_timeout = None
+    setup_output = None
     compile_cmd = None
     compile_timeout = None
     compile_output = None
@@ -83,3 +86,34 @@ Default values:
 - `target_fitness`: if not "None", Magpie terminates as soon as a smaller or equal fitness value is found
 - `cache_maxsize`: maximum number of cached run results (use 0 to disable; not recommended)
 - `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
+
+
+Local search parameters:
+
+    delete_prob = 0.5
+    max_neighbours = None
+    when_trapped = continue
+    accept_fail = False # RandomWalk only
+    tabu_length = 10 # TabuSearch only
+
+- `delete_prob`: probability to delete a random edit instead of generating a new one
+- `max_neighbours`: number of neighbours the local search can generate without acceptance (default = 20 for BestImprovement)
+- `when_trapped`: what to do when `max_neighbours` neighbours are rejected in a row (possible: "continue", "stop")
+- `accept_fail`: enable walking through fitness-less software variants (RandomWalk only)
+- `tabu_length`: length of the tabu list of software variants (TabuSearch only)
+
+Genetic programming parameters:
+
+    pop_size = 10
+    delete_prob = 0.5
+    offspring_elitism = 0.1
+    offspring_crossover = 0.5
+    offspring_mutation = 0.4
+    uniform_rate = 0.5 # GeneticProgrammingUniformConcat and GeneticProgrammingUniformInter only
+
+- `pop_size`: population size
+- `delete_prob`: probability to delete a random edit instead of generating a new one
+- `offspring_elitism`: proportion of the old population carried over
+- `offspring_crossover`: proportion of the old population crossed over with random valid parent
+- `offspring_mutation`: proportion of the old population mutated
+- `uniform_rate`: (GeneticProgrammingUniformConcat and GeneticProgrammingUniformInter only)

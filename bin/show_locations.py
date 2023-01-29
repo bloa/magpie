@@ -24,7 +24,7 @@ from magpie.params import ParamSetting
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MAGPIE Show Locations')
-    parser.add_argument('--config', type=pathlib.Path, required=True)
+    parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--filename', type=str)
     parser.add_argument('--type', type=str)
     parser.add_argument('--xml', default=False, action='store_true')
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     # read config file
     config = configparser.ConfigParser()
-    config.read(args.config)
+    config.read(args.scenario)
 
     # show locations
     program = BasicProgram(config)
