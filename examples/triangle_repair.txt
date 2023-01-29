@@ -1,9 +1,0 @@
-[softare]
-path = old_examples/sample/Triangle_bug2_java
-target_files =
-  Triangle.java
-
-test_cmd = ./run.sh
-
-[search]
-max_steps = 100

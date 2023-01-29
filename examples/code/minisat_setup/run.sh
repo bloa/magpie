@@ -21,3 +21,5 @@
 ./simp/minisat data/uuf200-02.cnf $@
 ./simp/minisat data/uuf250-01.cnf $@
 ./simp/minisat data/uuf250-02.cnf $@
+
+exit 0
