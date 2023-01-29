@@ -17,11 +17,13 @@ They can, however, be moved at top-level without any modification to simplify us
 Note that for the sake of genericity, these scripts are limited in the granularity level (no AST node) and fitness functions they provide.
 
 There are multiple ways to use these entry points.
-Because they are located in a sub-folder and not at top-level, they must be loaded as modules using the `-m` option of the Python interpreter.
+Because they are located in a sub-folder and not at top-level, they must be loaded as modules using the `-m` option of the Python interpreter.  
 For example:
+
     python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 
 For maximum convenience, we provide the `magpie.py` script that also accept the equivalent commands:
+
     python3 magpie.py bin/local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
     python3 magpie.py bin/local_search --scenario examples/scenario/triangle-cpp_runtime.txt
     python3 magpie.py local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
