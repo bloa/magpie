@@ -4,6 +4,7 @@ We provide few generic entry points for optimisation/learning/training.
 
     bin
     ├── ablation_analysis.py
+    ├── genetic_programming.py
     ├── local_search.py
     ├── minify_patch.py
     ├── revalidate.py
@@ -14,7 +15,6 @@ Because they are located in a sub-folder and not at top-level, they require a li
 They can, however, be moved at top-level without any modification to simplify usage if so desired.
 
 Note that for the sake of genericity, these scripts are limited in the granularity level (no AST node) and fitness functions they provide.
-To fine-tune your experimental setting beyond what is provided through these please refer to [ADVANCED.md](/ADVANCED.md).
 
 There are multiple ways to use these entry points.
 Because they are located in a sub-folder and not at top-level, they must be loaded as modules using the `-m` option of the Python interpreter.

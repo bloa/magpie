@@ -77,8 +77,6 @@ We also provide several validation entry points, including simple fitness reasse
 
 These are discussed in more detailed in [USAGE.md](/USAGE.md).
 
-In addition, we also provide more complex examples in [ADVANCED.md](/ADVANCED.md).
-
 
 ## Acknowledgments
 
