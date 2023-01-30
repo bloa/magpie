@@ -31,6 +31,7 @@ For maximum convenience, we provide the `magpie.py` script that also accept the 
     ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 
 Alternatively, these entry points (as any custom-written ones) can be moved at top-level and run from there:
+
     mv bin/local_search.py .
     ./local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
 
