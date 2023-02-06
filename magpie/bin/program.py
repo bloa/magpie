@@ -244,7 +244,7 @@ class BasicProgram(magpie.base.AbstractProgram):
         # if "[software] fitness" is "repair", we check STDOUT for the number of failed test cases
         if self.fitness_type == 'repair':
             stdout = exec_result.stdout.decode(magpie.config.output_encoding)
-            matches = re.findall(' (\d+) (?:fail|error)', stdout)
+            matches = re.findall(r'\b(\d+) (?:fail|error)', stdout)
             fails = 0
             if matches:
                 for m in matches:
@@ -254,7 +254,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                         run_result.status = 'PARSE_ERROR'
                 run_result.fitness = fails
                 return
-            matches = re.findall(' (\d+) (?:pass)', stdout)
+            matches = re.findall(r'\b(\d+) (?:pass)', stdout)
             if matches:
                 run_result.fitness = 0
             else:
@@ -267,7 +267,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             return
 
         # if "[software] fitness" is one of "bloat_*", we can count here
-        elif self.fitness_type == 'bloat_lines':
+        if self.fitness_type == 'bloat_lines':
             run_result.fitness = 0
             for filename in self.target_files:
                 with open(filename) as target:
@@ -277,7 +277,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             for filename in self.target_files:
                 with open(filename) as target:
                     run_result.fitness += sum(len(s.split()) for s in target.readlines())
-        if self.fitness_type == 'bloat_chars':
+        elif self.fitness_type == 'bloat_chars':
             run_result.fitness = 0
             for filename in self.target_files:
                 with open(filename) as target:
@@ -289,6 +289,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             run_result.debug = exec_result
             run_result.status = 'CODE_ERROR'
             return
+
         # if "[software] fitness" is "output", we check STDOUT for the string "MAGPIE_FITNESS:"
         if self.fitness_type == 'output':
             stdout = exec_result.stdout.decode(magpie_config.output_encoding)
@@ -302,9 +303,11 @@ class BasicProgram(magpie.base.AbstractProgram):
             else:
                 run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
+
         # if "[software] fitness" is "time", we just use time as seen by the main Python process
         elif self.fitness_type == 'time':
             run_result.fitness = round(exec_result.runtime, 4)
+
         # if "[software] fitness" is "posix_time", we assume a POSIX-compatible output on STDERR
         elif self.fitness_type == 'posix_time':
             stderr = exec_result.stderr.decode(magpie_config.output_encoding)
@@ -318,6 +321,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             else:
                 run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
+
         # if "[software] fitness" is "perf_time", we assume a perf-like output on STDERR
         elif self.fitness_type == 'perf_time':
             stderr = exec_result.stderr.decode(magpie_config.output_encoding)
@@ -331,6 +335,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             else:
                 run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
+
         # if "[software] fitness" is "perf_instructions", we assume a perf-like output on STDERR
         elif self.fitness_type == 'perf_instructions':
             stderr = exec_result.stderr.decode(magpie_config.output_encoding)
