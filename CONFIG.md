@@ -1,7 +1,7 @@
 # Configuration File
 
 Magpie's default entry points (see [USAGE.md](/USAGE.md)) all use configuration files to quickly fine-tune execution.
-There are three main sections, detailed below.
+There are four main sections, detailed below.
 
 
 ## `[magpie]`
@@ -30,13 +30,41 @@ Default values:
 - `diff_method`: type of diff format (either "unified" or "context")
 
 
+## `[srcml]`
+
+Default values:
+
+    [srcml]
+    rename =
+        stmt: break continue decl_stmt do expr_stmt for goto if return switch while
+        number: literal_number
+    focus = block stmt operator_comp operator_arith number
+    internodes = block
+    process_pseudo_blocks = True
+    process_literals = True
+    process_operators = True
+
+- `rename`: a multi-line dictionary of renaming rules.
+  E.g., all `<break>` and `<continue>` tags will be renamed `<stmt>`.
+  This is to ensures consistency, as Magpie's default edits only apply to identical XML tags.
+- `focus`: the list of tags to keep in the file (all other tags are internally discarded)
+- `internodes`: a list of tags to process for future node insertion.
+  E.g., `internodes = block` will create the `_inter_block` insertion points.
+- `process_pseudo_blocks`: automatically inserts curly braces around otherwise braceless blocks
+  (e.g., single-line if statement).
+- `process_literals`: rename `<literal>` tags according to their `type` attribute.
+  E.g., `<literal type="number">' to `<literal_number>`.
+- `process_operators`: rename `<operator>` tags into `<operator_comp>`, `<operator_arith>` or `<operator_misc>` according to their text contents.
+
+
 ## `[software]`
 
 Default values:
 
     [software]
-    path = 
+    path =
     target_files =
+    possible_edits =
     setup_cmd = None
     setup_timeout = None
     setup_output = None
@@ -51,7 +79,8 @@ Default values:
     run_output = None
 
 - `path`: the original software folder cloned during execution
-- `target_files`: the files (relatively to `path`) targeted by Magpie
+- `target_files`: the list of files (relatively to `path`) targeted by Magpie
+- `possible_edits`: the list of edits available to the search process
 - `setup_cmd`: command line to execute during the setup step (or "" or "None", in which case it is skipped)
 - `setup_timeout`: maximum execution time during the setup step (or "" or "None", in which case `default_timeout` from `[magpie]` is used)
 - `setup_output`: maximum output file size during the setup step (or "" or "None", in which case `default_output` from `[magpie]` is used)
@@ -64,6 +93,16 @@ Default values:
 - `run_cmd`
 - `run_timeout`
 - `run_output`
+
+Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
+Typical examples:
+
+    possible_edits =
+        LineReplacement
+        LineInsertion
+        LineDeletion
+
+    possible_edits = ParamSetting
 
 
 # `[search]`

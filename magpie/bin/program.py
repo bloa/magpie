@@ -9,6 +9,7 @@ from ..xml import xml_edits
 from ..line import line_edits
 from ..params import params_edits
 
+
 class BasicProgram(magpie.base.AbstractProgram):
     def __init__(self, config):
         # AbstractProgram *requires* a path, a list of target files, and a list of possible edits
@@ -22,7 +23,48 @@ class BasicProgram(magpie.base.AbstractProgram):
         self.target_files = config['software']['target_files'].split()
         if not self.target_files:
             raise RuntimeError('Invalid config file: [software] must define non-empty "target_files" key')
+
+        # xml-related parameters
+        if 'srcml' in config:
+            if 'process_pseudo_blocks' in config['srcml']:
+                v = config['srcml']['process_pseudo_blocks']
+                if v.lower() in ['true', 't', '1']:
+                    magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = True
+                elif v.lower() in ['false', 'f', '0']:
+                    magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = False
+                else:
+                    raise ValueError('[srcml] process_pseudo_blocks should be Boolean')
+            if 'process_literals' in config['srcml']:
+                v = config['srcml']['process_literals']
+                if v.lower() in ['true', 't', '1']:
+                    magpie.xml.SrcmlEngine.PROCESS_LITERALS = True
+                elif v.lower() in ['false', 'f', '0']:
+                    magpie.xml.SrcmlEngine.PROCESS_LITERALS = False
+                else:
+                    raise ValueError('[srcml] process_literals should be Boolean')
+            if 'process_operators' in config['srcml']:
+                v = config['srcml']['process_operators']
+                if v.lower() in ['true', 't', '1']:
+                    magpie.xml.SrcmlEngine.PROCESS_OPERATORS = True
+                elif v.lower() in ['false', 'f', '0']:
+                    magpie.xml.SrcmlEngine.PROCESS_OPERATORS = False
+                else:
+                    raise ValueError('[srcml] process_operators should be Boolean')
+            if 'internodes' in config['srcml']:
+                magpie.xml.SrcmlEngine.INTERNODES = set(config['srcml']['internodes'].split())
+            if 'rename' in config['srcml']:
+                h = {}
+                for rule in config['srcml']['rename'].split("\n"):
+                    if rule: # discard potential initial empty line
+                        k, v = rule.split(':')
+                        h[k] = set(v.split())
+                magpie.xml.SrcmlEngine.TAG_RENAME = h
+            if 'focus' in config['srcml']:
+                magpie.xml.SrcmlEngine.TAG_FOCUS = set(config['srcml']['focus'].split())
+
+        # reset contents here, AFTER xml parameters
         self.reset_contents()
+
         if 'possible_edits' in config['software']:
             for edit in config['software']['possible_edits'].split():
                 for klass in [*xml_edits, *line_edits, *params_edits]:
@@ -129,7 +171,7 @@ class BasicProgram(magpie.base.AbstractProgram):
         if target_file[-7:] == '.params':
             return magpie.params.ConfigFileParamsEngine
         elif target_file[-4:] == '.xml':
-            return magpie.xml.XmlEngine
+            return magpie.xml.SrcmlEngine
         else:
             return magpie.line.LineEngine
 
