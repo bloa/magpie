@@ -83,12 +83,9 @@ class XmlEngine(AbstractEngine):
                 child = None
                 for i, child in enumerate(parent):
                     if i == insert_index-1:
-                        child.tail = (child.tail or '') + sp + '(INSERTION POINT)'
+                        child.tail = sp + '(INSERTION POINT)' + (child.tail or '')
                         break
                     sp = cls.guess_spacing(child.tail)
-                else:
-                    child.tail = (child.tail or '') + sp + '(INSERTION POINT)'
-                    parent.insert(i+1, tmp)
             out = '# {}: {}\n{}'.format(
                 target_loc,
                 fakepath,
@@ -98,7 +95,7 @@ class XmlEngine(AbstractEngine):
             out = '# {}: {}\n{}'.format(
                 target_loc,
                 xpath,
-                cls.tree_to_string(contents[target_file].find(xpath)))
+                cls.tree_to_string(contents[target_file].find(xpath), keep_tail=False))
         return out
 
     @staticmethod
@@ -111,8 +108,13 @@ class XmlEngine(AbstractEngine):
             raise Exception('Program', 'ParseError: {}'.format(str(e))) from None
 
     @staticmethod
-    def tree_to_string(tree):
-        return ElementTree.tostring(tree, encoding='unicode', method='xml')
+    def tree_to_string(tree, keep_tail=True):
+        if keep_tail:
+            tmp = tree
+        else:
+            tmp = copy.deepcopy(tree)
+            tmp.tail = None
+        return ElementTree.tostring(tmp, encoding='unicode', method='xml')
 
     @staticmethod
     def strip_xml_from_tree(tree):
