@@ -5,7 +5,9 @@ import shlex
 import magpie
 
 from .. import config as magpie_config
-
+from ..xml import xml_edits
+from ..line import line_edits
+from ..params import params_edits
 
 class BasicProgram(magpie.base.AbstractProgram):
     def __init__(self, config):
@@ -23,16 +25,10 @@ class BasicProgram(magpie.base.AbstractProgram):
         self.reset_contents()
         if 'possible_edits' in config['software']:
             for edit in config['software']['possible_edits'].split():
-                if edit == 'LineReplacement':
-                    self.possible_edits.append(magpie.line.LineReplacement)
-                elif edit == 'LineInsertion':
-                    self.possible_edits.append(magpie.line.LineInsertion)
-                elif edit == 'LineDeletion':
-                    self.possible_edits.append(magpie.line.LineDeletion)
-                elif edit == 'LineMoving':
-                    self.possible_edits.append(magpie.line.LineMoving)
-                elif edit == 'ParamSetting':
-                    self.possible_edits.append(magpie.params.ParamSetting)
+                for klass in [*xml_edits, *line_edits, *params_edits]:
+                    if klass.__name__ == edit:
+                        self.possible_edits.append(klass)
+                        break
                 else:
                     raise RuntimeError('Invalid config file: unknown edit type "{}" in "[software] possible_edits"'.format(edit))
         if not self.possible_edits:

@@ -2,3 +2,7 @@ from .realms import Realm, CategoricalRealm, UniformRealm, UniformIntRealm, Expo
 from .abstract_engine import AbstractParamsEngine
 from .configfile_engine import ConfigFileParamsEngine
 from .edits import ParamSetting
+
+params_edits = [
+    ParamSetting,
+]

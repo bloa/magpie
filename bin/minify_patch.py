@@ -13,21 +13,21 @@ from magpie.bin import setup_magpie
 
 # ================================================================================
 
-from magpie.line import LineReplacement
-from magpie.line import LineInsertion
-from magpie.line import LineDeletion
-from magpie.line import LineMoving
-from magpie.params import ParamSetting
+from magpie.xml import xml_edits
+from magpie.line import line_edits
+from magpie.params import params_edits
 
 def patch_from_string(s):
     patch = magpie.base.Patch()
-    if s == '':
-        return patch
     for blob in s.split(' | '):
         match = re.search(r"^(\w+)\((.+)\)$", blob)
-        cls = getattr(sys.modules[__name__], match.group(1))
-        args = ast.literal_eval("[{}]".format(match.group(2)))
-        patch.edits.append(cls(*args))
+        for klass in [*xml_edits, *line_edits, *params_edits]:
+            if klass.__name__ == match.group(1):
+                args = ast.literal_eval("[{}]".format(match.group(2)))
+                patch.edits.append(klass(*args))
+                break
+        else:
+            raise RuntimeError('Unknown edit type "{}" in patch'.format(edit))
     assert str(patch) == s
     return patch
 

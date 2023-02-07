@@ -1,17 +1,17 @@
 from .xml_edits import NodeDeletion, NodeReplacement, NodeInsertion, NodeMoving
 from .xml_edits import TextSetting, TextWrapping
 
-class LineDeletion(NodeDeletion):
+class XmlLineDeletion(NodeDeletion):
     NODE_TYPE = 'line'
 
-class LineReplacement(NodeReplacement):
+class XmlLineReplacement(NodeReplacement):
     NODE_TYPE = 'line'
 
-class LineInsertion(NodeInsertion):
+class XmlLineInsertion(NodeInsertion):
     NODE_PARENT_TYPE = 'unit'
     NODE_TYPE = 'line'
 
-class LineMoving(NodeMoving):
+class XmlLineMoving(NodeMoving):
     NODE_PARENT_TYPE = 'unit'
     NODE_TYPE = 'line'
 
