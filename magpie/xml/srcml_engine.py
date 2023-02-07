@@ -4,7 +4,7 @@ from xml.etree import ElementTree
 from . import XmlEngine
 
 class SrcmlEngine(XmlEngine):
-    INTERNODES = ['block']
+    INTERNODES = {'block'}
     TAG_RENAME = {
         'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},
         'number': {'literal_number'}
