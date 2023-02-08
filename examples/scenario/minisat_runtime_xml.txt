@@ -5,9 +5,11 @@ default_output = 1e6
 [software]
 path = examples/code/minisat
 target_files =
-  minisat_simplified.params
+  core/Solver.cc.xml
 possible_edits =
-  ParamSetting
+  StmtReplacement
+  StmtInsertion
+  StmtDeletion
 
 fitness = time
 

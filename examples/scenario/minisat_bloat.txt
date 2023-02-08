@@ -1,9 +1,9 @@
 [software]
 path = examples/code/minisat
 target_files =
-  core/Solver.cc
+  core/Solver.cc.xml
 possible_edits =
-  LineDeletion
+  StmtDeletion
 
 fitness = bloat_words
 

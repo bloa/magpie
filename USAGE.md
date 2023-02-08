@@ -270,16 +270,16 @@ First, download and extract Minisat 2.2.0 (as the real-world target software)
 For consistency we extract it here in `example/code`, beside the provided example toy software.
 
     wget "http://minisat.se/downloads/minisat-2.2.0.tar.gz"
-    tar xzf minisat-2.2.0.tar.gz -C example/code
+    tar xzf minisat-2.2.0.tar.gz -C examples/code
     rm minisat-2.2.0.tar.gz
 
 Then setup the MiniSAT directory with files used by Magpie.
 
-    patch -d examples/code/minisat -p 1 < examples/code/minisat_setup/minisat.patch
+    patch -d examples/code -p 1 < examples/code/minisat_setup/minisat.patch
     cp examples/code/minisat_setup/data examples/code/minisat
     cp examples/code/minisat_setup/*.sh examples/code/minisat
     cp examples/code/minisat_setup/Solver.cc.xml examples/code/minisat/core
-    cp examples/code/minisat_setup/minisat*.params examples/code/minisat/core
+    cp examples/code/minisat_setup/minisat*.params examples/code/minisat
 
 In particular:
 
@@ -288,20 +288,14 @@ In particular:
 - `compile.sh` simply runs the MiniSAT-provided makefile
 - `test.sh` checks MiniSAT's output on 5 SAT and 5 UNSAT instances
 - `run.sh` runs MiniSAT on all 20 instances
+- `run2.sh` handle the two artificial parameters introduced in `minisat_advanced.params`
 - `Solver.cc.xml` contains the AST of the MiniSAT's `core/Solver.cc` file as provided by [SrcML](https://www.srcml.org/).
-- `minisat.params` and two variants define the MiniSAT's configuration space
+- `minisat_simplified.params` defines MiniSAT's configuration space
+- `minisat_advanced.params` use two additional parameters to improve the configuration space definition
 
-To optimise running time:
+Examples:
 
-    python3 -m bin.magpie_runtime --scenario examples/scenario/minisat_runtime.txt
-    python3 -m examples.magpie_runtime_xml --scenario examples/scenario/minisat_runtime_xml.txt
-
-To remove any unnecessary code:
-
-    python3 -m bin.magpie_bloat --scenario examples/scenario/minisat_debloat.txt
-    python3 -m examples.magpie_bloat2 --scenario examples/scenario/minisat_debloat.txt
-
-To optimise command line parameters:
-
-    python3 -m bin.magpie_config --scenario examples/scenario/minisat_config.txt
-    python3 -m examples.magpie_config_minisat --scenario examples/scenario/minisat_config_advanced.txt
+    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_xml.txt
+    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_config1.txt
+    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_config2.txt
+    python3 -m bin.local_search --scenario examples/scenario/minisat_bloat_xml.txt

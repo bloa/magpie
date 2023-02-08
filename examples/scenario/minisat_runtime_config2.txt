@@ -11,9 +11,10 @@ possible_edits =
 
 fitness = time
 
-compile_cmd = ./compile.sh
-test_cmd = ./test.sh
-run_cmd = ./run.sh
+setup_cmd = ./compile.sh
+compile_cmd =
+test_cmd =
+run_cmd = ./run2.sh
 
 [search]
 max_steps = 100

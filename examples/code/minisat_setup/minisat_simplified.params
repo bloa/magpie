@@ -25,6 +25,6 @@ rcheck       {True, False}[False]
 asymm        {True, False}[False]
 elim         {True, False}[True]
 simp-gc-frac e(0, 2147483647)[0.5]
-sub-lim      [-1, 65535][1000]     # <-- special parameter that needs more work
-cl-lim       [-1, 65535][20]       # <-- special parameter that needs more work
+sub-lim      [-1, 65535][1000]     # <-- not ideal
+cl-lim       [-1, 65535][20]       # <-- not ideal
 grow         g[-65535, 65535][0]

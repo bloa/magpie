@@ -5,15 +5,14 @@ default_output = 1e6
 [software]
 path = examples/code/minisat
 target_files =
-  core/Solver.cc
+  minisat_simplified.params
 possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
+  ParamSetting
 
 fitness = time
 
-compile_cmd = ./compile.sh
+setup_cmd = ./compile.sh
+compile_cmd =
 test_cmd = ./test.sh
 run_cmd = ./run.sh
 
