@@ -308,17 +308,17 @@ class BasicProgram(magpie.base.AbstractProgram):
         if self.fitness_type == 'bloat_lines':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(filename) as target:
+                with open(self.get_engine(filename).renamed_contents_file(filename)) as target:
                     run_result.fitness += len(target.readlines())
         elif self.fitness_type == 'bloat_words':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(filename) as target:
+                with open(self.get_engine(filename).renamed_contents_file(filename)) as target:
                     run_result.fitness += sum(len(s.split()) for s in target.readlines())
         elif self.fitness_type == 'bloat_chars':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(filename) as target:
+                with open(self.get_engine(filename).renamed_contents_file(filename)) as target:
                     run_result.fitness += sum(len(s) for s in target.readlines())
 
     def process_run_exec(self, run_result, exec_result):
