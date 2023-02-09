@@ -16,6 +16,7 @@ class Algorithm(ABC):
         self.config['warmup_strategy'] = 'last'
         self.config['cache_maxsize'] = 40
         self.config['cache_keep'] = 0.2
+        self.config['possible_edits'] = []
         self.stop = {}
         self.stop['wall'] = None # seconds
         self.stop['steps'] = None
@@ -60,8 +61,11 @@ class Algorithm(ABC):
             self.program.logger.info('!*'*40)
 
     def hook_start(self):
+        if not self.config['possible_edits']:
+            raise RuntimeError('possible_edits list is empty')
         self.stats['wallclock_start'] = time.time() # discards warmup time
         self.program.logger.info('==== START ====')
+
 
     def hook_main_loop(self):
         pass
@@ -106,6 +110,16 @@ class Algorithm(ABC):
             self.report['diff'] = self.program.diff_patch(self.report['best_patch'])
         self.program.logger.info('==== END ====')
         self.program.logger.info('Reason: {}'.format(self.report['stop']))
+
+    def create_edit(self):
+        edit = random.choice(self.config['possible_edits']).create(self.program)
+        tries = magpie_config.edit_retries
+        while tries > 0:
+            if edit.target is not None:
+                return edit
+            tries -= 1
+            edit = random.choice(self.config['possible_edits']).create(self.program)
+        raise RuntimeError('unable to create edit')
 
     def warmup(self):
         empty_patch = Patch()

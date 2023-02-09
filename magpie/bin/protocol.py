@@ -1,6 +1,9 @@
 import os
 
 import magpie
+from ..xml import xml_edits
+from ..line import line_edits
+from ..params import params_edits
 
 class BasicProtocol:
     def __init__(self):
@@ -36,6 +39,18 @@ class BasicProtocol:
                     self.search.config['cache_maxsize'] = int(config['search']['cache_maxsize'])
             if 'cache_keep' in config['search']:
                 self.search.config['cache_keep'] = float(config['search']['cache_keep'])
+
+            if 'possible_edits' in config['search']:
+                self.search.config['possible_edits'] = []
+                for edit in config['search']['possible_edits'].split():
+                    for klass in [*xml_edits, *line_edits, *params_edits]:
+                        if klass.__name__ == edit:
+                            self.search.config['possible_edits'].append(klass)
+                            break
+                    else:
+                        raise ValueError('Invalid config file: unknown edit type "{}" in "[search] possible_edits"'.format(edit))
+            if self.search.config['possible_edits'] == []:
+                raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
 
             # local search only
             if isinstance(self.search, magpie.algo.LocalSearch):

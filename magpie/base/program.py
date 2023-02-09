@@ -127,17 +127,6 @@ class AbstractProgram():
     def show_location(self, target_file, target_type, target_loc):
         return self.get_engine(target_file).show_location(self.contents, self.locations, target_file, target_type, target_loc)
 
-    def create_edit(self):
-        if self.possible_edits:
-            edit = random.choice(self.possible_edits).create(self)
-            tries = magpie_config.edit_retries
-            while tries > 0:
-                if edit.target is not None:
-                    return edit
-                tries -= 1
-                edit = random.choice(self.possible_edits).create(self)
-        raise RuntimeError('unable to create edit')
-
     def random_file(self, engine=None):
         if engine:
             files = [f for f in self.target_files if issubclass(self.engines[f], engine)]

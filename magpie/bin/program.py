@@ -5,24 +5,21 @@ import shlex
 import magpie
 
 from .. import config as magpie_config
-from ..xml import xml_edits
-from ..line import line_edits
-from ..params import params_edits
 
 
 class BasicProgram(magpie.base.AbstractProgram):
     def __init__(self, config):
         # AbstractProgram *requires* a path, a list of target files, and a list of possible edits
         if 'software' not in config:
-            raise RuntimeError('Invalid config file: [software] block not found')
+            raise ValueError('Invalid config file: "[software]" block not found')
         if 'path' not in config['software']:
-            raise RuntimeError('Invalid config file: [software] must define a "path" key')
+            raise ValueError('Invalid config file: "[software] path" must be defined')
         super().__init__(config['software']['path'])
         if 'target_files' not in config['software']:
-            raise RuntimeError('Invalid config file: [software] must define "target_files" key')
+            raise ValueError('Invalid config file: "[software] target_files" must defined')
         self.target_files = config['software']['target_files'].split()
         if not self.target_files:
-            raise RuntimeError('Invalid config file: [software] must define non-empty "target_files" key')
+            raise ValueError('Invalid config file: "[software] target_files" must be non-empty')
 
         # xml-related parameters
         if 'srcml' in config:
@@ -33,7 +30,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                 elif v.lower() in ['false', 'f', '0']:
                     magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = False
                 else:
-                    raise ValueError('[srcml] process_pseudo_blocks should be Boolean')
+                    raise ValueError('Invalid config file: "[srcml] process_pseudo_blocks" should be Boolean')
             if 'process_literals' in config['srcml']:
                 v = config['srcml']['process_literals']
                 if v.lower() in ['true', 't', '1']:
@@ -41,7 +38,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                 elif v.lower() in ['false', 'f', '0']:
                     magpie.xml.SrcmlEngine.PROCESS_LITERALS = False
                 else:
-                    raise ValueError('[srcml] process_literals should be Boolean')
+                    raise ValueError('Invalid config file: "[srcml] process_literals" should be Boolean')
             if 'process_operators' in config['srcml']:
                 v = config['srcml']['process_operators']
                 if v.lower() in ['true', 't', '1']:
@@ -49,7 +46,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                 elif v.lower() in ['false', 'f', '0']:
                     magpie.xml.SrcmlEngine.PROCESS_OPERATORS = False
                 else:
-                    raise ValueError('[srcml] process_operators should be Boolean')
+                    raise ValueError('Invalid config file: "[srcml] process_operators" should be Boolean')
             if 'internodes' in config['srcml']:
                 magpie.xml.SrcmlEngine.INTERNODES = set(config['srcml']['internodes'].split())
             if 'rename' in config['srcml']:
@@ -65,23 +62,12 @@ class BasicProgram(magpie.base.AbstractProgram):
         # reset contents here, AFTER xml parameters
         self.reset_contents()
 
-        if 'possible_edits' in config['software']:
-            for edit in config['software']['possible_edits'].split():
-                for klass in [*xml_edits, *line_edits, *params_edits]:
-                    if klass.__name__ == edit:
-                        self.possible_edits.append(klass)
-                        break
-                else:
-                    raise RuntimeError('Invalid config file: unknown edit type "{}" in "[software] possible_edits"'.format(edit))
-        if not self.possible_edits:
-            raise RuntimeError('Invalid config file: [software] must define non-empty "possible_edits" key')
-
         # fitness type
         if 'fitness' not in config['software']:
-            raise RuntimeError('Invalid config file: [software] must define non-empty "fitness" key')
+            raise ValueError('Invalid config file: "[software] fitness" must be defined')
         known_fitness = ['output', 'time', 'posix_time', 'perf_time', 'perf_instructions', 'repair', 'bloat_lines', 'bloat_words', 'bloat_chars']
         if config['software']['fitness'] not in known_fitness:
-            raise RuntimeError('Invalid config file: [software] "fitness" key must be {}'.format('/'.join(known_fitness)))
+            raise ValueError('Invalid config file: "[software] fitness" key must be {}'.format('/'.join(known_fitness)))
         self.fitness_type = config['software']['fitness']
 
         # execution-related parameters

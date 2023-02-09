@@ -124,7 +124,7 @@ class GeneticProgramming(Algorithm):
         if patch.edits and random.random() < self.config['delete_prob']:
             del patch.edits[random.randrange(0, len(patch.edits))]
         else:
-            patch.edits.append(self.program.create_edit())
+            patch.edits.append(self.create_edit())
 
     def crossover(self, sol1, sol2):
         c = copy.deepcopy(sol1)
