@@ -12,7 +12,7 @@ from magpie.bin import setup_magpie
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MAGPIE genetic programming')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
-    parser.add_argument('--algo', type=str, choices=['ls_first', 'ls_best', 'ls_tabu', 'ls_walk', 'rand'])
+    parser.add_argument('--algo', type=str, choices=['gp_concat', 'gp_1point', 'gp_2point', 'gp_uconcat', 'gp_uinter'])
     parser.add_argument('--seed', type=int)
     args = parser.parse_args()
 
@@ -39,13 +39,13 @@ if __name__ == "__main__":
     if args.algo == 'gp_concat':
         gp = magpie.algo.GeneticProgrammingConcat
     elif args.algo == 'gp_1point':
-        gp = GeneticProgramming1Point
+        gp = magpie.algo.GeneticProgramming1Point
     elif args.algo == 'gp_2point':
-        gp = GeneticProgramming2Point
+        gp = magpie.algo.GeneticProgramming2Point
     elif args.algo == 'gp_uconcat':
-        gp = GeneticProgrammingUniformConcat
+        gp = magpie.algo.GeneticProgrammingUniformConcat
     elif args.algo == 'gp_uinter':
-        gp = GeneticProgrammingUniformInter
+        gp = magpie.algo.GeneticProgrammingUniformInter
 
     # setup protocol
     protocol = BasicProtocol()

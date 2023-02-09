@@ -20,7 +20,7 @@ class GeneticProgramming(Algorithm):
         self.stats['gen'] = 0
 
     def aux_log_counter(self):
-        return '{} {}'.format(self.stats['gen'], self.stats['steps']+1)
+        return '{}-{}'.format(self.stats['gen'], self.stats['steps']%self.config['pop_size']+1)
 
     def run(self):
         try:
@@ -58,6 +58,7 @@ class GeneticProgramming(Algorithm):
 
             # main loop
             while not self.stopping_condition():
+                self.stats['gen'] += 1
                 self.hook_main_loop()
                 offsprings = list()
                 parents = self.select(pop)
@@ -67,11 +68,10 @@ class GeneticProgramming(Algorithm):
                 for parent in copy_parents[:k]:
                     offsprings.append(parent)
                 # crossover
-                copy_pop = copy.deepcopy(self.filter(pop))
                 copy_parents = copy.deepcopy(parents)
                 k = int(self.config['pop_size']*self.config['offspring_crossover'])
                 for parent in copy_parents[:k]:
-                    sol = random.sample(copy_pop, 1)[0]
+                    sol = copy.deepcopy(random.sample(parents, 1)[0])
                     if random.random() > 0.5:
                         sol = self.crossover(parent, sol)
                     else:
@@ -112,8 +112,6 @@ class GeneticProgramming(Algorithm):
                     self.hook_evaluation(sol, run, accept, best)
                     pop[sol] = run
                     self.stats['steps'] += 1
-                # next
-                self.stats['gen'] += 1
 
         except KeyboardInterrupt:
             self.report['stop'] = 'keyboard interrupt'
