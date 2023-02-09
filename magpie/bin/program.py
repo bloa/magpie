@@ -175,7 +175,9 @@ class BasicProgram(magpie.base.AbstractProgram):
                 # run "[software] setup_cmd" if provided
                 if self.setup_cmd:
                     # make sure this is the unmodified software
-                    assert self.local_contents == self.contents
+                    for filename in self.target_files:
+                        engine = self.get_engine(filename)
+                        assert engine.dump(self.local_contents[filename]) == engine.dump(self.contents[filename])
 
                     # setup
                     timeout = self.setup_timeout or magpie_config.default_timeout
