@@ -1,7 +1,8 @@
 # Configuration File
 
-Magpie's default entry points (see [USAGE.md](/USAGE.md)) all use configuration files to quickly fine-tune execution.
-There are four main sections, detailed below.
+Magpie's default entry points require a scenario file in the [INI format](https://en.wikipedia.org/wiki/INI_file).
+Examples of such files can be found in the `examples/scenario` folder.
+We detail in the following the different section, properties, and default values used by Magpie.
 
 
 ## `[magpie]`
@@ -27,7 +28,7 @@ Default values:
 - `edit_retries`: how many invalid edits Magpie tries to generate in a row before completely giving up on .
 - `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
 - `default_output`: maximum output file size Magpie records before discarding a software variant (used if `compile_output`, `test_output`, or `run_output` is not specified in `[software]`)
-- `diff_method`: type of diff format (either "unified" or "context")
+- `diff_method`: type of diff format (either ["unified"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Unified.html) or ["context"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Context.html))
 
 
 ## `[srcml]`
@@ -111,7 +112,7 @@ Default values:
 
     [search]
     warmup = 3
-    warmup_strategy = 'last'
+    warmup_strategy = last
     max_steps = None
     max_time = None
     target_fitness = None
@@ -119,10 +120,10 @@ Default values:
     cache_keep = 0.2
 
 - `warmup`: number of initial evaluation to consider
-- `warmup_strategy`: which warmup fitness value to use (possible: "last", "min", "max", "mean", "median")
+- `warmup_strategy`: which warmup fitness value to use (possible: `last`, `min`, `max`, `mean`, `median`)
 - `max_steps`: maximum number of steps before Magpie terminates
 - `max_time`: maximum execution time before Magpie terminates
-- `target_fitness`: if not "None", Magpie terminates as soon as a smaller or equal fitness value is found
+- `target_fitness`: if not `None`, Magpie terminates as soon as a smaller or equal fitness value is found
 - `cache_maxsize`: maximum number of cached run results (use 0 to disable; not recommended)
 - `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
 
@@ -137,7 +138,7 @@ Local search parameters:
 
 - `delete_prob`: probability to delete a random edit instead of generating a new one
 - `max_neighbours`: number of neighbours the local search can generate without acceptance (default = 20 for BestImprovement)
-- `when_trapped`: what to do when `max_neighbours` neighbours are rejected in a row (possible: "continue", "stop")
+- `when_trapped`: what to do when `max_neighbours` neighbours are rejected in a row (possible: `continue`, `stop`)
 - `accept_fail`: enable walking through fitness-less software variants (RandomWalk only)
 - `tabu_length`: length of the tabu list of software variants (TabuSearch only)
 
@@ -155,4 +156,4 @@ Genetic programming parameters:
 - `offspring_elitism`: proportion of the old population carried over
 - `offspring_crossover`: proportion of the old population crossed over with random valid parent
 - `offspring_mutation`: proportion of the old population mutated
-- `uniform_rate`: (GeneticProgrammingUniformConcat and GeneticProgrammingUniformInter only)
+- `uniform_rate`: percentage of edits originating from the first parent

@@ -1,62 +1,50 @@
-# Basic Usage
+# Usage Philosophy
 
-We provide few generic entry points for optimisation/learning/training.
+Magpie's source code is entirely self-contained in the "magpie" folder, whislt the "bin" folder contains Magpie's default entry points.
+Entry points will expect a description of the experimental setup provided by a [scenario file][./config.md].
+Upon execution, Magpie will create two other folders: "_magpie_logs", that will contain all log files (outputs, patches, diffs, etc) created by Magpie, as well as "_magpie_work", that will contain the temporary software variants.
 
-    bin
-    ├── ablation_analysis.py
-    ├── genetic_programming.py
-    ├── local_search.py
-    ├── minify_patch.py
-    ├── revalidate.py
-    ├── show_locations.py
-    └── show_patch.py
+The typical Magpie setup will then look as follows:
 
-Because they are located in a sub-folder and not at top-level, they require a little bit of Python magic speech (e.g., `python3 -m bin.local_search` instead of `python3 magpie_runtime.py`).
-They can, however, be moved at top-level without any modification to simplify usage if so desired.
+    .
+    ├── bin // Default or user-provided entry points
+    │   └── ...
+    ├── code // Software to optimise
+    │   └── ...
+    ├── magpie // Magpie source code (not the entire git repo)
+    │   └── ...
+    ├── magpie.py // Optional main entry point
+    │   └── ...
+    ├── _magpie_logs // Experiments' log files (automatically generated)
+    │   └── ...
+    ├── _magpie_work // Temporary software variants (automatically generated)
+    │   └── ...
+    └── scenario.txt // Experiments' setup file
 
-Note that for the sake of genericity, these scripts are limited in the granularity level (no AST node) and fitness functions they provide.
-
-There are multiple ways to use these entry points.
-Because they are located in a sub-folder and not at top-level, they must be loaded as modules using the `-m` option of the Python interpreter.  
-For example:
-
-    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
-
-For maximum convenience, we provide the `magpie.py` script that also accept the equivalent commands:
-
-    python3 magpie.py bin/local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
-    python3 magpie.py bin/local_search --scenario examples/scenario/triangle-cpp_runtime.txt
-    python3 magpie.py local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
-    python3 magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
-    ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
-
-Alternatively, these entry points (as any custom-written ones) can be moved at top-level and run from there:
-
-    mv bin/local_search.py .
-    ./local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+We provide examples of source code and scenarios in the "example" folder.
 
 
-## Software Evaluation
+# Software Evaluation
 
-In the generic entry points software fitness assessment is broken down in four successive steps: "setup", "compile", "test", and "run".
+Fitness assessment is broken down in four successive steps: "setup", "compile", "test", and "run".
 
 In all but one case (the test step when using the "repair" fitness function), a software variant is immediately discarded it any of the step fails (i.e., if any of the provided command returns a nonzero return code).
 
-### Setup
+## Setup
 
 This step is only conducted **once**, during warmup with the unmodified software, in the original software directory (or in an intermediate copy if the `local_original_copy` option is used).
 It is useful for performing some initial processing or compilation so as to avoid wasting resources on things that would otherwise be repeated for every single software variant.
 
 See for example the `examples/scenario/triangle-cpp_runtime.txt` scenario in which this step is used to create an initialised CMake build directory.
 
-### Compile
+## Compile
 
 This step is conducted **for every software variant**, before the test and run steps.
 It is meant for processing shared between the test and run steps (e.g., compilation).
 
 See for example the `examples/scenario/triangle-c_runtime.txt` and `examples/scenario/triangle-java_repair.txt` scenario in which this step is used to call `make` and `javac`, respectively.
 
-### Test
+## Test
 
 This step is conducted **for every software variant**, between the compile and run steps.
 Whilst technically not absolutely necessary (as it merged with either the compile or run step), it is provided for convenience and quality of life.
@@ -66,12 +54,12 @@ This step has three particularities:
 2. When the "repair" or "bloat" fitness function is used, the fitness value is computed immediately and the run command is skipped.
 3. This is only time a command may yield a nonzero return code.
 
-### Run
+## Run
 
 This step is conducted last, and is used to compute the fitness value in most cases.
 
 
-## Fitness Function
+# Fitness Function
 
 Magpie generic entry points natively support many fitness schemes.
 
@@ -92,9 +80,13 @@ Require specific outputs:
 - **output**: Magpie checks STDOUT for the generic `MAGPIE_FITNESS: XXX` string.
 
 
-## Reading Magpie's output
+# Reading Magpie's output
 
-First we look at the output of the running time minimisation example.
+We will use the following example:
+
+    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+
+Execution starts with a "warmup" step.
 
     ==== WARMUP ====
     WARM    SUCCESS               0.0844                  
@@ -102,8 +94,10 @@ First we look at the output of the running time minimisation example.
     WARM    SUCCESS               0.0843                  
     INITIAL SUCCESS               0.0843                  
 
-First, Magpie will evaluate multiple times the original software fitness score (default: four times) in order to set the base fitness to improve.
-This warming up step ensures that the all fitness values are fairly compared, as the first few values may exhibit significant variance.
+Magpie will evaluate multiple times the original software fitness score (default: four times) in order to set the base fitness to improve (default: last fitness).
+This step ensures that the all fitness values are fairly compared, as the first few values may exhibit significant variance.
+
+Then, the local search starts.
 
     ==== START ====
     ... (lines eluded for clarity) ...
@@ -124,7 +118,6 @@ This warming up step ensures that the all fitness values are fairly compared, as
     ==== END ====
     Reason: step budget
 
-Then, Magpie will use the chosen evolutionary algorithm to modify the original software.
 For each evaluation Magpie reports the evaluation id, the final status of the mutated software execution, the fitness value, and finally some optional comment (here, the size of the patch).
 
 Few evaluation statuses are then possible.
@@ -141,12 +134,18 @@ Fitness values are given both directly and in percentage relatively to the initi
 Values below 100% correspond here to faster variants, while values over 100% correspond to slower ones (note that the status is still `SUCCESS` and not, e.g., `RUNTIME_ERROR`, because the variant is still semantically sound).
 An asterisk (`*`) indicates that a new best fitness values have been found, whilst a plus sign (`+`) indicates repeated best values.
 
-Finally, Magpie will show the stopping criteria reached: here the 100 steps have completed.
+At the end of the search Magpie will show the stopping criteria reached: here the 100 steps have completed.
 Other possible criteria include for example a target fitness value, or a manual interruption (`C-c`).
 
-    ==== REPORT ====
+Finally, Magpie reports on its execution and eventually details the found improved software variant.
+Note that a much more detailed log can be found in the `_magpie_logs` folder.
+For convenience, if an improving patch is found, both a patch and a diff file will also be available.
+
+==== REPORT ====
     Termination: step budget
     Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-py_slow_1664546789.log
+    Patch file: _magpie_logs/triangle-py_slow_1664546789.patch
+    Diff file: _magpie_logs/triangle-py_slow_1664546789.diff
     Best fitness: 0.0383
     Best patch: LineDeletion(('triangle.py', 'line', 14)) | LineDeletion(('triangle.py', 'line', 2))
     Diff:
@@ -168,16 +167,45 @@ Other possible criteria include for example a target fitness value, or a manual 
          # Sort the sides so that a <= b <= c
          if a > b:
 
-Finally, Magpie reports on its execution and eventually details the found improved software variant.
-Note that a much more detailed log is also stored in the `_magpie_logs` folder.
-
 
 # Entry Points
 
+    bin
+    ├── ablation_analysis.py
+    ├── genetic_programming.py
+    ├── local_search.py
+    ├── minify_patch.py
+    ├── revalidate.py
+    ├── show_locations.py
+    └── show_patch.py
+
+There are multiple ways to use these entry points.
+Because they are located in a sub-folder and not at top-level, they must be loaded as modules using the `-m` option of the Python interpreter.
+
+    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+
+For maximum convenience, we provide the `magpie.py` script that also accept the equivalent commands:
+
+    python3 magpie.py bin/local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    python3 magpie.py bin/local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    python3 magpie.py local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    python3 magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+
+Alternatively, these entry points (as any custom-written ones) can be moved at top-level and run from there:
+
+    mv bin/local_search.py .
+    ./local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+
+
 Note on requirements of "triangle_XXX" scenario:
-- the Python triangles scenario require Python 3.7+ and [`pytest`](https://docs.pytest.org).
-- the Ruby scenario requires Ruby and [`minitest`](https://docs.seattlerb.org/minitest/).
-- the Java scenario only requires Java, as both `junit` and the SrcML file are already provided.
+- the Python scenario require Python 3.7+ and [pytest](https://docs.pytest.org).
+- the Ruby scenario requires Ruby and [minitest](https://docs.seattlerb.org/minitest/).
+- the Java scenario only requires Java, as both jUnit and the SrcML file are already provided.
 - the C scenario require make.
 - the C++ scenario require CMake.
 
@@ -187,11 +215,14 @@ Note on requirements of "triangle_XXX" scenario:
 Examples:
 
     python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
     python3 -m bin.local_search --scenario examples/scenario/triangle-java_repair.txt
+<!-- -->
     python3 -m bin.local_search --scenario examples/scenario/triangle-rb_repair.txt
+<!-- -->
     python3 -m bin.local_search --scenario examples/scenario/triangle-py_bloat.txt
 
-Note: whilst the `--seed` option enables setting the initial random seed, which may lead to reproducible results in cases in which the fitness function is deterministic (bloat is fine, repair *may* be, but usually running time measurements are too noisy).
+Note: whilst the `--seed` option enables setting the initial random seed, which may lead to reproducible results in cases in which the fitness function is deterministic (bloat is fine, repair *may* be, but running time measurements are usually too noisy).
 
 
 ## Show Patch
@@ -202,6 +233,7 @@ A patch can either be provided directly or as a path to a file containing the pa
 Examples:
 
     python3 -m bin.show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "LineDeletion(('triangle.cpp', 'line', 10))"
+<!-- -->
     python3 -m bin.show_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 In addition, using the `--keep` option will also instruct Magpie to leave a copy of the mutated software for further manual investigation.
@@ -215,6 +247,7 @@ The `--filename` and `--type` options allow for specifying a specific subset of 
 Examples:
 
     python3 -m bin.show_locations --scenario examples/scenario/triangle-rb_repair.txt
+<!-- -->
     python3 -m bin.show_locations --scenario examples/scenario/triangle-rb_repair.txt --filename triangle.rb --type line
 
 
@@ -226,6 +259,7 @@ A patch can either be provided directly or as a path to a file containing the pa
 Examples:
 
     python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "LineDeletion(('triangle.cpp', 'line', 10))"
+<!-- -->
     python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 
@@ -255,47 +289,10 @@ Example:
     python3 -m bin.ablation_analysis --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 
-## Misc Utilities
+## Miscellaneous
 
 ### Line to XML Converter
 
 Example:
 
     python3 bin/line_xml.py --file examples/code/triangle-java_slow/Triangle.java
-
-
-# Real World Example
-
-First, download and extract Minisat 2.2.0 (as the real-world target software)
-For consistency we extract it here in `example/code`, beside the provided example toy software.
-
-    wget "http://minisat.se/downloads/minisat-2.2.0.tar.gz"
-    tar xzf minisat-2.2.0.tar.gz -C examples/code
-    rm minisat-2.2.0.tar.gz
-
-Then setup the MiniSAT directory with files used by Magpie.
-
-    patch -d examples/code -p 1 < examples/code/minisat_setup/minisat.patch
-    cp examples/code/minisat_setup/data examples/code/minisat
-    cp examples/code/minisat_setup/*.sh examples/code/minisat
-    cp examples/code/minisat_setup/Solver.cc.xml examples/code/minisat/core
-    cp examples/code/minisat_setup/minisat*.params examples/code/minisat
-
-In particular:
-
-- `minisat.patch` is applied to add comment support to MiniSAT's Dimacs parser
-- `data` contains 20 instances from [SATLIB](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html)
-- `compile.sh` simply runs the MiniSAT-provided makefile
-- `test.sh` checks MiniSAT's output on 5 SAT and 5 UNSAT instances
-- `run.sh` runs MiniSAT on all 20 instances
-- `run2.sh` handle the two artificial parameters introduced in `minisat_advanced.params`
-- `Solver.cc.xml` contains the AST of the MiniSAT's `core/Solver.cc` file as provided by [SrcML](https://www.srcml.org/).
-- `minisat_simplified.params` defines MiniSAT's configuration space
-- `minisat_advanced.params` use two additional parameters to improve the configuration space definition
-
-Examples:
-
-    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_xml.txt
-    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_config1.txt
-    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_config2.txt
-    python3 -m bin.local_search --scenario examples/scenario/minisat_bloat_xml.txt

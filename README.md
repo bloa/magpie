@@ -1,7 +1,7 @@
 # Magpie (Machine Automated General Performance Improvement via Evolution of software)
 
 <p align="center">
-  <img alt="MAGPIE logo" src="./logo_magpie.png" />
+  <img alt="MAGPIE logo" src="./docs/logo_magpie.png" />
 </p>
 
 Magpie: your software, but more efficient!
@@ -16,27 +16,48 @@ Two types of language-agnostic source code representations are supported: line-b
 For the latter we recommend the [srcML](https://www.srcml.org/) tool with out-of-the-box support for C/C++/C# and Java.  
 Finally, Magpie also enables parameter tuning and algorithm configuration, both independently and concurrently of the source code search process.
 
+
 ## Getting Started
 
-### Prerequisites
+**Requirements:**
 
 - Python 3.5+
 - [Astor](https://astor.readthedocs.io/) [optional: for native Python AST manipulation]
 - [Pytest](https://docs.pytest.org/) [optional: for running tests]
 
-### Getting Magpie
+Install Magpie by cloning the git repository:
 
     git clone https://github.com/bloa/magpie.git
 
-And... that's it.
-
-### Running Unit Tests
+Optionally, run Magpie's unit tests:
 
     python3 -m pytest test
 
-### Citation
+Try one of the following examples:
 
-If you use Magpie for a publication, we kindly ask you to cite the following paper that describes MAGPIE's approach:
+    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    python3 -m bin.local_search --scenario examples/scenario/triangle-java_repair.txt
+<!-- -->
+    python3 -m bin.show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
+<!-- -->
+    python3 -m bin.minify_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+
+
+## Documentation
+
+- [User Guide](./docs/guide.md)
+- [Tutorial](./docs/tutorial.md)
+- [Scenario Files](./docs/scenario.md)
+- [Algorithm Configuration](./docs/algoconfig.md)
+
+
+## Acknowledgements
+
+Magpie is based on [PyGGI 2.0](https://github.com/coinse/pyggi), developped at [COINSE KAIST](https://coinse.kaist.ac.kr/) in collaboration with [UCL SOLAR](https://solar.cs.ucl.ac.uk/).  
+Part of its development was supported by UK EPSRC Fellowship EP/P023991/1.
+
+If you use Magpie for a publication, we kindly ask you to cite the following [ArXiV paper](https://arxiv.org/abs/2208.02811) that describes MAGPIE's approach:
 
 ```
 @article{blot:2022:corr_1,
@@ -50,36 +71,3 @@ If you use Magpie for a publication, we kindly ask you to cite the following pap
 }
 ```
 
-
-## Usage Philosophy
-
-Magpie's source code is entirely self-contained in the `magpie` folder.
-In order to conduct experiments in the most convenient way, we recommend the following setup, starting from an empty directory:
-
-    .
-    ├── code // The software to optimise
-    │   └── ...
-    ├── magpie // Magpie source code (not the entire git repo)
-    │   └── ...
-    ├── _magpie_logs // Experiments' log files (automatically generated)
-    │   └── ...
-    ├── _magpie_work // Temporary software variants (automatically generated)
-    │   └── ...
-    ├── run_optimise.py // Customised entry point
-    ├── run_validate.py // Customised entry point
-    └── scenario.txt // Experiments' setup file
-
-The `_magpie_logs` folder will contain all log files (outputs, patches, diffs, etc) created by Magpie, whilst the `_magpie_work` folder will contain temporary software variants.
-Both folders are automatically generated.
-
-We provide (in `bin`) several generic optimisation entry points, targeting running time optimisation, automated bug fixing, bloat minimisation, and algorithm configuration.
-We also provide several validation entry points, including simple fitness reassessment of the final patch, patch minimisation, or ablation analysis.
-
-These are discussed in more detailed in [USAGE.md](/USAGE.md).
-
-
-## Acknowledgments
-
-Magpie is based on [PyGGI 2.0](https://github.com/coinse/pyggi), developped at [COINSE KAIST](https://coinse.kaist.ac.kr/) in collaboration with [UCL SOLAR](https://solar.cs.ucl.ac.uk/).
-
-Part of its development was supported by UK EPSRC Fellowship EP/P023991/1.
