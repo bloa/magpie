@@ -1,12 +1,7 @@
 [software]
 path = examples/code/triangle-py_slow
 target_files =
-  triangle.py
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    triangle.py
 fitness = time
 
 test_cmd = pytest
@@ -16,3 +11,7 @@ run_timeout = 1
 [search]
 max_steps = 100
 max_time = 60
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

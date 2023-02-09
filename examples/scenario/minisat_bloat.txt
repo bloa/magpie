@@ -1,10 +1,7 @@
 [software]
 path = examples/code/minisat
 target_files =
-  core/Solver.cc.xml
-possible_edits =
-  StmtDeletion
-
+    core/Solver.cc.xml
 fitness = bloat_words
 
 compile_cmd = ./compile.sh
@@ -12,3 +9,5 @@ test_cmd = ./test.sh
 
 [search]
 max_steps = 100
+possible_edits =
+    StmtDeletion

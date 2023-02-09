@@ -1,12 +1,7 @@
 [software]
 path = examples/code/triangle-py_bug
 target_files =
-  triangle.py
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    triangle.py
 fitness = repair
 
 test_cmd = pytest
@@ -15,3 +10,7 @@ test_timeout = 1
 [search]
 target_fitness = 0
 max_steps = 100
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

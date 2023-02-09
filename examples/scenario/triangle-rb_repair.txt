@@ -1,18 +1,15 @@
 [software]
 path = examples/code/triangle-rb_bug
 target_files =
-  triangle.rb
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    triangle.rb
 fitness = repair
 
-compile_cmd =
 test_cmd = ruby test_triangle.rb
-run_cmd =
 
 [search]
 target_fitness = 0
 max_steps = 100
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

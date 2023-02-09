@@ -1,12 +1,7 @@
 [software]
 path = examples/code/triangle-java_bug
 target_files =
-  Triangle.java
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    Triangle.java.xml
 fitness = repair
 
 compile_cmd = javac -cp junit-4.10.jar Triangle.java TriangleTest.java
@@ -15,3 +10,7 @@ test_cmd = java -cp junit-4.10.jar:. org.junit.runner.JUnitCore TriangleTest
 [search]
 target_fitness = 0
 max_steps = 100
+possible_edits =
+    StmtReplacement
+    StmtInsertion
+    StmtDeletion

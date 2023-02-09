@@ -4,12 +4,7 @@ local_original_copy = True
 [software]
 path = examples/code/triangle-cpp_slow
 target_files =
-  triangle.cpp
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    triangle.cpp.xml
 fitness = time
 
 setup_cmd = ./setup.sh
@@ -21,3 +16,7 @@ run_timeout = 1
 [search]
 max_steps = 100
 max_time = 60
+possible_edits =
+    StmtReplacement
+    StmtInsertion
+    StmtDeletion

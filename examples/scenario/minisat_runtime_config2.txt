@@ -1,14 +1,11 @@
 [magpie]
 default_timeout = 30
 default_output = 1e6
+local_original_copy = True
 
 [software]
 path = examples/code/minisat
-target_files =
-  minisat_advanced.params
-possible_edits =
-  ParamSetting
-
+target_files = minisat_advanced.params
 fitness = time
 
 setup_cmd = ./compile.sh
@@ -17,4 +14,5 @@ test_cmd =
 run_cmd = ./run2.sh
 
 [search]
-max_steps = 100
+max_steps = 1000
+possible_edits = ParamSetting

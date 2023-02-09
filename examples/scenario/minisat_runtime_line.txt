@@ -5,12 +5,7 @@ default_output = 1e6
 [software]
 path = examples/code/minisat
 target_files =
-  core/Solver.cc.xml
-possible_edits =
-  StmtReplacement
-  StmtInsertion
-  StmtDeletion
-
+    core/Solver.cc
 fitness = time
 
 compile_cmd = ./compile.sh
@@ -19,3 +14,7 @@ run_cmd = ./run.sh
 
 [search]
 max_steps = 100
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

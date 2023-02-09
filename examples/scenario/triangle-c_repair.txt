@@ -1,12 +1,7 @@
 [software]
 path = examples/code/triangle-c_bug
 target_files =
-  triangle.c
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    triangle.c.xml
 fitness = repair
 
 compile_cmd = make test_triangle
@@ -15,3 +10,7 @@ test_cmd = ./test_triangle
 [search]
 target_fitness = 0
 max_steps = 100
+possible_edits =
+    StmtReplacement
+    StmtInsertion
+    StmtDeletion

@@ -1,12 +1,7 @@
 [software]
 path = examples/code/triangle-c_slow
 target_files =
-  triangle.c
-possible_edits =
-  LineReplacement
-  LineInsertion
-  LineDeletion
-
+    triangle.c.xml
 fitness = time
 
 compile_cmd = make test_triangle run_triangle
@@ -17,3 +12,7 @@ run_timeout = 1
 [search]
 max_steps = 100
 max_time = 60
+possible_edits =
+    StmtReplacement
+    StmtInsertion
+    StmtDeletion
