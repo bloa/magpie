@@ -13,29 +13,29 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # special setup options
-                m = re.match(r"^CLI_PREFIX\s*=\s*\"([^\"]*)\"", line)
+                m = re.match(r"^CLI_PREFIX\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
                 if m:
                     cls.CLI_PREFIX = m.group(1)
                     continue
-                m = re.match(r"^CLI_GLUE\s*=\s*\"([^\"]*)\"", line)
+                m = re.match(r"^CLI_GLUE\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
                 if m:
                     cls.CLI_GLUE = m.group(1)
                     continue
-                m = re.match(r"^CLI_BOOLEAN\s*=\s*\"([^\"]*)\"", line)
+                m = re.match(r"^CLI_BOOLEAN\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
                 if m:
                     cls.CLI_BOOLEAN = m.group(1)
                     continue
-                m = re.match(r"^CLI_BOOLEAN_PREFIX_TRUE\s*=\s*\"([^\"]*)\"", line)
+                m = re.match(r"^CLI_BOOLEAN_PREFIX_TRUE\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
                 if m:
                     cls.CLI_BOOLEAN_PREFIX_TRUE = m.group(1)
                     continue
-                m = re.match(r"^CLI_BOOLEAN_PREFIX_FALSE\s*=\s*\"([^\"]*)\"", line)
+                m = re.match(r"^CLI_BOOLEAN_PREFIX_FALSE\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
                 if m:
                     cls.CLI_BOOLEAN_PREFIX_FALSE = m.group(1)
                     continue
 
                 # categorical parameters
-                m = re.match(r"^\s*(\S+)\s*\{([^}]+)\}\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*\{([^}]+)\}\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = m.group(3)
@@ -46,7 +46,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # continuous parameters
-                m = re.match(r"^\s*(\S+)\s*\(([^,]+),([^,]+)\)\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*\(([^,]+),([^,]+)\)\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = float(m.group(4).strip())
@@ -55,7 +55,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                         raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.uniform(*values)]
                     continue
-                m = re.match(r"^\s*(\S+)\s*e\(([^,]+),([^,]+)\)\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*e\(([^,]+),([^,]+)\)\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = float(m.group(4).strip())
@@ -64,7 +64,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                         raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.exponential(*values)]
                     continue
-                m = re.match(r"^\s*(\S+)\s*e\(([^,]+),([^,]+),([^,]+)\)\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*e\(([^,]+),([^,]+),([^,]+)\)\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = float(m.group(5).strip())
@@ -75,7 +75,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # integer parameters
-                m = re.match(r"^\s*(\S+)\s*\[([^,]+),([^,]+)\]\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*\[([^,]+),([^,]+)\]\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = int(m.group(4).strip())
@@ -84,7 +84,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                         raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.uniform_int(*values)]
                     continue
-                m = re.match(r"^\s*(\S+)\s*g\[([^,]+),([^,]+)\]\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*g\[([^,]+),([^,]+)\]\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = int(m.group(4).strip())
@@ -93,7 +93,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                         raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.geometric(*values)]
                     continue
-                m = re.match(r"^\s*(\S+)\s*g\[([^,]+),([^,]+),([^,]+)\]\s*\[([^\]]+)\]", line)
+                m = re.match(r"^\s*(\S+)\s*g\[([^,]+),([^,]+),([^,]+)\]\s*\[([^\]]+)\](?:\s*#.*)?$", line)
                 if m:
                     param = m.group(1)
                     default = int(m.group(5).strip())
@@ -104,7 +104,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # forbidden parameters
-                m = re.match(r"^{([^=}]+=[^=}]+(?:,[^=}]+=[^=}]+)*)\}", line)
+                m = re.match(r"^{([^=}]+==[^=}]+(?:,[^=}]+==[^=}]+)*)\}(?:\s*#.*)?$", line)
                 if m:
                     tmp = {}
                     for s in m.group(1).split(','):
@@ -116,7 +116,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # conditional parameters (multiple values)
-                m = re.match(r"^\s*([^|]+)\s*\|\s*([^{]+?)\s* in \{(\S*)\}", line)
+                m = re.match(r"^\s*([^|]+)\s*\|\s*([^{]+?)\s* in \{(\S*)\}(?:\s*#.*)?$", line)
                 if m:
                     tmp = [m.group(1).strip(), m.group(2).strip(), [s.strip() for s in m.group(2).strip().split(',')]]
                     if tmp[0] not in cls.PARAMS.keys():
@@ -127,7 +127,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # conditional parameters (single values)
-                m = re.match(r"^\s*([^|]+)\s*\|\s*([^{]+?)\s*==\s*(\S*)", line)
+                m = re.match(r"^\s*([^|]+)\s*\|\s*([^{]+?)\s*==\s*(\S*)(?:\s*#.*)?$", line)
                 if m:
                     tmp = [m.group(1).strip(), m.group(2).strip(), [m.group(2).strip()]]
                     if tmp[0] not in cls.PARAMS.keys():
