@@ -23,7 +23,10 @@ if __name__ == "__main__":
         regexp_line = r'^(\s*)(.*?)(\s*(?:(?:{}).*)?)$'.format('|'.join(args.comments.split(' ')))
     else:
         regexp_line = r'^(\s*)(.*?)(\s*)$'
-    ml_comments = args.multi_line_comments.split(' ')
+    if args.multi_line_comments:
+        ml_comments = args.multi_line_comments.split(' ')
+    else:
+        ml_comments = []
     in_ml_comment = False
     ignore_list = args.ignore.split(' ')
 
@@ -33,14 +36,14 @@ if __name__ == "__main__":
         for line in f.readlines():
             m = re.match(regexp_line, line.rstrip('\n'))
             a, b, c = m.groups()
-            if not in_ml_comment and b.startswith(ml_comments[0]):
+            if ml_comments and not in_ml_comment and b.startswith(ml_comments[0]):
                 in_ml_comment = True
             b = sanitize_xml(b)
             c = sanitize_xml(c)
-            if in_ml_comment or b in ignore_list or not (b or args.empty_lines):
+            if (ml_comments and in_ml_comment) or (b in ignore_list) or not (b or args.empty_lines):
                 print(a, b, c, sep='')
             else:
                 print("{}<line>{}</line>{}".format(a, b, c))
-            if in_ml_comment and b.endswith(ml_comments[1]):
+            if ml_comments and in_ml_comment and b.endswith(ml_comments[1]):
                 in_ml_comment = False
         print("</unit>")
