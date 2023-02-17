@@ -1,19 +1,46 @@
 import argparse
 import pathlib
+import re
+
+def sanitize_xml(s):
+    out = s
+    out = re.sub('&', '&amp;', out)
+    out = re.sub('<', '&lt;', out)
+    out = re.sub('>', '&gt;', out)
+    return out
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MAGPIE Line XML Formatter')
     parser.add_argument('--file', type=pathlib.Path)
-    parser.add_argument('--mode', type=str, default='default', choices=['default', 'line'])
+    parser.add_argument('--indent', action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument('--empty-lines', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--comments', type=str, default='')
+    parser.add_argument('--multi-line-comments', type=str, default='')
+    parser.add_argument('--ignore', type=str, default='')
     args = parser.parse_args()
+
+    if args.comments:
+        regexp_line = r'^(\s*)(.*?)(\s*(?:(?:{}).*)?)$'.format('|'.join(args.comments.split(' ')))
+    else:
+        regexp_line = r'^(\s*)(.*?)(\s*)$'
+    ml_comments = args.multi_line_comments.split(' ')
+    in_ml_comment = False
+    ignore_list = args.ignore.split(' ')
 
     with open(args.file) as f:
         print("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>")
         print("<unit xmlns=\"magpie\" filename=\"{}\">".format(args.file))
-        if args.mode == 'default':
-            for line in f.readlines():
-                print("<line>{}<\line>".format(line), end='')
-        elif args.mode == 'line':
-            for line in f.readlines():
-                print("<line>{}<\line>".format(line.rstrip('\n')))
+        for line in f.readlines():
+            m = re.match(regexp_line, line.rstrip('\n'))
+            a, b, c = m.groups()
+            if not in_ml_comment and b.startswith(ml_comments[0]):
+                in_ml_comment = True
+            b = sanitize_xml(b)
+            c = sanitize_xml(c)
+            if in_ml_comment or b in ignore_list or not (b or args.empty_lines):
+                print(a, b, c, sep='')
+            else:
+                print("{}<line>{}</line>{}".format(a, b, c))
+            if in_ml_comment and b.endswith(ml_comments[1]):
+                in_ml_comment = False
         print("</unit>")
