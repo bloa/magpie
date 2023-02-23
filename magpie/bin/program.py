@@ -53,11 +53,31 @@ class BasicProgram(magpie.base.AbstractProgram):
                 h = {}
                 for rule in config['srcml']['rename'].split("\n"):
                     if rule: # discard potential initial empty line
-                        k, v = rule.split(':')
+                        try:
+                            k, v = rule.split(':')
+                        except ValueError:
+                            raise ValueError('badly formated rule: "{}"'.format(rule))
                         h[k] = set(v.split())
                 magpie.xml.SrcmlEngine.TAG_RENAME = h
             if 'focus' in config['srcml']:
                 magpie.xml.SrcmlEngine.TAG_FOCUS = set(config['srcml']['focus'].split())
+
+        # engine rules
+        if 'engine_rules' in config['software']:
+            self.engine_rules = []
+            for rule in config['software']['engine_rules'].split("\n"):
+                if rule: # discard potential initial empty line
+                    try:
+                        k, v = rule.split(':')
+                    except ValueError:
+                        raise ValueError('badly formated rule: "{}"'.format(rule))
+                    self.engine_rules.append((k.strip(), magpie.bin.engine_from_string(v.strip())))
+        else:
+            self.engine_rules = [
+                ('*.params', magpie.params.ConfigFileParamsEngine),
+                ('*.xml', magpie.xml.SrcmlEngine),
+                ('*', magpie.line.LineEngine),
+            ]
 
         # reset contents here, AFTER xml parameters
         self.reset_contents()
@@ -154,12 +174,13 @@ class BasicProgram(magpie.base.AbstractProgram):
                 self.run_output = float(config['software']['run_output'])
 
     def get_engine(self, target_file):
-        if target_file[-7:] == '.params':
-            return magpie.params.ConfigFileParamsEngine
-        elif target_file[-4:] == '.xml':
-            return magpie.xml.SrcmlEngine
-        else:
-            return magpie.line.LineEngine
+        for (pattern, engine) in self.engine_rules:
+            if any([target_file == pattern,
+                    pattern == '*',
+                    pattern.startswith('*') and target_file.endswith(pattern[1:]),
+            ]):
+                return engine
+        raise RuntimeError('Unknown engine for target file {}'.format(target_file))
 
     def evaluate_local(self):
         cwd = os.getcwd()

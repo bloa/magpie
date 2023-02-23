@@ -1,8 +1,15 @@
 from .realms import Realm, CategoricalRealm, UniformRealm, UniformIntRealm, ExponentialRealm, GeometricRealm
 from .abstract_engine import AbstractParamsEngine
 from .configfile_engine import ConfigFileParamsEngine
-from .edits import ParamSetting
+from .params_edits import ParamSetting
 
-params_edits = [
+# "final" engines only
+engines = [
+    ConfigFileParamsEngine,
+]
+
+# "final" edits only
+edits = [
     ParamSetting,
 ]
+

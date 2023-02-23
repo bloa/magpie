@@ -9,8 +9,13 @@ def sanitize_xml(s):
     out = re.sub('>', '&gt;', out)
     return out
 
+
+# ================================================================================
+# Main function
+# ================================================================================
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MAGPIE Line XML Formatter')
+    parser = argparse.ArgumentParser(description='Magpie line to XML formatter')
     parser.add_argument('--file', type=pathlib.Path)
     parser.add_argument('--indent', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--empty-lines', action=argparse.BooleanOptionalAction, default=False)

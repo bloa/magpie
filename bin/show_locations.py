@@ -1,21 +1,11 @@
 import argparse
-import ast
 import configparser
 import pathlib
-import re
-import sys
 
 import magpie
 
 from magpie.bin import BasicProgram
-
-
-# ================================================================================
-
-from magpie.line import LineReplacement
-from magpie.line import LineInsertion
-from magpie.line import LineDeletion
-from magpie.params import ParamSetting
+from magpie.bin import setup_magpie
 
 
 # ================================================================================
@@ -23,7 +13,7 @@ from magpie.params import ParamSetting
 # ================================================================================
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MAGPIE Show Locations')
+    parser = argparse.ArgumentParser(description='Magpie show locations')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--filename', type=str)
     parser.add_argument('--type', type=str)
@@ -33,6 +23,7 @@ if __name__ == "__main__":
     # read config file
     config = configparser.ConfigParser()
     config.read(args.scenario)
+    setup_magpie(config)
 
     # show locations
     program = BasicProgram(config)
@@ -51,7 +42,6 @@ if __name__ == "__main__":
             if args.type is not None and args.type != type_:
                 continue
             print('---- {} ----'.format(type_))
-            # for loc in range(len(program.locations[filename][type_])):
             for loc in program.location_names(filename, type_):
                 print(program.show_location(filename, type_, loc))
             print()

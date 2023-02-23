@@ -10,8 +10,14 @@ from .srcml_edits import TextSetting, TextWrapping
 from .srcml_edits import ComparisonOperatorSetting, ArithmeticOperatorSetting
 from .srcml_edits import NumericSetting, RelativeNumericSetting
 
+# "final" engines only
+engines = [
+    XmlEngine,
+    SrcmlEngine,
+]
+
 # "final" edits only
-xml_edits = [
+edits = [
     XmlLineReplacement, XmlLineInsertion, XmlLineDeletion, XmlLineMoving,
     StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving,
     ExprReplacement,

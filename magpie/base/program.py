@@ -29,9 +29,6 @@ class AbstractProgram():
         self.location_weights = {}
         self.possible_edits = []
         self.work_dir = None
-        self.last_cmd = '(not set)'
-        self.last_stdout = '(not set)'
-        self.last_stderr = '(not set)'
 
         self.reset_timestamp()
         self.reset_logger()
@@ -132,7 +129,9 @@ class AbstractProgram():
             files = [f for f in self.target_files if issubclass(self.engines[f], engine)]
         else:
             files = self.target_files
-        return random.choice(files)
+        if files:
+            return random.choice(files)
+        raise RuntimeError('No compatible target file for engine {}'.format(engine.__name__))
 
     def random_target(self, target_file=None, target_type=None):
         if target_file is None:
@@ -215,56 +214,50 @@ class AbstractProgram():
         stdout = b''
         stderr = b''
         start = time.time()
+        sprocess = None
         try:
-            self.last_cmd = str(cmd)
-            sprocess = None
-            try:
-                sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
-            except FileNotFoundError:
-                return ExecResult('CLI_ERROR', -1, b"", b"", 0)
-            if max_output > 0:
-                stdout_size = 0
-                stderr_size = 0
-                while sprocess.poll() is None:
-                    end = time.time()
-                    if end-start > timeout:
-                        os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                        _, _ = sprocess.communicate()
-                        return ExecResult('TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
-                    a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
-                    if sprocess.stdout in a:
-                        for _ in range(1024):
-                            if not len(select.select([sprocess.stdout], [], [], 0)[0]):
-                                break
-                            stdout += sprocess.stdout.read(1)
-                            stdout_size += 1
-                    if sprocess.stderr in a:
-                        for _ in range(1024):
-                            if not len(select.select([sprocess.stderr], [], [], 0)[0]):
-                                break
-                            stderr += sprocess.stderr.read(1)
-                            stderr_size += 1
-                    if stdout_size+stderr_size >= max_output:
-                        os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                        _, _ = sprocess.communicate()
-                        return ExecResult('LENGTHOUT', sprocess.returncode, stdout, stderr, end-start)
+            sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+        except FileNotFoundError:
+            return ExecResult(cmd, 'CLI_ERROR', -1, b"", b"", 0)
+        if max_output > 0:
+            stdout_size = 0
+            stderr_size = 0
+            while sprocess.poll() is None:
                 end = time.time()
-                stdout += sprocess.stdout.read()
-                stderr += sprocess.stderr.read()
-            else:
-                try:
-                    stdout, stderr = sprocess.communicate(timeout=timeout)
-                except subprocess.TimeoutExpired:
+                if end-start > timeout:
                     os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                    stdout, stderr = sprocess.communicate()
-                    end = time.time()
-                    return ExecResult('TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
+                    _, _ = sprocess.communicate()
+                    return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
+                a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
+                if sprocess.stdout in a:
+                    for _ in range(1024):
+                        if not len(select.select([sprocess.stdout], [], [], 0)[0]):
+                            break
+                        stdout += sprocess.stdout.read(1)
+                        stdout_size += 1
+                if sprocess.stderr in a:
+                    for _ in range(1024):
+                        if not len(select.select([sprocess.stderr], [], [], 0)[0]):
+                            break
+                        stderr += sprocess.stderr.read(1)
+                        stderr_size += 1
+                if stdout_size+stderr_size >= max_output:
+                    os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                    _, _ = sprocess.communicate()
+                    return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start)
+            end = time.time()
+            stdout += sprocess.stdout.read()
+            stderr += sprocess.stderr.read()
+        else:
+            try:
+                stdout, stderr = sprocess.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                stdout, stderr = sprocess.communicate()
                 end = time.time()
-            return ExecResult('SUCCESS', sprocess.returncode, stdout, stderr, end-start)
-
-        finally:
-            self.last_stdout = stdout
-            self.last_stderr = stderr
+                return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
+            end = time.time()
+        return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start)
 
     def clean_work_dir(self):
         try:

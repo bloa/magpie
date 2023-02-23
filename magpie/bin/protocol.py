@@ -1,9 +1,6 @@
 import os
 
 import magpie
-from ..xml import xml_edits
-from ..line import line_edits
-from ..params import params_edits
 
 class BasicProtocol:
     def __init__(self):
@@ -43,7 +40,7 @@ class BasicProtocol:
             if 'possible_edits' in config['search']:
                 self.search.config['possible_edits'] = []
                 for edit in config['search']['possible_edits'].split():
-                    for klass in [*xml_edits, *line_edits, *params_edits]:
+                    for klass in [*magpie.xml.edits, *magpie.line.edits, *magpie.params.edits]:
                         if klass.__name__ == edit:
                             self.search.config['possible_edits'].append(klass)
                             break
@@ -101,7 +98,6 @@ class BasicProtocol:
         result = {'stop': None, 'best_patch': []}
         self.search.run()
         result.update(self.search.report)
-        result['diff'] = self.program.diff_patch(result['best_patch'])
         logger.info('')
 
         # print the report
@@ -111,6 +107,7 @@ class BasicProtocol:
             if handler.__class__.__name__ == 'FileHandler':
                 logger.info('Log file: {}'.format(handler.baseFilename))
         if result['best_patch']:
+            result['diff'] = self.program.diff_patch(result['best_patch'])
             base_path = os.path.join(magpie.config.log_dir, self.program.run_label)
             logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))
             logger.info('Diff file: {}'.format('{}.diff'.format(base_path)))

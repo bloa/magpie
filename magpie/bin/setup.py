@@ -1,7 +1,13 @@
+import importlib
+
 import magpie
 
 def setup_magpie(config):
     if 'magpie' in config:
+        if 'import' in config['magpie']:
+            file_path = config['magpie']['import']
+            module_path = file_path.rstrip('.py').lstrip('./').replace('/', '.')
+            importlib.import_module(module_path)
         if 'log_dir' in config['magpie']:
             magpie.config.log_dir = config['magpie']['log_dir']
         if 'work_dir' in config['magpie']:

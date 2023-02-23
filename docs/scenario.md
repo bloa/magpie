@@ -10,6 +10,7 @@ We detail in the following the different section, properties, and default values
 Default values:
 
     [magpie]
+    import =
     log_dir = '_magpie_logs'
     work_dir = '_magpie_work'
     local_original_copy = False
@@ -20,6 +21,7 @@ Default values:
     default_output = 1e4
     diff_method = 'unified'
 
+- `import`: the path of an optional Python file to import
 - `log_dir`: the folder in which logs, diffs, and patches are saved after execution
 - `work_dir`: the folder in which mutated software variants are cloned, modified, compiled, and run
 - `local_original_copy`: whether an intermediary copy of the original software is also cloned in `work_dir` (useful e.g. in cluster to clone everything in `/tmp`.
@@ -65,6 +67,10 @@ Default values:
     [software]
     path =
     target_files =
+    engine_rules =
+        *.params : ConfigFileParamsEngine
+        *.xml : SrcmlEngine
+        * : LineEngine
     possible_edits =
     setup_cmd = None
     setup_timeout = None
@@ -81,6 +87,7 @@ Default values:
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
+- `engine_rules`: the list of rules used to determine how target files are internally represented
 - `possible_edits`: the list of edits available to the search process
 - `setup_cmd`: command line to execute during the setup step (or "" or "None", in which case it is skipped)
 - `setup_timeout`: maximum execution time during the setup step (or "" or "None", in which case `default_timeout` from `[magpie]` is used)
