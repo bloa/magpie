@@ -46,13 +46,16 @@ Comments can also be added after any other valid line of the parameter file.
 
 ## Magic constants
 
-There are five magic constants that can be set.
+There are six magic constants that can be set.
 
+- `TIMING="test,run"
 - `CLI_PREFIX="--"`
 - `CLI_GLUE="="`
 - `CLI_BOOLEAN="show"`
 - `CLI_BOOLEAN_TRUE=""`
 - `CLI_BOOLEAN_FALSE="no-"`
+
+The `TIMING` string specifies for which of the "setup", "compile", "test", and or "run" steps the command line is modified to use the parameter values of the current configuration file.
 
 The `CLI_PREFIX` string is used at the start of every parameter name, whilst `CLI_GLUE` is used between the name and the value of the parameter.
 For example, MiniSAT expects parameters such as "`-gc-frac=0.2`".

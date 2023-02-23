@@ -201,9 +201,11 @@ class BasicProgram(magpie.base.AbstractProgram):
                         assert engine.dump(self.local_contents[filename]) == engine.dump(self.contents[filename])
 
                     # setup
+                    cli = self.compute_local_cli('setup')
+                    setup_cmd = '{} {}'.format(self.setup_cmd, cli).strip()
                     timeout = self.setup_timeout or magpie_config.default_timeout
                     max_output = self.setup_output or magpie_config.default_output
-                    exec_result = self.exec_cmd(shlex.split(self.setup_cmd),
+                    exec_result = self.exec_cmd(shlex.split(setup_cmd),
                                                 timeout=timeout,
                                                 max_output=max_output)
                     run_result.status = exec_result.status
@@ -216,12 +218,13 @@ class BasicProgram(magpie.base.AbstractProgram):
                     # sync work directory
                     self.sync_folder(self.path, work_path)
 
-
             # run "[software] compile_cmd" if provided
             if self.compile_cmd:
+                cli = self.compute_local_cli('compile')
+                compile_cmd = '{} {}'.format(self.compile_cmd, cli).strip()
                 timeout = self.compile_timeout or magpie_config.default_timeout
                 max_output = self.compile_output or magpie_config.default_output
-                exec_result = self.exec_cmd(shlex.split(self.compile_cmd),
+                exec_result = self.exec_cmd(shlex.split(compile_cmd),
                                             timeout=timeout,
                                             max_output=max_output)
                 run_result.status = exec_result.status
@@ -231,15 +234,9 @@ class BasicProgram(magpie.base.AbstractProgram):
                     run_result.status = 'COMPILE_{}'.format(run_result.status)
                     return run_result
 
-            # update command lines if needed
-            cli = ''
-            for target in self.target_files:
-                engine = self.engines[target]
-                if issubclass(engine, magpie.params.AbstractParamsEngine):
-                    cli = '{} {}'.format(cli, engine.resolve_cli(self.local_contents[target]))
-
             # run "[software] test_cmd" if provided
             if self.test_cmd:
+                cli = self.compute_local_cli('test')
                 test_cmd = '{} {}'.format(self.test_cmd, cli).strip()
                 timeout = self.test_timeout or magpie_config.default_timeout
                 max_output = self.test_output or magpie_config.default_output
@@ -259,6 +256,7 @@ class BasicProgram(magpie.base.AbstractProgram):
 
             # run "[software] run_cmd" if provided
             if self.run_cmd:
+                cli = self.compute_local_cli('run')
                 run_cmd = '{} {}'.format(self.run_cmd, cli).strip()
                 timeout = self.run_timeout or magpie_config.default_timeout
                 max_output = self.run_output or magpie_config.default_output

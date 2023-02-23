@@ -10,11 +10,16 @@ class AbstractParamsEngine(AbstractEngine):
     FORB = []
     KEYS = []
 
+    TIMING = ['test', 'run']
     CLI_PREFIX = "--"
     CLI_GLUE = "="
     CLI_BOOLEAN = 'show' # show ; hide ; prefix
     CLI_BOOLEAN_PREFIX_TRUE = ''
     CLI_BOOLEAN_PREFIX_FALSE = 'no-'
+
+    @classmethod
+    def check_timing(cls, step):
+        return step in cls.TIMING
 
     @classmethod
     def get_contents(cls, file_path):

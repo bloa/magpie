@@ -14,6 +14,7 @@ import logging
 import re
 
 from .. import config as magpie_config
+from ..params import AbstractParamsEngine
 from .execresult import ExecResult
 
 class AbstractProgram():
@@ -204,6 +205,15 @@ class AbstractProgram():
     def evaluate_contents(self, new_contents):
         self.write_contents(new_contents)
         return self.evaluate_local()
+
+    def compute_local_cli(self, step):
+        cli = ''
+        for target in self.target_files:
+            engine = self.engines[target]
+            if issubclass(engine, AbstractParamsEngine):
+                if engine.check_timing(step):
+                    cli = '{} {}'.format(cli, engine.resolve_cli(self.local_contents[target]))
+        return cli
 
     def evaluate_local(self):
         raise NotImplementedError

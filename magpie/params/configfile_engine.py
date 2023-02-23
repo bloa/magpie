@@ -13,6 +13,12 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     continue
 
                 # special setup options
+                m = re.match(r"^TIMING\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
+                if m:
+                    cls.TIMING = [s for s in m.group(1).split(',')]
+                    if any([witness := s in ['setup', 'compile', 'test', 'run'] for s in cls.TIMING]):
+                        raise ValueError('Illegal timing value: {}'.format(witness))
+                    continue
                 m = re.match(r"^CLI_PREFIX\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
                 if m:
                     cls.CLI_PREFIX = m.group(1)
@@ -41,7 +47,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = m.group(3)
                     values = [s.strip() for s in m.group(2).split(',')]
                     if default not in values:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.categorical(values)]
                     continue
 
@@ -52,7 +58,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = float(m.group(4).strip())
                     values = [float(x.strip()) for x in [m.group(2), m.group(3)]]
                     if default > values[1] or default < values[0]:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.uniform(*values)]
                     continue
                 m = re.match(r"^\s*(\S+)\s*e\(([^,]+),([^,]+)\)\s*\[([^\]]+)\](?:\s*#.*)?$", line)
@@ -61,7 +67,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = float(m.group(4).strip())
                     values = [float(x.strip()) for x in [m.group(2), m.group(3)]]
                     if default > values[1] or default < values[0]:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.exponential(*values)]
                     continue
                 m = re.match(r"^\s*(\S+)\s*e\(([^,]+),([^,]+),([^,]+)\)\s*\[([^\]]+)\](?:\s*#.*)?$", line)
@@ -70,7 +76,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = float(m.group(5).strip())
                     values = [float(x.strip()) for x in [m.group(2), m.group(3), m.group(4)]]
                     if default > values[1] or default < values[0]:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.exponential(*values)]
                     continue
 
@@ -81,7 +87,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = int(m.group(4).strip())
                     values = [int(x.strip()) for x in [m.group(2), m.group(3)]]
                     if default > values[1] or default < values[0]:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.uniform_int(*values)]
                     continue
                 m = re.match(r"^\s*(\S+)\s*g\[([^,]+),([^,]+)\]\s*\[([^\]]+)\](?:\s*#.*)?$", line)
@@ -90,7 +96,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = int(m.group(4).strip())
                     values = [int(x.strip()) for x in [m.group(2), m.group(3)]]
                     if default > values[1] or default < values[0]:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.geometric(*values)]
                     continue
                 m = re.match(r"^\s*(\S+)\s*g\[([^,]+),([^,]+),([^,]+)\]\s*\[([^\]]+)\](?:\s*#.*)?$", line)
@@ -99,7 +105,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     default = int(m.group(5).strip())
                     values = [int(x.strip()) for x in [m.group(2), m.group(3), m.group(3)]]
                     if default > values[1] or default < values[0]:
-                        raise RuntimeError('Illegal default value for {}: "{}"'.format(param, default))
+                        raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
                     cls.PARAMS[param] = [default, Realm.geometric(*values)]
                     continue
 
@@ -110,7 +116,7 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                     for s in m.group(1).split(','):
                         s1, s2 = s.split('=')
                         if s1 not in cls.PARAMS.keys():
-                            raise RuntimeError('Illegal forbidden parameter: "{}"'.format(s1.strip()))
+                            raise ValueError('Illegal forbidden parameter: "{}"'.format(s1.strip()))
                         tmp[s1.strip()] = s2.strip()
                     cls.FORB.append(tmp)
                     continue
@@ -120,9 +126,9 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                 if m:
                     tmp = [m.group(1).strip(), m.group(2).strip(), [s.strip() for s in m.group(2).strip().split(',')]]
                     if tmp[0] not in cls.PARAMS.keys():
-                        raise RuntimeError('Illegal conditional parameter: "{}"'.format(tmp[0]))
+                        raise ValueError('Illegal conditional parameter: "{}"'.format(tmp[0]))
                     if tmp[1] not in cls.PARAMS.keys():
-                        raise RuntimeError('Illegal conditional parameter: "{}"'.format(tmp[1]))
+                        raise ValueError('Illegal conditional parameter: "{}"'.format(tmp[1]))
                     cls.CONDS.append(tmp)
                     continue
 
@@ -131,9 +137,9 @@ class ConfigFileParamsEngine(AbstractParamsEngine):
                 if m:
                     tmp = [m.group(1).strip(), m.group(2).strip(), [m.group(2).strip()]]
                     if tmp[0] not in cls.PARAMS.keys():
-                        raise RuntimeError('Illegal conditional parameter: "{}"'.format(tmp[0]))
+                        raise ValueError('Illegal conditional parameter: "{}"'.format(tmp[0]))
                     if tmp[1] not in cls.PARAMS.keys():
-                        raise RuntimeError('Illegal conditional parameter: "{}"'.format(tmp[1]))
+                        raise ValueError('Illegal conditional parameter: "{}"'.format(tmp[1]))
                     cls.CONDS.append(tmp)
                     continue
                 raise RuntimeError('Unable to parse line: "{}"'.format(line.strip()))
