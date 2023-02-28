@@ -19,8 +19,9 @@ if __name__ == "__main__":
 
     # read config file
     config = configparser.ConfigParser()
+    config.read_dict(magpie.bin.default_config)
     config.read(args.scenario)
-    magpie.bin.setup_magpie(config)
+    magpie.bin.setup(config) # setup
 
     # show locations
     program = magpie.bin.program_from_string(config['software']['program'])(config)
