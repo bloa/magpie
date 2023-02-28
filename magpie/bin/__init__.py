@@ -1,4 +1,15 @@
 from .program import BasicProgram
 from .protocol import BasicProtocol
-from .setup import setup_magpie
-from .misc import algo_from_string, engine_from_string, patch_from_string
+from .config import default_config
+from .setup import setup
+from .misc import algo_from_string, engine_from_string, patch_from_string, program_from_string, protocol_from_string
+
+# "final" programs only
+programs = [
+    BasicProgram,
+]
+
+# "final" protocols only
+protocols = [
+    BasicProtocol,
+]

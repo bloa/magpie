@@ -48,7 +48,6 @@ class Algorithm(ABC):
 
     def hook_warmup_evaluation(self, count, patch, run):
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
-        self.program.logger.debug(run)
         if run.status != 'SUCCESS':
             self.program.logger.info('!*'*40)
             self.program.logger.info('Magpie stopped because it was unable to run the (unmodified) target software')
@@ -79,13 +78,11 @@ class Algorithm(ABC):
         else:
             c = ' '
         self.program.logger.debug(patch)
-        self.program.logger.debug(run)
+        # self.program.logger.debug(run) # uncomment for detail on last cmd
         counter = self.aux_log_counter()
         self.aux_log_eval(counter, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
         if accept or best:
             self.program.logger.debug(self.program.diff_patch(patch)) # recomputes contents but meh
-        elif run.log == 'wtf': # DEBUG
-            self.program.logger.info(self.program.diff_patch(patch))
 
     def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
         if fitness is not None and baseline is not None:

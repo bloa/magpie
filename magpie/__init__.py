@@ -5,3 +5,5 @@ import magpie.algo
 import magpie.line
 import magpie.xml
 import magpie.params
+
+import magpie.bin

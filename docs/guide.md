@@ -258,7 +258,7 @@ A patch can either be provided directly or as a path to a file containing the pa
 
 Examples:
 
-    python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "LineDeletion(('triangle.cpp', 'line', 10))"
+    python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtReplacement(('triangle.cpp.xml', 'stmt', 3), ('triangle.cpp.xml', 'stmt', 12))"
 <!-- -->
     python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 

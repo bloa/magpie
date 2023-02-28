@@ -11,6 +11,7 @@ Default values:
 
     [magpie]
     import =
+    seed =
     log_dir = '_magpie_logs'
     work_dir = '_magpie_work'
     local_original_copy = False
@@ -22,6 +23,7 @@ Default values:
     diff_method = 'unified'
 
 - `import`: the path of an optional Python file to import
+- `seed`: a random seed
 - `log_dir`: the folder in which logs, diffs, and patches are saved after execution
 - `work_dir`: the folder in which mutated software variants are cloned, modified, compiled, and run
 - `local_original_copy`: whether an intermediary copy of the original software is also cloned in `work_dir` (useful e.g. in cluster to clone everything in `/tmp`.
@@ -67,31 +69,33 @@ Default values:
     [software]
     path =
     target_files =
+    program = BasicProgram
     engine_rules =
         *.params : ConfigFileParamsEngine
         *.xml : SrcmlEngine
         * : LineEngine
     possible_edits =
-    setup_cmd = None
-    setup_timeout = None
-    setup_output = None
-    compile_cmd = None
-    compile_timeout = None
-    compile_output = None
-    test_cmd = None
-    test_timeout = None
-    test_output = None
-    run_cmd = None
-    run_timeout = None
-    run_output = None
+    setup_cmd =
+    setup_timeout =
+    setup_output =
+    compile_cmd =
+    compile_timeout =
+    compile_output =
+    test_cmd =
+    test_timeout =
+    test_output =
+    run_cmd =
+    run_timeout =
+    run_output =
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
-- `engine_rules`: the list of rules used to determine how target files are internally represented
-- `possible_edits`: the list of edits available to the search process
-- `setup_cmd`: command line to execute during the setup step (or "" or "None", in which case it is skipped)
-- `setup_timeout`: maximum execution time during the setup step (or "" or "None", in which case `default_timeout` from `[magpie]` is used)
-- `setup_output`: maximum output file size during the setup step (or "" or "None", in which case `default_output` from `[magpie]` is used)
+- `program`: the name of the Program class; it needs to belong to `magpie.bin.programs`
+- `engine_rules`: the list of rules used to determine how target files are internally represented; they need to belong to either `magpie.xml.engines`, `magpie.line.engines`, or `magpie.params.engines`
+- `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
+- `setup_cmd`: command line to execute during the setup step (or "", in which case it is skipped)
+- `setup_timeout`: maximum execution time during the setup step (or "", in which case `default_timeout` from `[magpie]` is used)
+- `setup_output`: maximum output file size during the setup step (or "", in which case `default_output` from `[magpie]` is used)
 - `compile_cmd`
 - `compile_timeout`
 - `compile_output`
@@ -118,36 +122,45 @@ Typical examples:
 Default values:
 
     [search]
+    protocol = BasicProtocol
+    algorithm =
     warmup = 3
     warmup_strategy = last
-    max_steps = None
-    max_time = None
-    target_fitness = None
+    max_steps =
+    max_time =
+    target_fitness =
     cache_maxsize = 40
     cache_keep = 0.2
 
+- `protocol`: the name of the Protocol class; it needs to belong to `magpie.bin.protocols`
+- `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.algo.algos`
 - `warmup`: number of initial evaluation to consider
 - `warmup_strategy`: which warmup fitness value to use (possible: `last`, `min`, `max`, `mean`, `median`)
 - `max_steps`: maximum number of steps before Magpie terminates
 - `max_time`: maximum execution time before Magpie terminates
-- `target_fitness`: if not `None`, Magpie terminates as soon as a smaller or equal fitness value is found
+- `target_fitness`: if not "", Magpie terminates as soon as a smaller or equal fitness value is found
 - `cache_maxsize`: maximum number of cached run results (use 0 to disable; not recommended)
 - `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
 
 
+## `[search.ls]`
+
 Local search parameters:
 
     delete_prob = 0.5
-    max_neighbours = None
+    max_neighbours =
     when_trapped = continue
     accept_fail = False # RandomWalk only
     tabu_length = 10 # TabuSearch only
 
 - `delete_prob`: probability to delete a random edit instead of generating a new one
-- `max_neighbours`: number of neighbours the local search can generate without acceptance (default = 20 for BestImprovement)
+- `max_neighbours`: if not "", number of neighbours the local search can generate without acceptance (default = 20 for BestImprovement)
 - `when_trapped`: what to do when `max_neighbours` neighbours are rejected in a row (possible: `continue`, `stop`)
 - `accept_fail`: enable walking through fitness-less software variants (RandomWalk only)
 - `tabu_length`: length of the tabu list of software variants (TabuSearch only)
+
+
+## `[search.gp]`
 
 Genetic programming parameters:
 

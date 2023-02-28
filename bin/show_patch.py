@@ -4,9 +4,6 @@ import pathlib
 
 import magpie
 
-from magpie.bin import BasicProgram
-from magpie.bin import setup_magpie, patch_from_string
-
 
 # ================================================================================
 # Main function
@@ -21,17 +18,18 @@ if __name__ == "__main__":
 
     # read config file
     config = configparser.ConfigParser()
+    config.read_dict(magpie.bin.default_config)
     config.read(args.scenario)
-    setup_magpie(config)
 
     # recreate patch
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = patch_from_string(args.patch)
+    patch = magpie.bin.patch_from_string(args.patch)
 
-    # setup program
-    program = BasicProgram(config)
+    # setup
+    magpie.bin.setup(config)
+    program = magpie.bin.program_from_string(config['software']['program'])(config)
 
     # apply patch
     new_contents = program.apply_patch(patch)

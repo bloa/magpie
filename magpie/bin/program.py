@@ -52,7 +52,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             if 'rename' in config['srcml']:
                 h = {}
                 for rule in config['srcml']['rename'].split("\n"):
-                    if rule: # discard potential initial empty line
+                    if rule.strip(): # discard potential initial empty line
                         try:
                             k, v = rule.split(':')
                         except ValueError:
@@ -209,6 +209,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                                 timeout=timeout,
                                                 max_output=max_output)
                     run_result.status = exec_result.status
+                    run_result.debug = exec_result
                     if run_result.status == 'SUCCESS':
                         self.process_setup_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
@@ -228,6 +229,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                             timeout=timeout,
                                             max_output=max_output)
                 run_result.status = exec_result.status
+                run_result.debug = exec_result
                 if run_result.status == 'SUCCESS':
                     self.process_compile_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
@@ -244,6 +246,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                             timeout=timeout,
                                             max_output=max_output)
                 run_result.status = exec_result.status
+                run_result.debug = exec_result
                 if run_result.status == 'SUCCESS':
                     self.process_test_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
@@ -264,6 +267,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                             timeout=timeout,
                                             max_output=max_output)
                 run_result.status = exec_result.status
+                run_result.debug = exec_result
                 if run_result.status == 'SUCCESS':
                     self.process_run_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
@@ -276,13 +280,11 @@ class BasicProgram(magpie.base.AbstractProgram):
     def process_setup_exec(self, run_result, exec_result):
         # "[software] setup_cmd" must yield nonzero return code
         if exec_result.return_code != 0:
-            run_result.debug = exec_result
             run_result.status = 'CODE_ERROR'
 
     def process_compile_exec(self, run_result, exec_result):
         # "[software] compile_cmd" must yield nonzero return code
         if exec_result.return_code != 0:
-            run_result.debug = exec_result
             run_result.status = 'CODE_ERROR'
 
     def process_test_exec(self, run_result, exec_result):
@@ -307,7 +309,6 @@ class BasicProgram(magpie.base.AbstractProgram):
 
         # in all other cases "[software] test_cmd" must just yield nonzero return code
         elif exec_result.return_code != 0:
-            run_result.debug = exec_result
             run_result.status = 'CODE_ERROR'
             return
 
@@ -331,7 +332,6 @@ class BasicProgram(magpie.base.AbstractProgram):
     def process_run_exec(self, run_result, exec_result):
         # in all cases "[software] run_cmd" must yield nonzero return code
         if exec_result.return_code != 0:
-            run_result.debug = exec_result
             run_result.status = 'CODE_ERROR'
             return
 
@@ -343,10 +343,8 @@ class BasicProgram(magpie.base.AbstractProgram):
                 try:
                     run_result.fitness = float(m.group(1))
                 except ValueError:
-                    run_result.debug = exec_result
                     run_result.status = 'PARSE_ERROR'
             else:
-                run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
 
         # if "[software] fitness" is "time", we just use time as seen by the main Python process
@@ -361,10 +359,8 @@ class BasicProgram(magpie.base.AbstractProgram):
                 try:
                     run_result.fitness = float(m.group(1))
                 except ValueError:
-                    run_result.debug = exec_result
                     run_result.status = 'PARSE_ERROR'
             else:
-                run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
 
         # if "[software] fitness" is "perf_time", we assume a perf-like output on STDERR
@@ -375,10 +371,8 @@ class BasicProgram(magpie.base.AbstractProgram):
                 try:
                     run_result.fitness = round(float(m.group(1)), 4)
                 except ValueError:
-                    run_result.debug = exec_result
                     run_result.status = 'PARSE_ERROR'
             else:
-                run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
 
         # if "[software] fitness" is "perf_instructions", we assume a perf-like output on STDERR
@@ -389,10 +383,8 @@ class BasicProgram(magpie.base.AbstractProgram):
                 try:
                     run_result.fitness = int(m.group(1).replace(',', ''))
                 except ValueError:
-                    run_result.debug = exec_result
                     run_result.status = 'PARSE_ERROR'
             else:
-                run_result.debug = exec_result
                 run_result.status = 'PARSE_ERROR'
 
     def self_diagnostic(self, run):

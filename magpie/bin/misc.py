@@ -28,3 +28,15 @@ def patch_from_string(s):
             raise RuntimeError('Unknown edit type "{}" in patch'.format(match.group(1)))
     assert str(patch) == s
     return patch
+
+def program_from_string(s):
+    for klass in magpie.bin.programs:
+        if klass.__name__ == s:
+            return klass
+    raise RuntimeError('Unknown program "{}"'.format(s))
+
+def protocol_from_string(s):
+    for klass in magpie.bin.protocols:
+        if klass.__name__ == s:
+            return klass
+    raise RuntimeError('Unknown protocol "{}"'.format(s))

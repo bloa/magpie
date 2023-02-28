@@ -4,9 +4,6 @@ import pathlib
 
 import magpie
 
-from magpie.bin import BasicProgram
-from magpie.bin import setup_magpie
-
 
 # ================================================================================
 # Main function
@@ -23,10 +20,10 @@ if __name__ == "__main__":
     # read config file
     config = configparser.ConfigParser()
     config.read(args.scenario)
-    setup_magpie(config)
+    magpie.bin.setup_magpie(config)
 
     # show locations
-    program = BasicProgram(config)
+    program = magpie.bin.program_from_string(config['software']['program'])(config)
     target_files = config['software']['target_files'].split()
     for filename in program.target_files:
         if args.filename is not None and args.filename != filename:

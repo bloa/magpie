@@ -4,9 +4,6 @@ import pathlib
 
 import magpie
 
-from magpie.bin import BasicProgram, BasicProtocol
-from magpie.bin import setup_magpie, patch_from_string
-
 
 # ================================================================================
 # Main function
@@ -20,20 +17,21 @@ if __name__ == "__main__":
 
     # read config file
     config = configparser.ConfigParser()
+    config.read_dict(magpie.bin.default_config)
     config.read(args.scenario)
-    setup_magpie(config)
 
     # recreate patch
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = patch_from_string(args.patch)
+    patch = magpie.bin.patch_from_string(args.patch)
 
-    # setup protocol
-    protocol = BasicProtocol()
+    # setup
+    magpie.bin.setup(config)
+    protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
     protocol.search = magpie.algo.ValidTest()
     protocol.search.debug_patch = patch
-    protocol.program = BasicProgram(config)
+    protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
     protocol.setup(config)
 
     # run experiments

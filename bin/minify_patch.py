@@ -1,12 +1,8 @@
 import argparse
 import configparser
 import pathlib
-import random
 
 import magpie
-
-from magpie.bin import BasicProgram, BasicProtocol
-from magpie.bin import setup_magpie, algo_from_string, patch_from_string
 
 
 # ================================================================================
@@ -21,34 +17,32 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int)
     args = parser.parse_args()
 
-    # sets random seed
-    if args.seed is not None:
-        random.seed(args.seed)
-
     # read config file
     config = configparser.ConfigParser()
+    config.read_dict(magpie.bin.default_config)
     config.read(args.scenario)
-    setup_magpie(config)
 
     # recreate patch
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = patch_from_string(args.patch)
+    patch = magpie.bin.patch_from_string(args.patch)
 
     # select algorithm
     if args.algo is not None:
-        algo = algo_from_string(args.algo)
-        if not issubclass(algo, magpie.algo.ValidSearch):
-            raise RuntimeError('{} is not a valid algorithm'.format(args.algo))
-    else:
-        algo = magpie.algo.ValidRankingSimplify
+        config['search']['algorithm'] = magpie.bin.algo_from_string(args.algo)
+    elif 'algorithm' not in config['search']:
+        config['search']['algorithm'] = 'ValidRankingSimplify'
+    algo = magpie.bin.algo_from_string(config['search']['algorithm'])
+    if not issubclass(algo, magpie.algo.ValidSearch):
+        raise RuntimeError('{} is not a valid algorithm'.format(args.algo))
 
-    # setup protocol
-    protocol = BasicProtocol()
+    # setup
+    magpie.bin.setup(config)
+    protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
     protocol.search = algo()
     protocol.search.debug_patch = patch
-    protocol.program = BasicProgram(config)
+    protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
     protocol.setup(config)
 
     # run experiments

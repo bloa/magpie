@@ -1,12 +1,8 @@
 import argparse
 import configparser
 import pathlib
-import random
 
 import magpie
-
-from magpie.bin import BasicProgram, BasicProtocol
-from magpie.bin import setup_magpie, algo_from_string
 
 
 # ================================================================================
@@ -20,34 +16,27 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int)
     args = parser.parse_args()
 
-    # sets random seed
-    if args.seed is not None:
-        random.seed(args.seed)
-
     # read config file
     config = configparser.ConfigParser()
+    config.read_dict(magpie.bin.default_config)
     config.read(args.scenario)
-    setup_magpie(config)
 
     # select LS algorithm
-    if 'search' not in config:
-        config['search'] = {}
     if args.algo is not None:
-        config['search']['algo'] = args.algo
-        algo = algo_from_string(config['search']['algo'])
+        config['search']['algorithm'] = args.algo
+    if config['search']['algorithm']:
+        algo = magpie.bin.algo_from_string(config['search']['algorithm'])
         if not issubclass(algo, magpie.algo.LocalSearch):
             raise RuntimeError('{} is not a local search'.format(args.algo))
-    if 'algo' in config['search']:
-        algo = algo_from_string(config['search']['algo'])
-        if not issubclass(algo, magpie.algo.LocalSearch):
-            algo = magpie.algo.FirstImprovement
     else:
+        config['search']['algorithm'] = 'FirstImprovement'
         algo = magpie.algo.FirstImprovement
 
     # setup protocol
-    protocol = BasicProtocol()
+    magpie.bin.setup(config)
+    protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
     protocol.search = algo()
-    protocol.program = BasicProgram(config)
+    protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
     protocol.setup(config)
 
     # run experiments

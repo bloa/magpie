@@ -1,3 +1,4 @@
+import io
 import os
 
 import magpie
@@ -8,82 +9,51 @@ class BasicProtocol:
         self.program = None
 
     def setup(self, config):
-        if 'search' in config:
-            # shared parameters
-            if 'warmup' in config['search']:
-                self.search.config['warmup'] = int(config['search']['warmup'])
-            if 'warmup_strategy' in config['search']:
-                self.search.config['warmup_strategy'] = config['search']['warmup_strategy']
-            if 'max_steps' in config['search']:
-                if config['search']['max_steps'].lower() in ['', 'none']:
-                    self.search.stop['steps'] = None
-                else:
-                    self.search.stop['steps'] = int(config['search']['max_steps'])
-            if 'max_time' in config['search']:
-                if config['search']['max_time'].lower() in ['', 'none']:
-                    self.search.stop['wall'] = None
-                else:
-                    self.search.stop['wall'] = int(config['search']['max_time'])
-            if 'target_fitness' in config['search']:
-                if config['search']['target_fitness'].lower() in ['', 'none']:
-                    self.search.stop['fitness'] = None
-                else:
-                    self.search.stop['fitness'] = int(config['search']['target_fitness'])
-            if 'cache_maxsize' in config['search']:
-                if int(config['search']['cache_maxsize']).lower() in ['', 'none']:
-                    self.search.config['cache_maxsize'] = 0
-                else:
-                    self.search.config['cache_maxsize'] = int(config['search']['cache_maxsize'])
-            if 'cache_keep' in config['search']:
-                self.search.config['cache_keep'] = float(config['search']['cache_keep'])
+        # shared parameters
+        sec = config['search']
+        self.search.config['warmup'] = int(sec['warmup'])
+        self.search.config['warmup_strategy'] = sec['warmup_strategy']
+        self.search.stop['steps'] = int(val) if (val := sec['max_steps']) else None
+        self.search.stop['wall'] = int(val) if (val := sec['max_time']) else None
+        self.search.stop['fitness'] = int(val) if (val := sec['target_fitness']) else None
+        self.search.config['cache_maxsize'] = int(val) if (val := sec['cache_maxsize']) else 0
+        self.search.config['cache_keep'] = float(sec['cache_keep'])
 
-            if 'possible_edits' in config['search']:
-                self.search.config['possible_edits'] = []
-                for edit in config['search']['possible_edits'].split():
-                    for klass in [*magpie.xml.edits, *magpie.line.edits, *magpie.params.edits]:
-                        if klass.__name__ == edit:
-                            self.search.config['possible_edits'].append(klass)
-                            break
-                    else:
-                        raise ValueError('Invalid config file: unknown edit type "{}" in "[search] possible_edits"'.format(edit))
-            if self.search.config['possible_edits'] == []:
-                raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
+        self.search.config['possible_edits'] = []
+        for edit in sec['possible_edits'].split():
+            for klass in [*magpie.xml.edits, *magpie.line.edits, *magpie.params.edits]:
+                if klass.__name__ == edit:
+                    self.search.config['possible_edits'].append(klass)
+                    break
+            else:
+                raise ValueError('Invalid config file: unknown edit type "{}" in "[software] possible_edits"'.format(edit))
+        if self.search.config['possible_edits'] == []:
+            raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
 
-            # local search only
-            if isinstance(self.search, magpie.algo.LocalSearch):
-                if 'delete_prob' in config['search']:
-                    self.search.config['delete_prob'] = float(config['search']['delete_prob'])
-                if 'max_neighbours' in config['search']:
-                    if config['search']['max_neighbours'].lower() in ['', 'none']:
-                        self.search.config['max_neighbours'] = None
-                    else:
-                        self.search.config['max_neighbours'] = int(config['search']['max_neighbours'])
-                if 'when_trapped' in config['search']:
-                    self.search.config['when_trapped'] = config['search']['when_trapped']
-            if isinstance(self.search, magpie.algo.RandomWalk):
-                if 'accept_fail' in config['search']:
-                    self.search.config['accept_fail'] = config['search']['accept_fail']
-            if isinstance(self.search, magpie.algo.TabuSearch):
-                if 'tabu_length' in config['search']:
-                    self.search.config['tabu_length'] = config['search']['tabu_length']
+        # local search only
+        if isinstance(self.search, magpie.algo.LocalSearch):
+            sec = config['search.ls']
+            self.search.config['delete_prob'] = float(sec['delete_prob'])
+            self.search.config['max_neighbours'] = int(val) if (val := sec['max_neighbours']) else None
+            self.search.config['when_trapped'] = sec['when_trapped']
+            self.search.config['accept_fail'] = sec['accept_fail']
+            self.search.config['tabu_length'] = sec['tabu_length']
 
-            # genetic programming only
-            if isinstance(self.search, magpie.algo.GeneticProgramming):
-                if 'pop_size' in config['search']:
-                    self.search.config['pop_size'] = int(config['search']['pop_size'])
-                if 'delete_prob' in config['search']:
-                    self.search.config['delete_prob'] = float(config['search']['delete_prob'])
-                if 'offspring_elitism' in config['search']:
-                    self.search.config['offspring_elitism'] = float(config['search']['offspring_elitism'])
-                if 'offspring_crossover' in config['search']:
-                    self.search.config['offspring_crossover'] = float(config['search']['offspring_crossover'])
-                if 'offspring_mutation' in config['search']:
-                    self.search.config['offspring_mutation'] = float(config['search']['offspring_mutation'])
-            if (isinstance(self.search, magpie.algo.GeneticProgrammingUniformConcat) or
-                isinstance(self.search, magpie.algo.GeneticProgrammingUniformInter)):
-                if 'uniform_rate' in config['search']:
-                    self.search.config['uniform_rate'] = float(config['search']['uniform_rate'])
+        # genetic programming only
+        if isinstance(self.search, magpie.algo.GeneticProgramming):
+            sec = config['search.gp']
+            self.search.config['pop_size'] = int(sec['pop_size'])
+            self.search.config['delete_prob'] = float(sec['delete_prob'])
+            self.search.config['offspring_elitism'] = float(sec['offspring_elitism'])
+            self.search.config['offspring_crossover'] = float(sec['offspring_crossover'])
+            self.search.config['offspring_mutation'] = float(sec['offspring_mutation'])
+            self.search.config['uniform_rate'] = float(sec['uniform_rate'])
 
+        # log config just in case
+        with io.StringIO() as ss:
+            config.write(ss)
+            ss.seek(0)
+            self.program.logger.debug('==== CONFIG ====\n{}'.format(ss.read()))
 
     def run(self):
         if self.program is None:
