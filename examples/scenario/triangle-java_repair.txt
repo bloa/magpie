@@ -1,3 +1,6 @@
+[magpie]
+default_lengthout = 1e5
+
 [software]
 path = examples/code/triangle-java_bug
 target_files =

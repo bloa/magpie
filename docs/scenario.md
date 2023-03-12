@@ -19,7 +19,7 @@ Default values:
     output_encoding = 'ascii'
     edit_retries = 10
     default_timeout = 30
-    default_output = 1e4
+    default_lengthout = 1e4
     diff_method = 'unified'
 
 - `import`: the path of an optional Python file to import
@@ -31,7 +31,7 @@ Default values:
 - `output_encoding`: the character encoding used to decode the target software's stdout/stderr
 - `edit_retries`: how many invalid edits Magpie tries to generate in a row before completely giving up on .
 - `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
-- `default_output`: maximum output file size Magpie records before discarding a software variant (used if `compile_output`, `test_output`, or `run_output` is not specified in `[software]`)
+- `default_lengthout`: maximum output file size Magpie records before discarding a software variant (used if `compile_lengthout`, `test_lengthout`, or `run_lengthout` is not specified in `[software]`)
 - `diff_method`: type of diff format (either ["unified"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Unified.html) or ["context"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Context.html))
 
 
@@ -53,16 +53,16 @@ Default values:
     possible_edits =
     setup_cmd =
     setup_timeout =
-    setup_output =
+    setup_lengthout =
     compile_cmd =
     compile_timeout =
-    compile_output =
+    compile_lengthout =
     test_cmd =
     test_timeout =
-    test_output =
+    test_lengthout =
     run_cmd =
     run_timeout =
-    run_output =
+    run_lengthout =
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
@@ -72,16 +72,16 @@ Default values:
 - `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
 - `setup_cmd`: command line to execute during the setup step (or "", in which case it is skipped)
 - `setup_timeout`: maximum execution time during the setup step (or "", in which case `default_timeout` from `[magpie]` is used)
-- `setup_output`: maximum output file size during the setup step (or "", in which case `default_output` from `[magpie]` is used)
+- `setup_lengthout`: maximum output file size during the setup step (or "", in which case `default_lengthout` from `[magpie]` is used)
 - `compile_cmd`
 - `compile_timeout`
-- `compile_output`
+- `compile_lengthout`
 - `test_cmd`
 - `test_timeout`
-- `test_output`
+- `test_lengthout`
 - `run_cmd`
 - `run_timeout`
-- `run_output`
+- `run_lengthout`
 
 Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
 Typical examples:

@@ -1,6 +1,6 @@
 [magpie]
 default_timeout = 30
-default_output = 1e6
+default_lengthout = 1e6
 local_original_copy = True
 
 [software]

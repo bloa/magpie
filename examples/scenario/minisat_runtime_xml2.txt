@@ -1,7 +1,7 @@
 [magpie]
 local_original_copy = True
 default_timeout = 30
-default_output = 1e6
+default_lengthout = 1e6
 
 [srcml]
 rename =

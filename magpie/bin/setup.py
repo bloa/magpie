@@ -25,7 +25,7 @@ def setup(config):
     magpie.config.output_encoding = sec['output_encoding']
     magpie.config.edit_retries = int(sec['edit_retries'])
     magpie.config.default_timeout = float(sec['default_timeout'])
-    magpie.config.default_output = int(float(sec['default_output']))
+    magpie.config.default_lengthout = int(float(sec['default_lengthout']))
     magpie.config.diff_method = sec['diff_method']
 
     # [srcml]

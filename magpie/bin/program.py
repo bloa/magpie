@@ -55,16 +55,16 @@ class BasicProgram(magpie.base.AbstractProgram):
         self.setup_performed = False
         self.setup_cmd = None
         self.setup_timeout = None
-        self.setup_output = None
+        self.setup_lengthout = None
         self.compile_cmd = None
         self.compile_timeout = None
-        self.compile_output = None
+        self.compile_lengthout = None
         self.test_cmd = None
         self.test_timeout = None
-        self.test_output = None
+        self.test_lengthout = None
         self.run_cmd = None
         self.run_timeout = None
-        self.run_output = None
+        self.run_lengthout = None
 
         # setup
         if 'setup_cmd' in config['software']:
@@ -77,11 +77,11 @@ class BasicProgram(magpie.base.AbstractProgram):
                 self.setup_timeout = None
             else:
                 self.setup_timeout = float(config['software']['setup_timeout'])
-        if 'setup_output' in config['software']:
-            if config['software']['setup_output'].lower() in ['', 'none']:
-                self.setup_output = None
+        if 'setup_lengthout' in config['software']:
+            if config['software']['setup_lengthout'].lower() in ['', 'none']:
+                self.setup_lengthout = None
             else:
-                self.setup_output = float(config['software']['setup_output'])
+                self.setup_lengthout = float(config['software']['setup_lengthout'])
 
         # compile
         if 'compile_cmd' in config['software']:
@@ -94,11 +94,11 @@ class BasicProgram(magpie.base.AbstractProgram):
                 self.compile_timeout = None
             else:
                 self.compile_timeout = float(config['software']['compile_timeout'])
-        if 'compile_output' in config['software']:
-            if config['software']['compile_output'].lower() in ['', 'none']:
-                self.compile_output = None
+        if 'compile_lengthout' in config['software']:
+            if config['software']['compile_lengthout'].lower() in ['', 'none']:
+                self.compile_lengthout = None
             else:
-                self.compile_output = float(config['software']['compile_output'])
+                self.compile_lengthout = float(config['software']['compile_lengthout'])
 
         # test
         if 'test_cmd' in config['software']:
@@ -111,11 +111,11 @@ class BasicProgram(magpie.base.AbstractProgram):
                 self.test_timeout = None
             else:
                 self.test_timeout = float(config['software']['test_timeout'])
-        if 'test_output' in config['software']:
-            if config['software']['test_output'].lower() in ['', 'none']:
-                self.test_output = None
+        if 'test_lengthout' in config['software']:
+            if config['software']['test_lengthout'].lower() in ['', 'none']:
+                self.test_lengthout = None
             else:
-                self.test_output = float(config['software']['test_output'])
+                self.test_lengthout = float(config['software']['test_lengthout'])
 
         # run
         if 'run_cmd' in config['software']:
@@ -128,11 +128,11 @@ class BasicProgram(magpie.base.AbstractProgram):
                 self.run_timeout = None
             else:
                 self.run_timeout = float(config['software']['run_timeout'])
-        if 'run_output' in config['software']:
-            if config['software']['run_output'].lower() in ['', 'none']:
-                self.run_output = None
+        if 'run_lengthout' in config['software']:
+            if config['software']['run_lengthout'].lower() in ['', 'none']:
+                self.run_lengthout = None
             else:
-                self.run_output = float(config['software']['run_output'])
+                self.run_lengthout = float(config['software']['run_lengthout'])
 
     def get_engine(self, target_file):
         for (pattern, engine) in self.engine_rules:
@@ -177,10 +177,10 @@ class BasicProgram(magpie.base.AbstractProgram):
                     cli = self.compute_local_cli('setup')
                     setup_cmd = '{} {}'.format(self.setup_cmd, cli).strip()
                     timeout = self.setup_timeout or magpie_config.default_timeout
-                    max_output = self.setup_output or magpie_config.default_output
+                    lengthout = self.setup_lengthout or magpie_config.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(setup_cmd),
                                                 timeout=timeout,
-                                                max_output=max_output)
+                                                lengthout=lengthout)
                     run_result.status = exec_result.status
                     run_result.debug = exec_result
                     if run_result.status == 'SUCCESS':
@@ -197,10 +197,10 @@ class BasicProgram(magpie.base.AbstractProgram):
                 cli = self.compute_local_cli('compile')
                 compile_cmd = '{} {}'.format(self.compile_cmd, cli).strip()
                 timeout = self.compile_timeout or magpie_config.default_timeout
-                max_output = self.compile_output or magpie_config.default_output
+                lengthout = self.compile_lengthout or magpie_config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(compile_cmd),
                                             timeout=timeout,
-                                            max_output=max_output)
+                                            lengthout=lengthout)
                 run_result.status = exec_result.status
                 run_result.debug = exec_result
                 if run_result.status == 'SUCCESS':
@@ -214,10 +214,10 @@ class BasicProgram(magpie.base.AbstractProgram):
                 cli = self.compute_local_cli('test')
                 test_cmd = '{} {}'.format(self.test_cmd, cli).strip()
                 timeout = self.test_timeout or magpie_config.default_timeout
-                max_output = self.test_output or magpie_config.default_output
+                lengthout = self.test_lengthout or magpie_config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(test_cmd),
                                             timeout=timeout,
-                                            max_output=max_output)
+                                            lengthout=lengthout)
                 run_result.status = exec_result.status
                 run_result.debug = exec_result
                 if run_result.status == 'SUCCESS':
@@ -235,10 +235,10 @@ class BasicProgram(magpie.base.AbstractProgram):
                 cli = self.compute_local_cli('run')
                 run_cmd = '{} {}'.format(self.run_cmd, cli).strip()
                 timeout = self.run_timeout or magpie_config.default_timeout
-                max_output = self.run_output or magpie_config.default_output
+                lengthout = self.run_lengthout or magpie_config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(run_cmd),
                                             timeout=timeout,
-                                            max_output=max_output)
+                                            lengthout=lengthout)
                 run_result.status = exec_result.status
                 run_result.debug = exec_result
                 if run_result.status == 'SUCCESS':
@@ -378,4 +378,4 @@ class BasicProgram(magpie.base.AbstractProgram):
                 self.logger.info('--> consider increasing "{}_timeout"'.format(step))
             if run.status == '{}_LENGTHOUT'.format(step.upper()):
                 self.logger.info('The "{}_cmd" command generated too much output'.format(step))
-                self.logger.info('--> consider increasing "{}_output"'.format(step))
+                self.logger.info('--> consider increasing "{}_lengthout"'.format(step))

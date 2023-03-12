@@ -10,6 +10,6 @@ config.output_encoding = 'ascii'
 
 config.edit_retries = 10
 config.default_timeout = 30
-config.default_output = 1e4 # 1e6 bytes is 1Mb
+config.default_lengthout = 1e4 # 1e6 bytes is 1Mb
 
 config.diff_method = 'unified' # unified / context

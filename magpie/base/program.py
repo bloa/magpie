@@ -222,7 +222,7 @@ class AbstractProgram():
     def evaluate_local(self):
         raise NotImplementedError
 
-    def exec_cmd(self, cmd, timeout=15, env=None, shell=False, max_output=1e6):
+    def exec_cmd(self, cmd, timeout=15, env=None, shell=False, lengthout=1e6):
         # 1e6 bytes is 1Mb
         sprocess = None
         stdout = b''
@@ -233,7 +233,7 @@ class AbstractProgram():
             sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
         except FileNotFoundError:
             return ExecResult(cmd, 'CLI_ERROR', -1, b"", b"", 0)
-        if max_output > 0:
+        if lengthout > 0:
             stdout_size = 0
             stderr_size = 0
             while sprocess.poll() is None:
@@ -255,7 +255,7 @@ class AbstractProgram():
                             break
                         stderr += sprocess.stderr.read(1)
                         stderr_size += 1
-                if stdout_size+stderr_size >= max_output:
+                if stdout_size+stderr_size >= lengthout:
                     os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
                     _, _ = sprocess.communicate()
                     return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start)

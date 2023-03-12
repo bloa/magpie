@@ -34,7 +34,7 @@ We provide five scenarios, all based on the same model (`examples/scenario/minis
 
     [magpie]
     default_timeout = 30
-    default_output = 1e6
+    default_lengthout = 1e6
 
     [software]
     path = examples/code/minisat
