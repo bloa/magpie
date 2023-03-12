@@ -31,11 +31,11 @@ if __name__ == "__main__":
     # select algorithm
     if args.algo is not None:
         config['search']['algorithm'] = magpie.bin.algo_from_string(args.algo)
-    elif 'algorithm' not in config['search']:
+    else:
         config['search']['algorithm'] = 'ValidRankingSimplify'
     algo = magpie.bin.algo_from_string(config['search']['algorithm'])
     if not issubclass(algo, magpie.algo.ValidSearch):
-        raise RuntimeError('{} is not a valid algorithm'.format(args.algo))
+        raise RuntimeError('{} is not a validation algorithm'.format(args.algo))
 
     # setup
     magpie.bin.setup(config)

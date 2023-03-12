@@ -86,9 +86,9 @@ Example:
 
 If a specific search algorithm is provided, either in the scenario file or directly (at higher precedence) through the command line (at higher precedence), it will be used in place of the default one.
 
-    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_xml1.txt --algo rand
+    python3 -m bin.local_search --scenario examples/scenario/minisat_runtime_xml1.txt --algo RandomSearch
 <!-- -->
-    python3 -m bin.genetic_programming --scenario examples/scenario/minisat_runtime_xml1.txt --algo gp_uinter
+    python3 -m bin.genetic_programming --scenario examples/scenario/minisat_runtime_xml1.txt --algo GeneticProgrammingUniformInter
 
 
 ## Simplification
