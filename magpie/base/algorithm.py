@@ -110,14 +110,13 @@ class Algorithm(ABC):
         self.program.logger.info('Reason: {}'.format(self.report['stop']))
 
     def create_edit(self):
-        edit = random.choice(self.config['possible_edits']).create(self.program)
+        edit_klass = random.choice(self.config['possible_edits'])
         tries = magpie_config.edit_retries
-        while tries > 0:
-            if edit.target is not None:
-                return edit
+        while (edit := edit_klass.create(self.program)) is None:
             tries -= 1
-            edit = random.choice(self.config['possible_edits']).create(self.program)
-        raise RuntimeError('unable to create edit')
+            if tries == 0:
+                raise RuntimeError('unable to create an edit of class {}'.format(edit_klass.__name__))
+        return edit
 
     def warmup(self):
         empty_patch = Patch()

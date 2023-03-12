@@ -17,7 +17,10 @@ class NodeDeletion(Edit):
     def create(cls, program, target_file=None):
         if target_file is None:
             target_file = program.random_file(XmlEngine)
-        return cls(program.random_target(target_file, cls.NODE_TYPE))
+        target = program.random_target(target_file, cls.NODE_TYPE)
+        if target is None:
+            return None
+        return cls(target)
 
 class NodeReplacement(Edit):
     NODE_TYPE = ''
@@ -33,9 +36,12 @@ class NodeReplacement(Edit):
         if target_file is None:
             target_file = program.random_file(XmlEngine)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file])
-        return cls(program.random_target(target_file, cls.NODE_TYPE),
-                   program.random_target(ingr_file, cls.NODE_TYPE))
+            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+        target = program.random_target(target_file, cls.NODE_TYPE)
+        if target is None:
+            return None
+        value = program.random_target(ingr_file, cls.NODE_TYPE)
+        return cls(target, value)
 
 class NodeInsertion(Edit):
     NODE_PARENT_TYPE = ''
@@ -52,9 +58,12 @@ class NodeInsertion(Edit):
         if target_file is None:
             target_file = program.random_file(XmlEngine)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file])
-        return cls(program.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE)),
-                   program.random_target(ingr_file, cls.NODE_TYPE))
+            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+        target = program.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE))
+        if target is None:
+            return None
+        value = program.random_target(ingr_file, cls.NODE_TYPE)
+        return cls(target, value)
 
 class NodeMoving(Edit):
     NODE_PARENT_TYPE = ''
@@ -75,9 +84,12 @@ class NodeMoving(Edit):
         if target_file is None:
             target_file = program.random_file(XmlEngine)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file])
-        return cls(program.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE)),
-                   program.random_target(ingr_file, cls.NODE_TYPE))
+            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+        target = program.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE))
+        if target is None:
+            return None
+        value = program.random_target(ingr_file, cls.NODE_TYPE)
+        return cls(target, value)
 
 class TextSetting(Edit):
     NODE_TYPE = ''
@@ -118,5 +130,7 @@ class TextWrapping(Edit):
         if target_file is None:
             target_file = program.random_file(XmlEngine)
         target = program.random_target(target_file, cls.NODE_TYPE)
+        if target is None:
+            return None
         value = random.choice(choices)
         return cls(target, value)
