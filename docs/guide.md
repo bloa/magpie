@@ -141,7 +141,7 @@ Finally, Magpie reports on its execution and eventually details the found improv
 Note that a much more detailed log can be found in the `_magpie_logs` folder.
 For convenience, if an improving patch is found, both a patch and a diff file will also be available.
 
-==== REPORT ====
+    ==== REPORT ====
     Termination: step budget
     Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-py_slow_1664546789.log
     Patch file: _magpie_logs/triangle-py_slow_1664546789.patch
