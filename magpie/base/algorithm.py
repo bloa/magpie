@@ -50,14 +50,26 @@ class Algorithm(ABC):
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
         if run.status != 'SUCCESS':
             self.program.logger.info('!*'*40)
+            self.program.logger.info('CWD: {}'.format(os.path.join(self.program.work_dir, self.program.basename)))
+            self.program.logger.info('CMD: {}'.format(run.debug.cmd))
+            self.program.logger.info('STATUS: {}'.format(run.debug.status))
+            self.program.logger.info('RETURN_CODE: {}'.format(run.debug.return_code))
+            self.program.logger.info('RUNTIME: {}'.format(run.debug.runtime))
+            try:
+                s = run.debug.stdout.decode(magpie_config.output_encoding)
+                self.program.logger.info('STDOUT:\n{}'.format(s))
+            except UnicodeDecodeError:
+                self.program.logger.info('STDOUT: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.debug.stdout))
+            try:
+                s = run.debug.stderr.decode(magpie_config.output_encoding)
+                self.program.logger.info('STDERR:\n{}'.format(s))
+            except UnicodeDecodeError:
+                s = magpie_config.output_encoding
+                self.program.logger.info('STDERR: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.debug.stderr))
+            self.program.logger.info('!*'*40)
             self.program.logger.info('Magpie stopped because it was unable to run the (unmodified) target software')
             self.program.logger.info('Self-diagnostic:')
             self.program.self_diagnostic(run)
-            self.program.logger.info('!*'*40)
-            self.program.logger.info('CWD: {}'.format(os.path.join(self.program.work_dir, self.program.basename)))
-            self.program.logger.info('CMD: {}'.format(run.debug.cmd))
-            self.program.logger.info('STDOUT:\n{}'.format(run.debug.stdout.decode(magpie_config.output_encoding)))
-            self.program.logger.info('STDERR:\n{}'.format(run.debug.stderr.decode(magpie_config.output_encoding)))
             self.program.logger.info('!*'*40)
 
     def hook_start(self):

@@ -317,5 +317,5 @@ class AbstractProgram():
                 diffs += diff
         return diffs
 
-    def self_diagnose(self, run):
+    def self_diagnostic(self, run):
         pass
