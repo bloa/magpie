@@ -9,7 +9,7 @@ def setup(config):
     if val := sec['import']:
         importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
     if val := sec['seed']:
-        random.seed(sec['seed'])
+        random.seed(val)
 
     magpie.config.log_dir = sec['log_dir']
     magpie.config.work_dir = sec['work_dir']

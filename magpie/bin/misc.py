@@ -17,6 +17,8 @@ def engine_from_string(s):
 
 def patch_from_string(s):
     patch = magpie.base.Patch()
+    if s == "":
+        return patch
     for blob in s.split(' | '):
         match = re.search(r"^(\w+)\((.+)\)$", blob)
         for klass in [*magpie.xml.edits, *magpie.line.edits, *magpie.params.edits]:
