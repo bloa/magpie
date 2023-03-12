@@ -35,7 +35,66 @@ Default values:
 - `diff_method`: type of diff format (either ["unified"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Unified.html) or ["context"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Context.html))
 
 
-## `[srcml]`
+## `[software]`
+
+Default values:
+
+    [software]
+    path =
+    target_files =
+    program = BasicProgram
+    engine_rules =
+        *.params : ConfigFileParamsEngine
+        *.xml : SrcmlEngine
+        * : LineEngine
+    engine_config =
+        *.params : [params]
+        *.xml : [srcml]
+    possible_edits =
+    setup_cmd =
+    setup_timeout =
+    setup_output =
+    compile_cmd =
+    compile_timeout =
+    compile_output =
+    test_cmd =
+    test_timeout =
+    test_output =
+    run_cmd =
+    run_timeout =
+    run_output =
+
+- `path`: the original software folder cloned during execution
+- `target_files`: the list of files (relatively to `path`) targeted by Magpie
+- `program`: the name of the Program class; it needs to belong to `magpie.bin.programs`
+- `engine_rules`: the list of rules used to determine how target files are internally represented; engine classes need to belong to either `magpie.xml.engines`, `magpie.line.engines`, or `magpie.params.engines`
+- `engine_config`: the list of rules used to determine which section of the scenario file gets used to configure the engine of the associated files
+- `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
+- `setup_cmd`: command line to execute during the setup step (or "", in which case it is skipped)
+- `setup_timeout`: maximum execution time during the setup step (or "", in which case `default_timeout` from `[magpie]` is used)
+- `setup_output`: maximum output file size during the setup step (or "", in which case `default_output` from `[magpie]` is used)
+- `compile_cmd`
+- `compile_timeout`
+- `compile_output`
+- `test_cmd`
+- `test_timeout`
+- `test_output`
+- `run_cmd`
+- `run_timeout`
+- `run_output`
+
+Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
+Typical examples:
+
+    possible_edits =
+        LineReplacement
+        LineInsertion
+        LineDeletion
+
+    possible_edits = ParamSetting
+
+
+### `[srcml]`
 
 Default values:
 
@@ -62,62 +121,24 @@ Default values:
 - `process_operators`: rename `<operator>` tags into `<operator_comp>`, `<operator_arith>` or `<operator_misc>` according to their text contents.
 
 
-## `[software]`
+### `[params]`
 
 Default values:
 
-    [software]
-    path =
-    target_files =
-    program = BasicProgram
-    engine_rules =
-        *.params : ConfigFileParamsEngine
-        *.xml : SrcmlEngine
-        * : LineEngine
-    possible_edits =
-    setup_cmd =
-    setup_timeout =
-    setup_output =
-    compile_cmd =
-    compile_timeout =
-    compile_output =
-    test_cmd =
-    test_timeout =
-    test_output =
-    run_cmd =
-    run_timeout =
-    run_output =
+    [params]
+    timing = run
+    cli_prefix = "--"
+    cli_glue = "="
+    cli_boolean = "show" # show ; hide ; prefix
+    cli_boolean_prefix_true = ""
+    cli_boolean_prefix_false = "no-"
+    silent_prefix = "@"
+    silent_suffix = "$"
 
-- `path`: the original software folder cloned during execution
-- `target_files`: the list of files (relatively to `path`) targeted by Magpie
-- `program`: the name of the Program class; it needs to belong to `magpie.bin.programs`
-- `engine_rules`: the list of rules used to determine how target files are internally represented; they need to belong to either `magpie.xml.engines`, `magpie.line.engines`, or `magpie.params.engines`
-- `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
-- `setup_cmd`: command line to execute during the setup step (or "", in which case it is skipped)
-- `setup_timeout`: maximum execution time during the setup step (or "", in which case `default_timeout` from `[magpie]` is used)
-- `setup_output`: maximum output file size during the setup step (or "", in which case `default_output` from `[magpie]` is used)
-- `compile_cmd`
-- `compile_timeout`
-- `compile_output`
-- `test_cmd`
-- `test_timeout`
-- `test_output`
-- `run_cmd`
-- `run_timeout`
-- `run_output`
-
-Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
-Typical examples:
-
-    possible_edits =
-        LineReplacement
-        LineInsertion
-        LineDeletion
-
-    possible_edits = ParamSetting
+See the page on [algorithm configuration][algoconfig#magic-constants].
 
 
-# `[search]`
+## `[search]`
 
 Default values:
 
@@ -143,7 +164,7 @@ Default values:
 - `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
 
 
-## `[search.ls]`
+### `[search.ls]`
 
 Local search parameters:
 
@@ -160,7 +181,7 @@ Local search parameters:
 - `tabu_length`: length of the tabu list of software variants (TabuSearch only)
 
 
-## `[search.gp]`
+### `[search.gp]`
 
 Genetic programming parameters:
 

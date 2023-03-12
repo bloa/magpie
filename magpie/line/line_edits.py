@@ -16,7 +16,7 @@ class LineReplacement(Edit):
         if target_file is None:
             target_file = program.random_file(AbstractLineEngine)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file])
+            ingr_file = program.random_file(engine=program.engines[target_file].___class__)
         return cls(program.random_target(target_file, 'line'),
                    program.random_target(ingr_file, 'line'))
 
@@ -32,7 +32,7 @@ class LineInsertion(Edit):
         if target_file is None:
             target_file = program.random_file(AbstractLineEngine)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file])
+            ingr_file = program.random_file(engine=program.engines[target_file].___class__)
         return cls(program.random_target(target_file, '_inter_line'),
                    program.random_target(ingr_file, 'line'))
 
@@ -65,6 +65,6 @@ class LineMoving(Edit):
         if target_file is None:
             target_file = program.random_file()
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file])
+            ingr_file = program.random_file(engine=program.engines[target_file].___class__)
         return cls(program.random_target(target_file, '_inter_line'),
                    program.random_target(ingr_file, 'line'))

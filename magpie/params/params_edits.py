@@ -15,5 +15,5 @@ class ParamSetting(Edit):
             target_file = program.random_file(AbstractParamsEngine)
         _, _, param_id = program.random_target(target_file, 'param')
         engine = program.engines[target_file]
-        data = engine.random_value(param_id)
+        data = engine.random_value(program.contents[target_file], param_id)
         return cls((target_file, param_id), data)

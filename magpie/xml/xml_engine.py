@@ -7,23 +7,23 @@ from xml.etree import ElementTree
 from ..base import AbstractEngine
 
 class XmlEngine(AbstractEngine):
-    INTERNODES = []
+    def __init__(self):
+        self.config = {
+            'internodes': [],
+        }
 
-    @classmethod
-    def process_tree(cls, tree):
+    def process_tree(self, tree):
         pass
 
-    @classmethod
-    def get_contents(cls, file_path):
+    def get_contents(self, file_path):
         with open(file_path) as target_file:
-            tree = cls.string_to_tree(target_file.read())
-        cls.process_tree(tree)
+            tree = self.string_to_tree(target_file.read())
+        self.process_tree(tree)
         return tree
 
-    @classmethod
-    def get_locations(cls, contents_of_file):
+    def get_locations(self, contents_of_file):
         def aux(accu, prefix, root):
-            if not cls.INTERNODES or root.tag in cls.INTERNODES:
+            if not self.config['internodes'] or root.tag in self.config['internodes']:
                 for i in range(len(root)+1):
                     s = '{}><{}'.format(prefix, i) # "><" is safe because illegal
                     try:
@@ -45,38 +45,36 @@ class XmlEngine(AbstractEngine):
             return accu
         return aux({}, '.', contents_of_file)
 
-    @classmethod
-    def renamed_contents_file(cls, target_file):
+    def location_names(self, file_locations, target_file, target_type):
+        return list(range(len(file_locations[target_file][target_type])))
+
+    def renamed_contents_file(self, target_file):
         # remove ".xml" and everything behind
         return target_file.split('.xml')[0]
 
-    # @classmethod
-    # def write_to_tmp_dir(cls, contents_of_file, tmp_path):
+    # def write_to_tmp_dir(self, contents_of_file, tmp_path):
     #     root, ext = os.path.splitext(tmp_path)
     #     if ext != '.xml':
     #         raise ValueError()
     #     super().write_to_tmp_dir(contents_of_file, root)
 
-    # @classmethod
-    # def reset_in_tmp_dir(cls, target_file, ref_path, tmp_path):
+    # def reset_in_tmp_dir(self, target_file, ref_path, tmp_path):
     #     root, ext = os.path.splitext(target_file)
     #     if ext != '.xml':
     #         raise ValueError()
     #     super().reset_in_tmp_dir(root, ref_path, tmp_path)
 
-    @classmethod
-    def dump(cls, contents_of_file):
-        return cls.strip_xml_from_tree(contents_of_file)
+    def dump(self, contents_of_file):
+        return self.strip_xml_from_tree(contents_of_file)
 
-    @classmethod
-    def show_location(cls, contents, locations, target_file, target_type, target_loc):
+    def show_location(self, contents, locations, target_file, target_type, target_loc):
         out = '(unsupported target_type)'
         if target_type[:7] == '_inter_':
             fakepath = locations[target_file][target_type][target_loc]
             parent_xpath, insert_index = fakepath.split('><')
             insert_index = int(insert_index)
             parent = copy.deepcopy(contents[target_file].find(parent_xpath))
-            sp = cls.guess_spacing(parent.text)
+            sp = self.guess_spacing(parent.text)
             if insert_index == 0:
                 parent.text = (parent.text or '') + '(INSERTION POINT)'
             else:
@@ -85,17 +83,17 @@ class XmlEngine(AbstractEngine):
                     if i == insert_index-1:
                         child.tail = sp + '(INSERTION POINT)' + (child.tail or '')
                         break
-                    sp = cls.guess_spacing(child.tail)
+                    sp = self.guess_spacing(child.tail)
             out = '# {}: {}\n{}'.format(
                 target_loc,
                 fakepath,
-                cls.tree_to_string(parent))
+                self.tree_to_string(parent))
         else:
             xpath = locations[target_file][target_type][target_loc]
             out = '# {}: {}\n{}'.format(
                 target_loc,
                 xpath,
-                cls.tree_to_string(contents[target_file].find(xpath), keep_tail=False))
+                self.tree_to_string(contents[target_file].find(xpath), keep_tail=False))
         return out
 
     @staticmethod
@@ -140,8 +138,7 @@ class XmlEngine(AbstractEngine):
             else:
                 return (None, None, None, None)
 
-    @classmethod
-    def do_replace(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
+    def do_replace(self, contents, locations, new_contents, new_locations, target_dest, target_orig):
         # get elements
         d_f, d_t, d_i = target_dest # file name, tag, xpath index
         o_f, o_t, o_i = target_orig # file name, tag, xpath index
@@ -149,7 +146,7 @@ class XmlEngine(AbstractEngine):
         ingredient = contents[o_f].find(locations[o_f][o_t][o_i])
         if target is None or ingredient is None:
             return False
-        if cls.tree_to_string(target) == cls.tree_to_string(ingredient):
+        if self.tree_to_string(target) == self.tree_to_string(ingredient):
             return False
 
         # mutate
@@ -165,10 +162,10 @@ class XmlEngine(AbstractEngine):
 
         # update modification points
         if old_tag != ingredient.tag:
-            head, tag, pos, _ = cls.split_xpath(new_locations[d_f][d_t][d_i])
+            head, tag, pos, _ = self.split_xpath(new_locations[d_f][d_t][d_i])
             itag = 1
             for i, xpath in enumerate(new_locations[d_f][d_t]):
-                h, t, p, s = cls.split_xpath(xpath, head)
+                h, t, p, s = self.split_xpath(xpath, head)
                 if i < d_i:
                     if h != head:
                         continue
@@ -198,8 +195,7 @@ class XmlEngine(AbstractEngine):
                 new_locations[d_f][d_t][i] = 'deleted'
         return True
 
-    @classmethod
-    def do_insert(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):
+    def do_insert(self, contents, locations, new_contents, new_locations, target_dest, target_orig):
         # get elements
         d_f, d_t, d_i = target_dest # file name, tag, xpath index
         o_f, o_t, o_i = target_orig # file name, tag, xpath index
@@ -213,7 +209,7 @@ class XmlEngine(AbstractEngine):
             return False
 
         # mutate
-        sp = cls.guess_spacing(parent.text)
+        sp = self.guess_spacing(parent.text)
         tmp = copy.deepcopy(ingredient)
         if insert_index == 0:
             tmp.tail = sp
@@ -226,7 +222,7 @@ class XmlEngine(AbstractEngine):
                     child.tail = sp
                     parent.insert(insert_index, tmp)
                     break
-                sp = cls.guess_spacing(child.tail)
+                sp = self.guess_spacing(child.tail)
             else:
                 tmp.tail = child.tail
                 child.tail = sp
@@ -237,7 +233,7 @@ class XmlEngine(AbstractEngine):
         for i, xpath in enumerate(new_locations[d_f][o_t]):
             if xpath == 'deleted':
                 continue
-            h, t, p, s = cls.split_xpath(xpath, parent_xpath)
+            h, t, p, s = self.split_xpath(xpath, parent_xpath)
             if h != parent_xpath or t != ingredient.tag or p < insert_index:
                 continue
             if s:
@@ -253,8 +249,7 @@ class XmlEngine(AbstractEngine):
             new_locations[d_f][d_t][i] = '{}><{}'.format(xpath, index+1)
         return True
 
-    @classmethod
-    def do_delete(cls, contents, locations, new_contents, new_locations, target):
+    def do_delete(self, contents, locations, new_contents, new_locations, target):
         # get elements
         d_f, d_t, d_i = target # file name, tag, xpath index
         target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
@@ -271,8 +266,7 @@ class XmlEngine(AbstractEngine):
         target.tail = old_tail
         return True
 
-    @classmethod
-    def do_set_text(cls, contents, locations, new_contents, new_locations, target, value):
+    def do_set_text(self, contents, locations, new_contents, new_locations, target, value):
         d_f, d_t, d_i = target # file name, tag, xpath index
         target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
         if target is None or target.text == value:
@@ -281,8 +275,7 @@ class XmlEngine(AbstractEngine):
             target.text = value
             return True
 
-    @classmethod
-    def do_wrap_text(cls, contents, locations, new_contents, new_locations, target, prefix, suffix):
+    def do_wrap_text(self, contents, locations, new_contents, new_locations, target, prefix, suffix):
         d_f, d_t, d_i = target # file name, tag, xpath index
         target = new_contents[d_f].find(new_locations[d_f][d_t][d_i])
         if target is None:
@@ -291,12 +284,11 @@ class XmlEngine(AbstractEngine):
             target.text = prefix + (target.text or '') + suffix
             return True
 
-    @classmethod
-    def focus_tags(cls, element, tags):
+    def focus_tags(self, element, tags):
         last = None
         marked = []
         for i, child in enumerate(element):
-            cls.focus_tags(child, tags)
+            self.focus_tags(child, tags)
             if child.tag not in tags:
                 marked.append(child)
                 if child.text:
@@ -318,15 +310,14 @@ class XmlEngine(AbstractEngine):
         for child in marked:
             element.remove(child)
 
-    @classmethod
-    def remove_tags(cls, element, tags):
+    def remove_tags(self, element, tags):
         if len(tags) == 0:
             return
         last = None
         marked = []
         remove_all = '*' in tags
         for i, child in enumerate(element):
-            cls.remove_tags(child, tags)
+            self.remove_tags(child, tags)
             if remove_all or child.tag in tags:
                 marked.append(child)
                 if child.text:
@@ -348,8 +339,7 @@ class XmlEngine(AbstractEngine):
         for child in marked:
             element.remove(child)
 
-    @classmethod
-    def get_tags(cls, element):
+    def get_tags(self, element):
         def aux(element, accu):
             accu.append(element.tag)
             for child in element:
@@ -357,8 +347,7 @@ class XmlEngine(AbstractEngine):
             return set(accu)
         return aux(element, [])
 
-    @classmethod
-    def count_tags(cls, element):
+    def count_tags(self, element):
         def aux(element, accu):
             try:
                 accu[element.tag] += 1
@@ -369,15 +358,13 @@ class XmlEngine(AbstractEngine):
             return accu
         return aux(element, {})
 
-    @classmethod
-    def rewrite_tags(cls, element, tags, new_tag):
+    def rewrite_tags(self, element, tags, new_tag):
         if element.tag in tags:
             element.tag = new_tag
         for child in element:
-            cls.rewrite_tags(child, tags, new_tag)
+            self.rewrite_tags(child, tags, new_tag)
 
-    @classmethod
-    def rotate_newlines(cls, element):
+    def rotate_newlines(self, element):
         if element.tail:
             match = re.match(r'(^\n\s*)', element.tail)
             if match:
@@ -389,10 +376,9 @@ class XmlEngine(AbstractEngine):
                     element.text = element.text or ''
                     element.text += match.group(1)
         for child in element:
-            cls.rotate_newlines(child)
+            self.rotate_newlines(child)
 
-    @classmethod
-    def guess_spacing(cls, text):
+    def guess_spacing(self, text):
         if text is None:
             return ''
         m = [''] + re.findall(r"(\n\s*)", text, re.MULTILINE)

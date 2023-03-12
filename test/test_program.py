@@ -1,18 +1,19 @@
 import pytest
 
+import magpie
+
 from magpie.bin import BasicProgram
 from magpie.base import ExecResult, RunResult
 
 class StubProgram(BasicProgram):
     def __init__(self):
-        config = {
-            'software': {
-                'path': 'foo',
-                'target_files': 'foo/bar',
-                'possible_edits': 'LineDeletion',
-                'fitness': 'time',
-            }
-        }
+        config = magpie.bin.default_config
+        config['software'].update({
+            'path': 'foo',
+            'target_files': 'foo/bar',
+            'possible_edits': 'LineDeletion',
+            'fitness': 'time',
+        })
         super().__init__(config)
 
     def reset_contents(self):

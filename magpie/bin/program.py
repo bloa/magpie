@@ -10,76 +10,37 @@ from .. import config as magpie_config
 class BasicProgram(magpie.base.AbstractProgram):
     def __init__(self, config):
         # AbstractProgram *requires* a path, a list of target files, and a list of possible edits
-        if 'software' not in config:
-            raise ValueError('Invalid config file: "[software]" block not found')
-        if 'path' not in config['software']:
+        if not (val := config['software']['path']):
             raise ValueError('Invalid config file: "[software] path" must be defined')
         super().__init__(config['software']['path'])
-        if 'target_files' not in config['software']:
+        if not (val := config['software']['target_files']):
             raise ValueError('Invalid config file: "[software] target_files" must defined')
-        self.target_files = config['software']['target_files'].split()
-        if not self.target_files:
-            raise ValueError('Invalid config file: "[software] target_files" must be non-empty')
-
-        # xml-related parameters
-        if 'srcml' in config:
-            if 'process_pseudo_blocks' in config['srcml']:
-                v = config['srcml']['process_pseudo_blocks']
-                if v.lower() in ['true', 't', '1']:
-                    magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = True
-                elif v.lower() in ['false', 'f', '0']:
-                    magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = False
-                else:
-                    raise ValueError('Invalid config file: "[srcml] process_pseudo_blocks" should be Boolean')
-            if 'process_literals' in config['srcml']:
-                v = config['srcml']['process_literals']
-                if v.lower() in ['true', 't', '1']:
-                    magpie.xml.SrcmlEngine.PROCESS_LITERALS = True
-                elif v.lower() in ['false', 'f', '0']:
-                    magpie.xml.SrcmlEngine.PROCESS_LITERALS = False
-                else:
-                    raise ValueError('Invalid config file: "[srcml] process_literals" should be Boolean')
-            if 'process_operators' in config['srcml']:
-                v = config['srcml']['process_operators']
-                if v.lower() in ['true', 't', '1']:
-                    magpie.xml.SrcmlEngine.PROCESS_OPERATORS = True
-                elif v.lower() in ['false', 'f', '0']:
-                    magpie.xml.SrcmlEngine.PROCESS_OPERATORS = False
-                else:
-                    raise ValueError('Invalid config file: "[srcml] process_operators" should be Boolean')
-            if 'internodes' in config['srcml']:
-                magpie.xml.SrcmlEngine.INTERNODES = set(config['srcml']['internodes'].split())
-            if 'rename' in config['srcml']:
-                h = {}
-                for rule in config['srcml']['rename'].split("\n"):
-                    if rule.strip(): # discard potential initial empty line
-                        try:
-                            k, v = rule.split(':')
-                        except ValueError:
-                            raise ValueError('badly formated rule: "{}"'.format(rule))
-                        h[k] = set(v.split())
-                magpie.xml.SrcmlEngine.TAG_RENAME = h
-            if 'focus' in config['srcml']:
-                magpie.xml.SrcmlEngine.TAG_FOCUS = set(config['srcml']['focus'].split())
+        self.target_files = val.split()
 
         # engine rules
-        if 'engine_rules' in config['software']:
-            self.engine_rules = []
-            for rule in config['software']['engine_rules'].split("\n"):
-                if rule: # discard potential initial empty line
-                    try:
-                        k, v = rule.split(':')
-                    except ValueError:
-                        raise ValueError('badly formated rule: "{}"'.format(rule))
-                    self.engine_rules.append((k.strip(), magpie.bin.engine_from_string(v.strip())))
-        else:
-            self.engine_rules = [
-                ('*.params', magpie.params.ConfigFileParamsEngine),
-                ('*.xml', magpie.xml.SrcmlEngine),
-                ('*', magpie.line.LineEngine),
-            ]
+        self.engine_rules = []
+        for rule in config['software']['engine_rules'].split("\n"):
+            if rule: # discard potential initial empty line
+                try:
+                    k, v = rule.split(':')
+                except ValueError:
+                    raise ValueError('badly formated rule: "{}"'.format(rule))
+                self.engine_rules.append((k.strip(), magpie.bin.engine_from_string(v.strip())))
 
-        # reset contents here, AFTER xml parameters
+        # engine config
+        self.engine_config = []
+        for rule in config['software']['engine_config'].split("\n"):
+            if rule: # discard potential initial empty line
+                try:
+                    k, v = rule.split(':')
+                except ValueError:
+                    raise ValueError('badly formated rule: "{}"'.format(rule))
+                v = v.strip()
+                if v[0]+v[-1] != '[]':
+                    raise ValueError('badly formated section name: "{}"'.format(rule))
+                self.engine_config.append((k.strip(), config[v[1:-1]], v))
+
+        # reset contents here, AFTER engine config
         self.reset_contents()
 
         # fitness type
@@ -179,8 +140,20 @@ class BasicProgram(magpie.base.AbstractProgram):
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                return engine
+                return engine()
         raise RuntimeError('Unknown engine for target file {}'.format(target_file))
+
+    def configure_engine(self, engine, target_file):
+        for (pattern, config_section, section_name) in self.engine_config:
+            if any([target_file == pattern,
+                    pattern == '*',
+                    pattern.startswith('*') and target_file.endswith(pattern[1:]),
+            ]):
+                if isinstance(engine, magpie.xml.XmlEngine):
+                    magpie.bin.setup_xml_engine(engine, config_section, section_name)
+                elif isinstance(engine, magpie.params.AbstractParamsEngine):
+                    magpie.bin.setup_params_engine(engine, config_section, section_name)
+                return
 
     def evaluate_local(self):
         cwd = os.getcwd()

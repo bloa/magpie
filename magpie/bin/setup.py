@@ -27,3 +27,98 @@ def setup(config):
     magpie.config.default_timeout = float(sec['default_timeout'])
     magpie.config.default_output = int(float(sec['default_output']))
     magpie.config.diff_method = sec['diff_method']
+
+    # [srcml]
+    sec = config['srcml']
+    val = sec['process_pseudo_blocks']
+    if val.lower() in ['true', 't', '1']:
+        magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = True
+    elif val.lower() in ['false', 'f', '0']:
+        magpie.xml.SrcmlEngine.PROCESS_PSEUDO_BLOCKS = False
+    else:
+        raise ValueError('Invalid config file: "[srcml] process_pseudo_blocks" should be Boolean')
+    val = sec['process_literals']
+    if val.lower() in ['true', 't', '1']:
+        magpie.xml.SrcmlEngine.PROCESS_LITERALS = True
+    elif val.lower() in ['false', 'f', '0']:
+        magpie.xml.SrcmlEngine.PROCESS_LITERALS = False
+    else:
+        raise ValueError('Invalid config file: "[srcml] process_literals" should be Boolean')
+    val = sec['process_operators']
+    if val.lower() in ['true', 't', '1']:
+        magpie.xml.SrcmlEngine.PROCESS_OPERATORS = True
+    elif val.lower() in ['false', 'f', '0']:
+        magpie.xml.SrcmlEngine.PROCESS_OPERATORS = False
+    else:
+        raise ValueError('Invalid config file: "[srcml] process_operators" should be Boolean')
+    magpie.xml.SrcmlEngine.INTERNODES = set(sec['internodes'].split())
+    h = {}
+    for rule in sec['rename'].split("\n"):
+        if rule.strip(): # discard potential initial empty line
+            try:
+                k, v = rule.split(':')
+            except ValueError:
+                raise ValueError('badly formated rule: "{}"'.format(rule))
+            h[k] = set(v.split())
+    magpie.xml.SrcmlEngine.TAG_RENAME = h
+    magpie.xml.SrcmlEngine.TAG_FOCUS = set(sec['focus'].split())
+
+    # [params]
+    sec = config['params']
+    tmp = sec['timing'].split()
+    if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
+        raise ValueError('illegal timing value: {}'.format(val))
+    magpie.params.AbstractParamsEngine.TIMING = tmp
+    magpie.params.AbstractParamsEngine.CLI_PREFIX = sec['cli_prefix']
+    magpie.params.AbstractParamsEngine.CLI_GLUE = sec['cli_glue']
+    magpie.params.AbstractParamsEngine.CLI_BOOLEAN = sec['cli_boolean']
+    magpie.params.AbstractParamsEngine.CLI_BOOLEAN_PREFIX_TRUE = sec['cli_boolean_prefix_true']
+    magpie.params.AbstractParamsEngine.CLI_BOOLEAN_PREFIX_FALSE = sec['cli_boolean_prefix_false']
+    magpie.params.AbstractParamsEngine.SILENT_PREFIX = sec['silent_prefix']
+    magpie.params.AbstractParamsEngine.SILENT_SUFFIX = sec['silent_suffix']
+
+def setup_xml_engine(engine, config_section, section):
+    for k in [
+            'process_pseudo_blocks',
+            'process_literals',
+            'process_operators',
+    ]:
+        val = config_section[k]
+        if val.lower() in ['true', 't', '1']:
+            engine.config[k] = True
+        elif val.lower() in ['false', 'f', '0']:
+            engine.config[k] = False
+        else:
+            raise ValueError('Invalid config file: "{} {}" should be Boolean'.format(section_name, k))
+    if (k := 'internodes') in config_section:
+        engine.config[k] = set(config_section[k].split())
+    if 'rename' in config_section:
+        h = {}
+        for rule in config_section['rename'].split("\n"):
+            if rule.strip(): # discard potential initial empty line
+                try:
+                    k, v = rule.split(':')
+                except ValueError:
+                    raise ValueError('badly formated rule: "{}"'.format(rule))
+                h[k] = set(v.split())
+        engine.config['tag_rename'] = h
+    if 'focus' in config_section:
+        engine.config['tag_focus'] = set(config_section['focus'].split())
+
+def setup_params_engine(engine, config_section, section):
+    if (k := 'timing') in config_section:
+        tmp = config_section[k].split()
+        if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
+            raise ValueError('illegal timing value: {}'.format(val))
+        engine.config[k] = tmp
+    for k in [
+            'cli_prefix',
+            'cli_glue',
+            'cli_boolean',
+            'cli_boolean_prefix_true',
+            'cli_boolean_prefix_false',
+            'silent_prefix',
+            'silent_suffix',
+    ]:
+        if k in config_section:
+            engine.config[k] = config_section[k]

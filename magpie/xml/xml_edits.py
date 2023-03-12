@@ -1,7 +1,7 @@
 import random
 
 from ..base import Edit
-from . import XmlEngine, XmlEngine
+from . import XmlEngine
 
 
 class NodeDeletion(Edit):

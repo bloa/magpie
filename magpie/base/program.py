@@ -108,6 +108,7 @@ class AbstractProgram():
                 engine = self.engines[target_file]
             except KeyError:
                 engine = self.get_engine(target_file)
+                self.configure_engine(engine, target_file)
                 self.engines[target_file] = engine
             self.contents[target_file] = engine.get_contents(os.path.join(self.path, target_file))
             self.locations[target_file] = engine.get_locations(self.contents[target_file])
@@ -119,6 +120,9 @@ class AbstractProgram():
     def get_engine(self, target_file):
         raise NotImplementedError
 
+    def configure_engine(self, engine, target_file):
+        pass
+
     def location_names(self, target_file, target_type):
         return self.get_engine(target_file).location_names(self.locations, target_file, target_type)
 
@@ -127,7 +131,7 @@ class AbstractProgram():
 
     def random_file(self, engine=None):
         if engine:
-            files = [f for f in self.target_files if issubclass(self.engines[f], engine)]
+            files = [f for f in self.target_files if isinstance(self.engines[f], engine)]
         else:
             files = self.target_files
         if files:
@@ -210,8 +214,8 @@ class AbstractProgram():
         cli = ''
         for target in self.target_files:
             engine = self.engines[target]
-            if issubclass(engine, AbstractParamsEngine):
-                if engine.check_timing(step):
+            if isinstance(engine, AbstractParamsEngine):
+                if step in engine.config['timing']:
                     cli = '{} {}'.format(cli, engine.resolve_cli(self.local_contents[target]))
         return cli
 

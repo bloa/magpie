@@ -14,25 +14,33 @@ class SrcmlEngine(XmlEngine):
     PROCESS_LITERALS = True
     PROCESS_OPERATORS = True
 
-    @classmethod
-    def process_tree(cls, tree):
-        if cls.PROCESS_PSEUDO_BLOCKS:
-            cls.process_pseudo_blocks(tree)
-        if cls.PROCESS_LITERALS:
-            cls.process_literals(tree)
-        if cls.PROCESS_OPERATORS:
-            cls.process_operators(tree)
-        for tag in cls.TAG_RENAME:
-            cls.rewrite_tags(tree, cls.TAG_RENAME[tag], tag)
-        if len(cls.TAG_FOCUS) > 0:
-            cls.focus_tags(tree, cls.TAG_FOCUS)
+    def __init__(self):
+        self.config = {
+            'internodes': self.INTERNODES,
+            'tag_rename': self.TAG_RENAME,
+            'tag_focus': self.TAG_FOCUS,
+            'process_pseudo_blocks': self.PROCESS_PSEUDO_BLOCKS,
+            'process_literals': self.PROCESS_LITERALS,
+            'process_operators': self.PROCESS_OPERATORS,
+        }
 
-    @classmethod
-    def process_pseudo_blocks(cls, element, sp_element=''):
-        sp = cls.guess_spacing(element.text)
+    def process_tree(self, tree):
+        if self.config['process_pseudo_blocks']:
+            self.process_pseudo_blocks(tree)
+        if self.config['process_literals']:
+            self.process_literals(tree)
+        if self.config['process_operators']:
+            self.process_operators(tree)
+        for tag in self.config['tag_rename']:
+            self.rewrite_tags(tree, self.config['tag_rename'][tag], tag)
+        if len(self.config['tag_focus']) > 0:
+            self.focus_tags(tree, self.config['tag_focus'])
+
+    def process_pseudo_blocks(self, element, sp_element=''):
+        sp = self.guess_spacing(element.text)
         for child in element:
-            cls.process_pseudo_blocks(child, sp)
-            sp = cls.guess_spacing(child.tail)
+            self.process_pseudo_blocks(child, sp)
+            sp = self.guess_spacing(child.tail)
         if element.tag == 'block' and element.attrib.get('type') == 'pseudo':
             del element.attrib['type']
             if len(element) > 0:
@@ -41,18 +49,16 @@ class SrcmlEngine(XmlEngine):
             else:
                 element.text = '/*auto*/{' + (element.text or '') + '}/*auto*/'
 
-    @classmethod
-    def process_literals(cls, element):
+    def process_literals(self, element):
         for child in element:
-            cls.process_literals(child)
+            self.process_literals(child)
         if element.tag == 'literal':
             element.tag = 'literal_{}'.format(element.attrib.get('type'))
             del element.attrib['type']
 
-    @classmethod
-    def process_operators(cls, element):
+    def process_operators(self, element):
         for child in element:
-            cls.process_operators(child)
+            self.process_operators(child)
         if element.tag == 'operator':
             # TODO
             if element.text in ['==', '!=', '<', '<=', '>', '>=']:

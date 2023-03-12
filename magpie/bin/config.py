@@ -14,18 +14,6 @@ default_config = {
         'diff_method': 'unified',
     },
 
-    # [srcml]
-    'srcml': {
-        'rename': """
-stmt: break continue decl_stmt do expr_stmt for goto if return switch while
-number: literal_number""",
-        'focus': 'block stmt operator_comp operator_arith number',
-        'internodes': 'block',
-        'process_pseudo_blocks': True,
-        'process_literals': True,
-        'process_operators': True,
-    },
-
     # [software]
     'software': {
         'path': '',
@@ -35,6 +23,9 @@ number: literal_number""",
 *.params : ConfigFileParamsEngine
 *.xml : SrcmlEngine
 * : LineEngine""",
+        'engine_config': """
+*.params : [params]
+*.xml : [srcml]""",
         'setup_cmd': '',
         'setup_timeout': '',
         'setup_output': '',
@@ -49,11 +40,35 @@ number: literal_number""",
         'run_output': '',
     },
 
+    # [srcml]
+    'srcml': {
+        'rename': """
+stmt: break continue decl_stmt do expr_stmt for goto if return switch while
+number: literal_number""",
+        'focus': 'block stmt operator_comp operator_arith number',
+        'internodes': 'block',
+        'process_pseudo_blocks': True,
+        'process_literals': True,
+        'process_operators': True,
+    },
+
+    # [params]
+    'params': {
+        'timing': "test run",
+        'cli_prefix': "--",
+        'cli_glue': "=",
+        'cli_boolean': 'show', # show ; hide ; prefix
+        'cli_boolean_prefix_true': '',
+        'cli_boolean_prefix_false': 'no-',
+        'silent_prefix': '@',
+        'silent_suffix': '$',
+    },
+
     # [search]
     'search': {
         'protocol': 'BasicProtocol',
         'algorithm': '',
-        'possible_edits': '',
+        'possible_edits': 'LineInsertion LineDeletion LineReplacement',
         'warmup': 3,
         'warmup_strategy': 'last',
         'max_steps': '',

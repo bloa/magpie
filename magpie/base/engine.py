@@ -3,18 +3,15 @@ import os
 import random
 
 class AbstractEngine(ABC):
-    @classmethod
-    def renamed_contents_file(cls, target_file):
+    def renamed_contents_file(self, target_file):
         return target_file
 
-    @classmethod
-    def write_contents_file(cls, new_contents, work_path, target_file):
-        filename = os.path.join(work_path, cls.renamed_contents_file(target_file))
+    def write_contents_file(self, new_contents, work_path, target_file):
+        filename = os.path.join(work_path, self.renamed_contents_file(target_file))
         with open(filename, 'w') as tmp_file:
-            tmp_file.write(cls.dump(new_contents[target_file]))
+            tmp_file.write(self.dump(new_contents[target_file]))
 
-    @classmethod
-    def random_target(cls, locations, weights, target_file, target_type=None):
+    def random_target(self, locations, weights, target_file, target_type=None):
         if target_type is None:
             target_type = random.choice(locations[target_file])
         if weights and target_file in weights and target_type in weights[target_file]:
@@ -32,27 +29,22 @@ class AbstractEngine(ABC):
             except (KeyError, ValueError):
                 return None
 
-    @classmethod
     @abstractmethod
-    def get_contents(cls, file_path):
+    def get_contents(self, file_path):
         pass
 
-    @classmethod
     @abstractmethod
-    def get_locations(cls, file_contents):
+    def get_locations(self, contents):
         pass
 
-    @classmethod
     @abstractmethod
-    def location_names(cls, file_locations, target_file, target_type):
-        return list(range(len(file_locations[target_file][target_type])))
-
-    @classmethod
-    @abstractmethod
-    def dump(cls, file_contents):
+    def location_names(self, locations, target_file, target_type):
         pass
 
-    @classmethod
-    def show_location(cls, file_contents, file_locations, target_file, target_type, target_loc):
+    @abstractmethod
+    def dump(self, file_contents):
+        pass
+
+    def show_location(self, contents, locations, target_file, target_type, target_loc):
         return '(unsupported)'
 
