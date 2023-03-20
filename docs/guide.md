@@ -84,7 +84,7 @@ Require specific outputs:
 
 We will use the following example:
 
-    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 
 Execution starts with a "warmup" step.
 
@@ -199,6 +199,9 @@ For maximum convenience, we provide the `magpie.py` script that also accept the 
 Alternatively, these entry points (as any custom-written ones) can be moved at top-level and run from there:
 
     mv bin/local_search.py .
+    python3 local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    mv bin/local_search.py .
     ./local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
 
 
@@ -214,13 +217,13 @@ Note on requirements of "triangle_XXX" scenario:
 
 Examples:
 
-    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
-    python3 -m bin.local_search --scenario examples/scenario/triangle-java_repair.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-java_repair.txt
 <!-- -->
-    python3 -m bin.local_search --scenario examples/scenario/triangle-rb_repair.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-rb_repair.txt
 <!-- -->
-    python3 -m bin.local_search --scenario examples/scenario/triangle-py_bloat.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-py_bloat.txt
 
 Note: whilst the `--seed` option enables setting the initial random seed, which may lead to reproducible results in cases in which the fitness function is deterministic (bloat is fine, repair *may* be, but running time measurements are usually too noisy).
 
@@ -232,9 +235,9 @@ A patch can either be provided directly or as a path to a file containing the pa
 
 Examples:
 
-    python3 -m bin.show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
+    ./magpie.py show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
 <!-- -->
-    python3 -m bin.show_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+    ./magpie.py show_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 In addition, using the `--keep` option will also instruct Magpie to leave a copy of the mutated software for further manual investigation.
 
@@ -246,9 +249,9 @@ The `--filename` and `--type` options allow for specifying a specific subset of 
 
 Examples:
 
-    python3 -m bin.show_locations --scenario examples/scenario/triangle-rb_repair.txt
+    ./magpie.py show_locations --scenario examples/scenario/triangle-rb_repair.txt
 <!-- -->
-    python3 -m bin.show_locations --scenario examples/scenario/triangle-rb_repair.txt --filename triangle.rb --type line
+    ./magpie.py show_locations --scenario examples/scenario/triangle-rb_repair.txt --filename triangle.rb --type line
 
 
 ## Revalidate Patch
@@ -258,9 +261,9 @@ A patch can either be provided directly or as a path to a file containing the pa
 
 Examples:
 
-    python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtReplacement(('triangle.cpp.xml', 'stmt', 3), ('triangle.cpp.xml', 'stmt', 12))"
+    ./magpie.py revalidate_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtReplacement(('triangle.cpp.xml', 'stmt', 3), ('triangle.cpp.xml', 'stmt', 12))"
 <!-- -->
-    python3 -m bin.revalidate_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+    ./magpie.py revalidate_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 
 ## Minify Patch
@@ -274,7 +277,7 @@ This new patch (or the original, in rare cases in which the rebuild is unsuccess
 
 Example:
 
-    python3 -m bin.minify_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+    ./magpie.py minify_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 Note that noise in fitness measurement may lead to non-optimal patch being returned.
 
@@ -286,7 +289,7 @@ A patch can either be provided directly or as a path to a file containing the pa
 
 Example:
 
-    python3 -m bin.ablation_analysis --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+    ./magpie.py ablation_analysis --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
 
 
 ## Miscellaneous
