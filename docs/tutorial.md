@@ -1,6 +1,6 @@
 # Setup
 
-First, download and extract Minisat 2.2.0 (as the real-world target software)
+First, download and extract Minisat 2.2.0 (as the real-world target software).
 For consistency we extract it here in `example/code`, beside the provided example toy software.
 
     wget "http://minisat.se/downloads/minisat-2.2.0.tar.gz"
@@ -23,9 +23,9 @@ In particular:
 - `test.sh` checks MiniSAT's output on 5 SAT and 5 UNSAT instances
 - `run.sh` runs MiniSAT on all 20 instances
 - `run2.sh` handle the two artificial parameters introduced in `minisat_advanced.params`
-- `Solver.cc.xml` contains the AST of the MiniSAT's `core/Solver.cc` file as provided by [SrcML](https://www.srcml.org/).
+- `Solver.cc.xml` contains the AST of the MiniSAT's `core/Solver.cc` file as provided by [SrcML](https://www.srcml.org/)
 - `minisat_simplified.params` defines MiniSAT's configuration space
-- `minisat_advanced.params` use two additional parameters to improve the configuration space definition
+- `minisat_advanced.params` use additional parameters to improve the configuration space definition
 
 
 # Scenario Files

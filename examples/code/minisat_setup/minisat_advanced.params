@@ -25,13 +25,17 @@ rcheck            {True, False}[False]
 asymm             {True, False}[False]
 elim              {True, False}[True]
 simp-gc-frac      e(0, 2147483647)[0.5]
-sub-lim-unbounded {True, False}[False]  # <-- intermediary parameter
-sub-lim           g[0, 65535][1000]     # <-- now geometrical
-cl-lim-unbounded  {True, False}[False]  # same
-cl-lim            [-1, 65535][20]       # same
+@sub-lim$flag     {True, False}[False] # @prefix = hidden parameter
+sub-lim$unbounded {-1}[-1]             # $suffix are ignored
+sub-lim$bounded   g[0, 65535][1000]    # <-- now geometrical
+@cl-lim$flag      {True, False}[False] # same
+cl-lim$unbounded  {-1}[-1]             # same
+cl-lim$bounded    g[0, 65535][20]      # same
 grow              g[-65535, 65535][0]
 
 
 # conditionals
-sub-lim | sub-lim-unbounded == False
-cl-lim | cl-lim-unbounded == False
+sub-lim$unbounded | @sub-lim$flag == True
+sub-lim$bounded   | @sub-lim$flag == False
+cl-lim$unbounded | @sub-lim$flag == True
+cl-lim$bounded   | @sub-lim$flag == False

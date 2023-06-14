@@ -68,7 +68,7 @@ The value `hide` means that the parameter is only used when the value is true (i
 Finally, the value `prefix` change the names of Boolean parameters according to their values (e.g., to obtain "`-luby`" when true and "`-no-luby`" when false).
 
 The `SILENT_PREFIX` string is used to hide parameters with matching prefix in the final command line.
-Similarly, the `SILENT_SUFFIX` is used to specify a suffix which will be hidden in the fnal command line.
+Similarly, the `SILENT_SUFFIX` is used to specify a suffix which will be hidden in the final command line.
 
 ## Parameter definitions
 
@@ -102,7 +102,13 @@ Magpie accept the following format:
 
     NAME | NAME == VALUE
 
-E.g., "`sub-lim | sub-lim-unbounded == False`" in `examples/code/minisat_setup/minisat_advanced.params`.
+E.g., in `examples/code/minisat_setup/minisat_advanced.params`:
+
+    sub-lim$unbounded | @sub-lim$flag == True
+    sub-lim$bounded   | @sub-lim$flag == False
+
+Depending on the value of the hidden `@sub-lim$flag` parameter the command line will contain either the value of `sub-lim$unbounded` or `sub-lim$bounded`.
+Because silent suffixes are discarded, in both cases that value will be associated to the parameter name `sub-lim`.
 
 ## Forbidden combinations
 
@@ -112,4 +118,3 @@ Magpie accept the following format:
     {NAME == VALUE , ...}
 
 Any number of parameters can be specified (but at least two) as long as they are comma-separated.
-
