@@ -232,7 +232,7 @@ class AbstractProgram():
         try:
             sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
         except FileNotFoundError:
-            return ExecResult(cmd, 'CLI_ERROR', -1, b"", b"", 0)
+            return ExecResult(cmd, 'CLI_ERROR', -1, b"", b"", 0, 0)
         if lengthout > 0:
             stdout_size = 0
             stderr_size = 0
@@ -241,7 +241,7 @@ class AbstractProgram():
                 if end-start > timeout:
                     os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
                     _, _ = sprocess.communicate()
-                    return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
+                    return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
                 a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
                 if sprocess.stdout in a:
                     for _ in range(1024):
@@ -258,7 +258,7 @@ class AbstractProgram():
                 if stdout_size+stderr_size >= lengthout:
                     os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
                     _, _ = sprocess.communicate()
-                    return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start)
+                    return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
             end = time.time()
             stdout += sprocess.stdout.read()
             stderr += sprocess.stderr.read()
@@ -269,9 +269,9 @@ class AbstractProgram():
                 os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
                 stdout, stderr = sprocess.communicate()
                 end = time.time()
-                return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start)
+                return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
             end = time.time()
-        return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start)
+        return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
 
     def clean_work_dir(self):
         try:
