@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2021,2022 UCL
+Copyright (c) 2022-2023 Université du Littoral Côte d'Opale
+Copyright (c) 2021-2022 UCL
 Copyright (c) 2018-2021 COINSE KAIST (PyGGI)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
