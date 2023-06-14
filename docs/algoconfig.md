@@ -80,9 +80,9 @@ Magpie accept the following formats:
 
     NAME {VALUE, ...} [DEFAULT] # categorical
     NAME (MIN, MAX) [DEFAULT] # continuous
-    NAME e(MIN, MAX) [DEFAULT] # continuous
+    NAME e(MIN, MAX) [DEFAULT] # continuous (exponential distribution)
     NAME [MIN, MAX] [DEFAULT] # integer
-    NAME g[MIN, MAX] [DEFAULT] # integer
+    NAME g[MIN, MAX] [DEFAULT] # integer (geometric distribution)
 
 
 Categorical values are specified using curly braces and values separated with commas (e.g., see the "`luby`" parameter).
