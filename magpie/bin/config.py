@@ -68,7 +68,7 @@ number: literal_number""",
     'search': {
         'protocol': 'BasicProtocol',
         'algorithm': '',
-        'possible_edits': 'LineInsertion LineDeletion LineReplacement',
+        'possible_edits': '',
         'warmup': 3,
         'warmup_strategy': 'last',
         'max_steps': '',
