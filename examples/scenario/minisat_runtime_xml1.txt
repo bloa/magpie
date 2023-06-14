@@ -24,7 +24,7 @@ test_cmd = ./test.sh
 run_cmd = ./run.sh
 
 [search]
-max_steps = 1000
+max_steps = 100
 possible_edits =
     StmtReplacement
     StmtInsertion

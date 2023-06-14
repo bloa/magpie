@@ -14,5 +14,5 @@ test_cmd =
 run_cmd = ./run2.sh
 
 [search]
-max_steps = 1000
+max_steps = 100
 possible_edits = ParamSetting
