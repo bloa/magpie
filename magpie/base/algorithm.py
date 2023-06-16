@@ -75,6 +75,7 @@ class Algorithm(ABC):
     def hook_start(self):
         if not self.config['possible_edits']:
             raise RuntimeError('possible_edits list is empty')
+        # TODO: check that every possible edit can be created and simplify create_edit
         self.stats['wallclock_start'] = time.time() # discards warmup time
         self.program.logger.info('==== START: {} ===='.format(self.__class__.__name__))
 
