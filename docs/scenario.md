@@ -63,6 +63,8 @@ Default values:
     run_cmd =
     run_timeout =
     run_lengthout =
+    batch_timeout =
+    batch_lengthout =
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
