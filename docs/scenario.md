@@ -203,6 +203,7 @@ Genetic programming parameters:
     offspring_crossover = 0.5
     offspring_mutation = 0.4
     uniform_rate = 0.5 # GeneticProgrammingUniformConcat and GeneticProgrammingUniformInter only
+    batch_reset = True
 
 - `pop_size`: population size
 - `delete_prob`: probability to delete a random edit instead of generating a new one
@@ -210,3 +211,4 @@ Genetic programming parameters:
 - `offspring_crossover`: proportion of the old population crossed over with random valid parent
 - `offspring_mutation`: proportion of the old population mutated
 - `uniform_rate`: percentage of edits originating from the first parent
+- `batch_reset`: whether a new set of instances is drawn from `[search] batch_instances` each new generation
