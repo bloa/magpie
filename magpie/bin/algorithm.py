@@ -44,7 +44,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
         if run.status != 'SUCCESS':
             raise RuntimeError('initial solution has failed')
         # update best patch
-        if self.report['best_patch'].edits:
+        if self.report['best_patch'] and self.report['best_patch'].edits:
             run = self.evaluate_patch(self.report['best_patch'])
             best = self.dominates(run.fitness, self.report['best_fitness'])
             self.hook_batch_evaluation('BEST', self.report['best_patch'], run, best)

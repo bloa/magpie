@@ -123,7 +123,7 @@ class BasicProtocol:
         for handler in logger.handlers:
             if handler.__class__.__name__ == 'FileHandler':
                 logger.info('Log file: {}'.format(handler.baseFilename))
-        if result['best_patch'].edits:
+        if result['best_patch'] and result['best_patch'].edits:
             result['diff'] = self.program.diff_patch(result['best_patch'])
             base_path = os.path.join(magpie.config.log_dir, self.program.run_label)
             logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))
