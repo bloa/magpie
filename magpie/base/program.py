@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import os
 import shutil
 import time
@@ -17,7 +18,7 @@ from .. import config as magpie_config
 from ..params import AbstractParamsEngine
 from .execresult import ExecResult
 
-class AbstractProgram():
+class AbstractProgram(ABC):
     def __init__(self, path):
         self.logger = None
         self.path = os.path.abspath(path.strip())
@@ -117,8 +118,9 @@ class AbstractProgram():
         return "{}({}):{}".format(self.__class__.__name__,
                                   self.path, ",".join(self.target_files))
 
+    @abstractmethod
     def get_engine(self, target_file):
-        raise NotImplementedError
+        pass
 
     def configure_engine(self, engine, target_file):
         pass
@@ -202,13 +204,9 @@ class AbstractProgram():
                 shutil.copyfile(os.path.join(original, entry), os.path.join(target, entry))
             # else: appears in both (already handled)
 
-    # def evaluate_patch(self, patch):
-    #     new_contents = self.apply_patch(patch)
-    #     return self.evaluate_contents(new_contents)
-
-    def evaluate_contents(self, new_contents):
+    def evaluate_contents(self, new_contents, cached_run=None):
         self.write_contents(new_contents)
-        return self.evaluate_local()
+        return self.evaluate_local(cached_run)
 
     def compute_local_cli(self, step):
         cli = ''
@@ -219,8 +217,9 @@ class AbstractProgram():
                     cli = '{} {}'.format(cli, engine.resolve_cli(self.local_contents[target]))
         return cli
 
-    def evaluate_local(self):
-        raise NotImplementedError
+    @abstractmethod
+    def evaluate_local(self, cached_run=None):
+        pass
 
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, lengthout=1e6):
         # 1e6 bytes is 1Mb

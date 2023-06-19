@@ -2,7 +2,7 @@ import copy
 import random
 import time
 
-from ..base import Algorithm, Patch
+from ..base import Patch
 
 from . import LocalSearch
 

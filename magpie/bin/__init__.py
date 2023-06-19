@@ -1,3 +1,4 @@
+from .algorithm import BasicAlgorithm
 from .program import BasicProgram
 from .protocol import BasicProtocol
 from .config import default_config

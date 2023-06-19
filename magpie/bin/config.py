@@ -38,6 +38,8 @@ default_config = {
         'run_cmd': '',
         'run_timeout': '',
         'run_lengthout': '',
+        'batch_timeout': '',
+        'batch_lengthout': '',
     },
 
     # [srcml]
@@ -76,6 +78,11 @@ number: literal_number""",
         'target_fitness': '',
         'cache_maxsize': 40,
         'cache_keep': 0.2,
+        'batch_instances': '', # separated by "|" see also "file:"
+        'batch_shuffle': True,
+        'batch_bin_shuffle': False,
+        'batch_sample_size': 1,
+        'batch_fitness_strategy': 'average', # average ; median
     },
 
     # [search.ls]
@@ -95,5 +102,6 @@ number: literal_number""",
         'offspring_crossover': 0.5,
         'offspring_mutation': 0.4,
         'uniform_rate': 0.5, # GeneticProgrammingUniformConcat and GeneticProgrammingUniformInter only
+        'batch_reset': True,
     },
 }

@@ -21,8 +21,8 @@ In particular:
 - `data` contains 20 instances from [SATLIB](https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html)
 - `compile.sh` simply runs the MiniSAT-provided makefile
 - `test.sh` checks MiniSAT's output on 5 SAT and 5 UNSAT instances
-- `run.sh` runs MiniSAT on all 20 instances
-- `run2.sh` handle the two artificial parameters introduced in `minisat_advanced.params`
+- `run_fixed.sh` runs MiniSAT on all 20 instances
+- `run_single.sh` runs MiniSAT on a single instances passed as parameter
 - `Solver.cc.xml` contains the AST of the MiniSAT's `core/Solver.cc` file as provided by [SrcML](https://www.srcml.org/)
 - `minisat_simplified.params` defines MiniSAT's configuration space
 - `minisat_advanced.params` use additional parameters to improve the configuration space definition
@@ -44,7 +44,7 @@ We provide five scenarios, all based on the same model (`examples/scenario/minis
 
     compile_cmd = ./compile.sh
     test_cmd = ./test.sh
-    run_cmd = ./run.sh
+    run_cmd = ./run_fixed.sh
 
     [search]
     max_steps = 100
@@ -55,7 +55,7 @@ We provide five scenarios, all based on the same model (`examples/scenario/minis
 
 See [`config.md`](./config.md) for a comprehensive list of possible properties and their default values.
 
-First, the `[magpie]` section provides default limits on execution time (30 seconds) and output length (1e6 bytes, i.e., 1 Mo), which is enough for the different scripts (`compile.sh`, `test.sh`, `run.sh`) for the different scripts to complete without issue.
+First, the `[magpie]` section provides default limits on execution time (30 seconds) and output length (1e6 bytes, i.e., 1 Mo), which is enough for the different scripts (`compile.sh`, `test.sh`, `run_fixed.sh`) for the different scripts to complete without issue.
 
 Then the `[software]` section specifies where the original software is located, which file(s) will be mutated, the three scripts that serve for fitness evaluation, as well as the type of fitness to be calculated.
 

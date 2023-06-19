@@ -3,9 +3,10 @@ import math
 import random
 import time
 
-from ..base import Algorithm, Patch
+from ..base import Patch
+from ..bin import BasicAlgorithm
 
-class GeneticProgramming(Algorithm):
+class GeneticProgramming(BasicAlgorithm):
     def setup(self):
         super().setup()
         self.name = 'Genetic Programming'
@@ -14,6 +15,7 @@ class GeneticProgramming(Algorithm):
         self.config['offspring_elitism'] = 0.1
         self.config['offspring_crossover'] = 0.5
         self.config['offspring_mutation'] = 0.4
+        self.config['batch_reset'] = True
 
     def reset(self):
         super().reset()
@@ -142,6 +144,12 @@ class GeneticProgramming(Algorithm):
         tmp = sorted(tmp, key=lambda sol: pop[sol].fitness)
         return tmp
 
+    def hook_main_loop(self):
+        if self.config['batch_reset']:
+            for a in self.config['batch_bins']:
+                random.shuffle(a)
+            self.hook_reset_batch()
+
 class GeneticProgrammingConcat(GeneticProgramming):
     def setup(self):
         super().setup()
@@ -230,3 +238,4 @@ class GeneticProgrammingUniformInter(GeneticProgramming):
             elif sol4.edits:
                 c.edits.append(random.choice(sol4.edits))
         return c
+

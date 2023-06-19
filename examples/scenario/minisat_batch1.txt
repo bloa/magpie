@@ -21,10 +21,14 @@ fitness = time
 setup_cmd = ./compile.sh
 compile_cmd = ./compile.sh
 test_cmd = ./test.sh
-run_cmd = ./run_fixed.sh
+run_cmd = ./run_single.sh {INST}
 
 [search]
 max_steps = 100
+batch_instances =
+    file:data/inst_sat.txt
+    file:data/inst_unsat.txt
+batch_sample_size = 4
 possible_edits =
     StmtReplacement
     StmtInsertion

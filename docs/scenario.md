@@ -73,15 +73,17 @@ Default values:
 - `setup_cmd`: command line to execute during the setup step (or "", in which case it is skipped)
 - `setup_timeout`: maximum execution time during the setup step (or "", in which case `default_timeout` from `[magpie]` is used)
 - `setup_lengthout`: maximum output file size during the setup step (or "", in which case `default_lengthout` from `[magpie]` is used)
-- `compile_cmd`
+- `compile_cmd`: same but for the compile step
 - `compile_timeout`
 - `compile_lengthout`
-- `test_cmd`
+- `test_cmd`: same but for the test step
 - `test_timeout`
 - `test_lengthout`
-- `run_cmd`
+- `run_cmd`: same but for the run step
 - `run_timeout`
 - `run_lengthout`
+- `batch_timeout`: same but for the entire run step batch
+- `batch_lengthout`
 
 Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
 Typical examples:
@@ -152,6 +154,11 @@ Default values:
     target_fitness =
     cache_maxsize = 40
     cache_keep = 0.2
+    batch_instances =
+    batch_shuffle = True
+    batch_bin_shuffle = False
+    batch_sample_size = 1
+    batch_fitness_strategy = average
 
 - `protocol`: the name of the Protocol class; it needs to belong to `magpie.bin.protocols`
 - `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.algo.algos`
@@ -162,6 +169,11 @@ Default values:
 - `target_fitness`: if not "", Magpie terminates as soon as a smaller or equal fitness value is found
 - `cache_maxsize`: maximum number of cached run results (use 0 to disable; not recommended)
 - `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
+- `batch_instances`: a space-separated list of "instance" to be used together with `run_cmd`, either replacing the string "{INST}" or appended at the end of the command. Can be left empty to disable batch sampling. Use "|" to separate bins of instances. Use "file:xxx" to create a bin of newline-separated instance from the file "xxx".
+- `batch_shuffle`: whether the order of instances should be randomised
+- `batch_bin_shuffle`: whether the order of bins should be randomised
+- `batch_sample_size`: the number of instances to use ; ignored with `batch_instances` is empty
+- `batch_fitness_strategy`: the population parameter (possible: `sum`, `average`, `median`)
 
 
 ### `[search.ls]`

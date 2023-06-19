@@ -11,7 +11,7 @@ fitness = time
 setup_cmd = ./compile.sh
 compile_cmd =
 test_cmd =
-run_cmd = ./run2.sh
+run_cmd = ./run_fixed.sh
 
 [search]
 max_steps = 100

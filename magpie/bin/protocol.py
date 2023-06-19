@@ -1,5 +1,6 @@
 import io
 import os
+import random
 
 import magpie
 
@@ -30,6 +31,45 @@ class BasicProtocol:
         if self.search.config['possible_edits'] == []:
             raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
 
+        bins = [[]]
+        for s in sec['batch_instances'].split():
+            if s == '|':
+                if not bins[-1]:
+                    raise ValueError('Invalid config file: empty bin in "{}"'.format(sec['search']['batch_all_samples']))
+                bins.append([])
+            elif s[:5] == 'file:':
+                try:
+                    with open(os.path.join(config['software']['path'], s[5:])) as bin_file:
+                        newbin = [line.rstrip() for line in bin_file]
+                except FileNotFoundError:
+                    with open(s[5:]) as bin_file:
+                        newbin = [line.rstrip() for line in bin_file]
+                if not bins[-1]:
+                    bins.pop()
+                bins.append(newbin)
+                bins.append([])
+            else:
+                bins[-1].append(s)
+        if len(bins) > 1 and not bins[-1]:
+            bins.pop()
+        tmp = sec['batch_shuffle'].lower()
+        if tmp in ['true', 't', '1']:
+            for a in bins:
+                random.shuffle(a)
+        elif tmp in ['false', 'f', '0']:
+            pass
+        else:
+            raise ValueError('[search] batch_shuffle should be Boolean')
+        tmp = sec['batch_bin_shuffle'].lower()
+        if tmp in ['true', 't', '1']:
+            random.shuffle(bins)
+        elif tmp in ['false', 'f', '0']:
+            pass
+        else:
+            raise ValueError('[search] batch_bin_shuffle should be Boolean')
+        self.search.config['batch_bins'] = bins
+        self.search.config['batch_sample_size'] = int(sec['batch_sample_size'])
+
         # local search only
         if isinstance(self.search, magpie.algo.LocalSearch):
             sec = config['search.ls']
@@ -48,6 +88,13 @@ class BasicProtocol:
             self.search.config['offspring_crossover'] = float(sec['offspring_crossover'])
             self.search.config['offspring_mutation'] = float(sec['offspring_mutation'])
             self.search.config['uniform_rate'] = float(sec['uniform_rate'])
+            tmp = sec['batch_reset'].lower()
+            if tmp in ['true', 't', '1']:
+                self.search.config['batch_reset'] = True
+            elif tmp in ['false', 'f', '0']:
+                self.search.config['batch_reset'] = False
+            else:
+                raise ValueError('[search.gp] batch_reset should be Boolean')
 
         # log config just in case
         with io.StringIO() as ss:
@@ -76,7 +123,7 @@ class BasicProtocol:
         for handler in logger.handlers:
             if handler.__class__.__name__ == 'FileHandler':
                 logger.info('Log file: {}'.format(handler.baseFilename))
-        if result['best_patch']:
+        if result['best_patch'].edits:
             result['diff'] = self.program.diff_patch(result['best_patch'])
             base_path = os.path.join(magpie.config.log_dir, self.program.run_label)
             logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))

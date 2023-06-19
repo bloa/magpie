@@ -65,6 +65,8 @@ class BasicProgram(magpie.base.AbstractProgram):
         self.run_cmd = None
         self.run_timeout = None
         self.run_lengthout = None
+        self.batch_timeout = None
+        self.batch_lengthout = None
 
         # setup
         if 'setup_cmd' in config['software']:
@@ -132,7 +134,24 @@ class BasicProgram(magpie.base.AbstractProgram):
             if config['software']['run_lengthout'].lower() in ['', 'none']:
                 self.run_lengthout = None
             else:
-                self.run_lengthout = float(config['software']['run_lengthout'])
+                self.run_lengthout = int(config['software']['run_lengthout'])
+
+        # batch parameters
+        self.batch = [''] # default initial batch: single empty instance
+        self.batch_fitness_strategy = config['search']['batch_fitness_strategy']
+        known_strategies = ['sum', 'average', 'median']
+        if self.batch_fitness_strategy not in known_strategies:
+            raise ValueError('Invalid config file: "[search] batch_fitness_strategy" key must be {}'.format('/'.join(known_strategies)))
+        if 'batch_timeout' in config['software']:
+            if config['software']['batch_timeout'].lower() in ['', 'none']:
+                self.batch_timeout = None
+            else:
+                self.batch_timeout = float(config['software']['batch_timeout'])
+        if 'batch_lengthout' in config['software']:
+            if config['software']['batch_lengthout'].lower() in ['', 'none']:
+                self.batch_lengthout = None
+            else:
+                self.batch_lengthout = int(config['software']['batch_lengthout'])
 
     def get_engine(self, target_file):
         for (pattern, engine) in self.engine_rules:
@@ -155,10 +174,22 @@ class BasicProgram(magpie.base.AbstractProgram):
                     magpie.bin.setup_params_engine(engine, config_section, section_name)
                 return
 
-    def evaluate_local(self):
+    def evaluate_contents(self, new_contents, cached_run=None):
+        # write if batch unsynced
+        if cached_run is None or not set(self.batch).issubset(cached_run.cache.keys()):
+            self.write_contents(new_contents)
+        return self.evaluate_local(cached_run)
+
+    def evaluate_local(self, cached_run=None):
+        # check batch sync
+        if cached_run and set(self.batch).issubset(cached_run.cache.keys()):
+            self.process_batch_final(cached_run)
+            return cached_run
+        # otherwise
         cwd = os.getcwd()
         work_path = os.path.join(self.work_dir, self.basename)
-        run_result = magpie.base.RunResult('UNKNOWN_ERROR')
+        run_result = cached_run or magpie.base.RunResult('UNKNOWN_ERROR')
+
         try:
             # go to work directory
             os.chdir(work_path)
@@ -175,7 +206,11 @@ class BasicProgram(magpie.base.AbstractProgram):
 
                     # setup
                     cli = self.compute_local_cli('setup')
-                    setup_cmd = '{} {}'.format(self.setup_cmd, cli).strip()
+                    setup_cmd = self.setup_cmd.strip()
+                    if '{PARAMS}' in self.setup_cmd:
+                        setup_cmd = setup_cmd.replace('{PARAMS}', cli)
+                    else:
+                        setup_cmd = '{} {}'.format(setup_cmd, cli)
                     timeout = self.setup_timeout or magpie_config.default_timeout
                     lengthout = self.setup_lengthout or magpie_config.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(setup_cmd),
@@ -195,7 +230,11 @@ class BasicProgram(magpie.base.AbstractProgram):
             # run "[software] compile_cmd" if provided
             if self.compile_cmd:
                 cli = self.compute_local_cli('compile')
-                compile_cmd = '{} {}'.format(self.compile_cmd, cli).strip()
+                compile_cmd = self.compile_cmd.strip()
+                if '{PARAMS}' in self.compile_cmd:
+                    compile_cmd = compile_cmd.replace('{PARAMS}', cli)
+                else:
+                    compile_cmd = '{} {}'.format(compile_cmd, cli)
                 timeout = self.compile_timeout or magpie_config.default_timeout
                 lengthout = self.compile_lengthout or magpie_config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(compile_cmd),
@@ -212,7 +251,11 @@ class BasicProgram(magpie.base.AbstractProgram):
             # run "[software] test_cmd" if provided
             if self.test_cmd:
                 cli = self.compute_local_cli('test')
-                test_cmd = '{} {}'.format(self.test_cmd, cli).strip()
+                test_cmd = self.test_cmd.strip()
+                if '{PARAMS}' in self.test_cmd:
+                    test_cmd = test_cmd.replace('{PARAMS}', cli)
+                else:
+                    test_cmd = '{} {}'.format(test_cmd, cli)
                 timeout = self.test_timeout or magpie_config.default_timeout
                 lengthout = self.test_lengthout or magpie_config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(test_cmd),
@@ -233,21 +276,50 @@ class BasicProgram(magpie.base.AbstractProgram):
             # run "[software] run_cmd" if provided
             if self.run_cmd:
                 cli = self.compute_local_cli('run')
-                run_cmd = '{} {}'.format(self.run_cmd, cli).strip()
                 timeout = self.run_timeout or magpie_config.default_timeout
                 lengthout = self.run_lengthout or magpie_config.default_lengthout
-                exec_result = self.exec_cmd(shlex.split(run_cmd),
-                                            timeout=timeout,
-                                            lengthout=lengthout)
-                run_result.status = exec_result.status
-                run_result.debug = exec_result
-                if run_result.status == 'SUCCESS':
-                    self.process_run_exec(run_result, exec_result)
-                if run_result.status != 'SUCCESS':
-                    run_result.status = 'RUN_{}'.format(run_result.status)
+                batch_timeout = self.batch_timeout
+                batch_lengthout = self.batch_lengthout
+                for inst in self.batch:
+                    if inst in run_result.cache.keys():
+                        continue
+                    run_cmd = self.run_cmd.strip()
+                    if '{INST}' in self.run_cmd:
+                        run_cmd = run_cmd.replace('{INST}', inst)
+                    else:
+                        run_cmd = '{} {}'.format(run_cmd, inst)
+                    if '{PARAMS}' in self.run_cmd:
+                        run_cmd = run_cmd.replace('{PARAMS}', cli)
+                    else:
+                        run_cmd = '{} {}'.format(run_cmd, cli)
+                    exec_result = self.exec_cmd(shlex.split(run_cmd),
+                                                timeout=timeout,
+                                                lengthout=lengthout)
+                    run_result.status = exec_result.status
+                    run_result.debug = exec_result
+                    if run_result.status == 'SUCCESS':
+                        self.process_run_exec(run_result, exec_result)
+                    self.process_batch_single(run_result, inst)
+                    if run_result.status != 'SUCCESS':
+                        run_result.status = 'RUN_{}'.format(run_result.status)
+                        break
+                    elif batch_timeout:
+                        batch_timeout -= exec_result.runtime
+                        if batch_timeout < 0:
+                            run_result.status = 'BATCH_TIMEOUT'
+                            break
+                    elif batch_lengthout:
+                        batch_lengthout -= exec_result.output_length
+                        if batch_lengthout < 0:
+                            run_result.status = 'BATCH_LENGTHOUT'
+                            break
+
         finally:
             # make sure to go back to main directory
             os.chdir(cwd)
+
+        # final process
+        self.process_batch_final(run_result)
         return run_result
 
     def process_setup_exec(self, run_result, exec_result):
@@ -360,6 +432,35 @@ class BasicProgram(magpie.base.AbstractProgram):
             else:
                 run_result.status = 'PARSE_ERROR'
 
+    def process_batch_single(self, run_result, inst):
+        run_result.cache[inst] = (run_result.status, run_result.fitness)
+        self.logger.debug('EXEC> {} {} {}'.format(inst, run_result.status, run_result.fitness))
+
+    def process_batch_final(self, run_result):
+        tmp = []
+        fit = []
+        for inst in self.batch:
+            status, fitness = run_result.cache[inst]
+            if status != 'SUCCESS':
+                return
+            tmp.append(fitness)
+        multi = isinstance(tmp[0], list)
+        for a in ([list(a) for a in zip(*tmp)] if multi else [tmp]):
+            precision = max(len(str(float(x)).split('.')[1]) for x in a)
+            if self.batch_fitness_strategy == 'sum':
+                v = sum(a)
+            elif self.batch_fitness_strategy == 'average':
+                v = sum(a)/len(a)
+                precision += 1
+            elif self.batch_fitness_strategy == 'median':
+                if len(a) % 2 == 0:
+                    v = sorted(a)[len(a)//2]
+                else:
+                    v = sum(sorted(a)[len(a)//2:len(a)//2+2])/2
+                    precision += 1
+            fit.append(round(v, precision))
+        run_result.fitness = fit if multi else fit[0]
+
     def self_diagnostic(self, run):
         for step in ['setup', 'compile', 'test', 'run']:
             if run.status == '{}_CLI_ERROR'.format(step.upper()):
@@ -379,3 +480,9 @@ class BasicProgram(magpie.base.AbstractProgram):
             if run.status == '{}_LENGTHOUT'.format(step.upper()):
                 self.logger.info('The "{}_cmd" command generated too much output'.format(step))
                 self.logger.info('--> consider increasing "{}_lengthout"'.format(step))
+        if run.status == 'BATCH_TIMEOUT'.format(step.upper()):
+                self.logger.info('Batch execution of "run_cmd" took too long to run'.format(step))
+                self.logger.info('--> consider increasing "batch_timeout"'.format(step))
+        if run.status == 'BATCH_LENGTHOUT'.format(step.upper()):
+                self.logger.info('Batch execution of "run_cmd" generated too much output'.format(step))
+                self.logger.info('--> consider increasing "batch_lengthout"'.format(step))
