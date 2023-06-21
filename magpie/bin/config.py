@@ -40,6 +40,8 @@ default_config = {
         'run_lengthout': '',
         'batch_timeout': '',
         'batch_lengthout': '',
+        'batch_bin_fitness_strategy': 'aggregate', # aggregate ; sum ; average ; median ; q10 ; q25 ; q75 ; q90
+        'batch_fitness_strategy': 'sum', # sum ; average ; median
     },
 
     # [srcml]
@@ -82,7 +84,6 @@ number: literal_number""",
         'batch_shuffle': True,
         'batch_bin_shuffle': False,
         'batch_sample_size': 1,
-        'batch_fitness_strategy': 'average', # average ; median
     },
 
     # [search.ls]

@@ -1,6 +1,6 @@
 # Usage Philosophy
 
-Magpie's source code is entirely self-contained in the "magpie" folder, whislt the "bin" folder contains Magpie's default entry points.
+Magpie's source code is entirely self-contained in the "magpie" folder, whilst the "bin" folder contains Magpie's default entry points.
 Entry points will expect a description of the experimental setup provided by a [scenario file][./config.md].
 Upon execution, Magpie will create two other folders: "_magpie_logs", that will contain all log files (outputs, patches, diffs, etc) created by Magpie, as well as "_magpie_work", that will contain the temporary software variants.
 
@@ -11,7 +11,7 @@ The typical Magpie setup will then look as follows:
     │   └── ...
     ├── code // Software to optimise
     │   └── ...
-    ├── magpie // Magpie source code (not the entire git repo)
+    ├── magpie // Magpie source code (not the entire git repository)
     │   └── ...
     ├── magpie.py // Optional main entry point
     │   └── ...
@@ -58,6 +58,8 @@ This step has three particularities:
 
 This step is conducted last, and is used to compute the fitness value in most cases.
 
+If multiple training instances are specified, this step is performed multiple times on a sample of instances in a fashion similar to machine learning's _batch processing_.
+The fitness value of the software variant is then aggregated from its multiple individual runs and the different instances.
 
 # Fitness Function
 

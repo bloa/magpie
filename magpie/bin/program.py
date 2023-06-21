@@ -138,10 +138,14 @@ class BasicProgram(magpie.base.AbstractProgram):
 
         # batch parameters
         self.batch = [''] # default initial batch: single empty instance
-        self.batch_fitness_strategy = config['search']['batch_fitness_strategy']
+        self.batch_fitness_strategy = config['software']['batch_fitness_strategy']
         known_strategies = ['sum', 'average', 'median']
         if self.batch_fitness_strategy not in known_strategies:
-            raise ValueError('Invalid config file: "[search] batch_fitness_strategy" key must be {}'.format('/'.join(known_strategies)))
+            raise ValueError('Invalid config file: "[software] batch_fitness_strategy" key must be {}'.format('/'.join(known_strategies)))
+        self.batch_bin_fitness_strategy = config['software']['batch_fitness_strategy']
+        known_strategies = ['aggregate', 'sum', 'average', 'median', 'q10', 'q25', 'q75', 'q90']
+        if self.batch_fitness_strategy not in known_strategies:
+            raise ValueError('Invalid config file: "[software] batch_bin_fitness_strategy" key must be {}'.format('/'.join(known_strategies)))
         if 'batch_timeout' in config['software']:
             if config['software']['batch_timeout'].lower() in ['', 'none']:
                 self.batch_timeout = None
@@ -176,13 +180,13 @@ class BasicProgram(magpie.base.AbstractProgram):
 
     def evaluate_contents(self, new_contents, cached_run=None):
         # write if batch unsynced
-        if cached_run is None or not set(self.batch).issubset(cached_run.cache.keys()):
+        if cached_run is None or not set(inst for b in self.batch for inst in b).issubset(cached_run.cache.keys()):
             self.write_contents(new_contents)
         return self.evaluate_local(cached_run)
 
     def evaluate_local(self, cached_run=None):
         # check batch sync
-        if cached_run and set(self.batch).issubset(cached_run.cache.keys()):
+        if cached_run is not None and set(inst for b in self.batch for inst in b).issubset(cached_run.cache.keys()):
             self.process_batch_final(cached_run)
             return cached_run
         # otherwise
@@ -280,39 +284,40 @@ class BasicProgram(magpie.base.AbstractProgram):
                 lengthout = self.run_lengthout or magpie_config.default_lengthout
                 batch_timeout = self.batch_timeout
                 batch_lengthout = self.batch_lengthout
-                for inst in self.batch:
-                    if inst in run_result.cache.keys():
-                        continue
-                    run_cmd = self.run_cmd.strip()
-                    if '{INST}' in self.run_cmd:
-                        run_cmd = run_cmd.replace('{INST}', inst)
-                    else:
-                        run_cmd = '{} {}'.format(run_cmd, inst)
-                    if '{PARAMS}' in self.run_cmd:
-                        run_cmd = run_cmd.replace('{PARAMS}', cli)
-                    else:
-                        run_cmd = '{} {}'.format(run_cmd, cli)
-                    exec_result = self.exec_cmd(shlex.split(run_cmd),
-                                                timeout=timeout,
-                                                lengthout=lengthout)
-                    run_result.status = exec_result.status
-                    run_result.debug = exec_result
-                    if run_result.status == 'SUCCESS':
-                        self.process_run_exec(run_result, exec_result)
-                    self.process_batch_single(run_result, inst)
-                    if run_result.status != 'SUCCESS':
-                        run_result.status = 'RUN_{}'.format(run_result.status)
-                        break
-                    elif batch_timeout:
-                        batch_timeout -= exec_result.runtime
-                        if batch_timeout < 0:
-                            run_result.status = 'BATCH_TIMEOUT'
+                for b in self.batch:
+                    for inst in b:
+                        if inst in run_result.cache.keys():
+                            continue
+                        run_cmd = self.run_cmd.strip()
+                        if '{INST}' in self.run_cmd:
+                            run_cmd = run_cmd.replace('{INST}', inst)
+                        else:
+                            run_cmd = '{} {}'.format(run_cmd, inst)
+                        if '{PARAMS}' in self.run_cmd:
+                            run_cmd = run_cmd.replace('{PARAMS}', cli)
+                        else:
+                            run_cmd = '{} {}'.format(run_cmd, cli)
+                        exec_result = self.exec_cmd(shlex.split(run_cmd),
+                                                    timeout=timeout,
+                                                    lengthout=lengthout)
+                        run_result.status = exec_result.status
+                        run_result.debug = exec_result
+                        if run_result.status == 'SUCCESS':
+                            self.process_run_exec(run_result, exec_result)
+                        self.process_batch_single(run_result, inst)
+                        if run_result.status != 'SUCCESS':
+                            run_result.status = 'RUN_{}'.format(run_result.status)
                             break
-                    elif batch_lengthout:
-                        batch_lengthout -= exec_result.output_length
-                        if batch_lengthout < 0:
-                            run_result.status = 'BATCH_LENGTHOUT'
-                            break
+                        elif batch_timeout:
+                            batch_timeout -= exec_result.runtime
+                            if batch_timeout < 0:
+                                run_result.status = 'BATCH_TIMEOUT'
+                                break
+                        elif batch_lengthout:
+                            batch_lengthout -= exec_result.output_length
+                            if batch_lengthout < 0:
+                                run_result.status = 'BATCH_LENGTHOUT'
+                                break
 
         finally:
             # make sure to go back to main directory
@@ -439,12 +444,57 @@ class BasicProgram(magpie.base.AbstractProgram):
     def process_batch_final(self, run_result):
         tmp = []
         fit = []
-        for inst in self.batch:
-            status, fitness = run_result.cache[inst]
-            if status != 'SUCCESS':
-                return
-            tmp.append(fitness)
-        multi = isinstance(tmp[0], list)
+        for b in self.batch:
+            bin_fitness = []
+            for inst in b:
+                status, fitness = run_result.cache[inst]
+                if status != 'SUCCESS':
+                    # TODO: penalised fitness
+                    run_result.fitness = None
+                    return
+                bin_fitness.append(fitness)
+            multi = isinstance(bin_fitness[0], list)
+            if self.batch_bin_fitness_strategy == 'aggregate':
+                tmp.extend(bin_fitness)
+            else:
+                for a in ([list(a) for a in zip(*bin_fitness)] if multi else [bin_fitness]):
+                    precision = max(len(str(float(x)).split('.')[1]) for x in a)
+                    if self.batch_bin_fitness_strategy == 'sum':
+                        v = sum(a)
+                    elif self.batch_bin_fitness_strategy == 'average':
+                        v = sum(a)/len(a)
+                        precision += 1
+                    elif self.batch_bin_fitness_strategy == 'median':
+                        if len(a) % 2 == 0:
+                            v = sorted(a)[len(a)//2]
+                        else:
+                            v = sum(sorted(a)[len(a)//2:len(a)//2+2])/2
+                            precision += 1
+                    elif self.batch_bin_fitness_strategy == 'q10':
+                        if len(a) % 10 == 0:
+                            v = sorted(a)[len(a)//10]
+                        else:
+                            v = sum(sorted(a)[len(a)//10:len(a)//10+2])/2
+                            precision += 1
+                    elif self.batch_bin_fitness_strategy == 'q25':
+                        if len(a) % 4 == 0:
+                            v = sorted(a)[len(a)//4]
+                        else:
+                            v = sum(sorted(a)[len(a)//10:len(a)//10+2])/2
+                            precision += 1
+                    elif self.batch_bin_fitness_strategy == 'q75':
+                        if len(a) % 4 == 0:
+                            v = sorted(a)[3*len(a)//4]
+                        else:
+                            v = sum(sorted(a)[3*len(a)//4:3*len(a)//4+2])/2
+                            precision += 1
+                    elif self.batch_bin_fitness_strategy == 'q90':
+                        if len(a) % 10 == 0:
+                            v = sorted(a)[len(a)//10]
+                        else:
+                            v = sum(sorted(a)[9*len(a)//10:9*len(a)//10+2])/2
+                            precision += 1
+                    tmp.append(round(v, precision))
         for a in ([list(a) for a in zip(*tmp)] if multi else [tmp]):
             precision = max(len(str(float(x)).split('.')[1]) for x in a)
             if self.batch_fitness_strategy == 'sum':

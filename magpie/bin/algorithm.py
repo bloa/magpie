@@ -23,15 +23,20 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
 
     def hook_reset_batch(self):
         # resample instances
-        items = [i for t in itertools.zip_longest(*self.config['batch_bins']) for i in t]
-        if items:
-            if len(items) >= self.config['batch_sample_size']:
-                self.program.batch = items[:self.config['batch_sample_size']]
-            else:
-                self.program.batch = items
+        s = self.config['batch_sample_size']
+        # TODO: sample with replacement, with refill
+        if sum(len(b) for b in self.config['batch_bins']) <= s:
+            batch = [[inst for inst in b] for b in self.config['batch_bins']]
         else:
-            # if no batch, single "empty" sample
-            self.program.batch = ['']
+            batch = [[] for b in self.config['batch_bins']]
+            while s > 0:
+                for i in range(len(batch)):
+                    if len(batch[i]) < len(self.config['batch_bins'][i]):
+                        batch[i].append(self.config['batch_bins'][i][len(batch[i])])
+                        s -= 1
+                    if s == 0:
+                        break
+        self.program.batch = batch if any(batch) else [['']] # single empty instance when no batch
         # early exit before warmup
         if self.report['initial_fitness'] is None:
             return

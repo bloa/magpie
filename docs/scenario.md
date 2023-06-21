@@ -65,6 +65,8 @@ Default values:
     run_lengthout =
     batch_timeout =
     batch_lengthout =
+    batch_bin_fitness_strategy = aggregate
+    batch_fitness_strategy = sum
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
@@ -86,6 +88,8 @@ Default values:
 - `run_lengthout`
 - `batch_timeout`: same but for the entire run step batch
 - `batch_lengthout`
+- `batch_bin_fitness_strategy`: the population parameter for fitness values inside a bin (possible: `aggregate`, `sum`, `average`, `median`, and `q10`, `q25`, `q75`, `q90` for quartiles)
+- `batch_fitness_strategy`: the population parameter for bin fitness values (possible: `sum`, `average`, `median`)
 
 Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
 Typical examples:
@@ -160,7 +164,6 @@ Default values:
     batch_shuffle = True
     batch_bin_shuffle = False
     batch_sample_size = 1
-    batch_fitness_strategy = average
 
 - `protocol`: the name of the Protocol class; it needs to belong to `magpie.bin.protocols`
 - `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.algo.algos`
@@ -175,7 +178,6 @@ Default values:
 - `batch_shuffle`: whether the order of instances should be randomised
 - `batch_bin_shuffle`: whether the order of bins should be randomised
 - `batch_sample_size`: the number of instances to use ; ignored with `batch_instances` is empty
-- `batch_fitness_strategy`: the population parameter (possible: `sum`, `average`, `median`)
 
 
 ### `[search.ls]`
