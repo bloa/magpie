@@ -174,7 +174,7 @@ Default values:
 - `target_fitness`: if not "", Magpie terminates as soon as a smaller or equal fitness value is found
 - `cache_maxsize`: maximum number of cached run results (use 0 to disable; not recommended)
 - `cache_keep`: percentage of cached run results kept when `cache_maxsize` is reached
-- `batch_instances`: a space-separated list of "instance" to be used together with `run_cmd`, either replacing the string "{INST}" or appended at the end of the command. Can be left empty to disable batch sampling. Use "|" to separate bins of instances. Use "file:xxx" to create a bin of newline-separated instance from the file "xxx".
+- `batch_instances`: a newline-separated list of "instances" to be used together with `run_cmd`, either replacing the string "{INST}" or appended at the end of the command. Can be left empty to disable batch sampling. Use "___" to separate bins of instances. Use "file:xxx" to append all lines from the file "xxx".
 - `batch_shuffle`: whether the order of instances should be randomised
 - `batch_bin_shuffle`: whether the order of bins should be randomised
 - `batch_sample_size`: the number of instances to use ; ignored with `batch_instances` is empty

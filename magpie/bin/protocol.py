@@ -32,22 +32,18 @@ class BasicProtocol:
             raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
 
         bins = [[]]
-        for s in sec['batch_instances'].split():
-            if s == '|':
+        for s in sec['batch_instances'].splitlines():
+            if s == '___':
                 if not bins[-1]:
                     raise ValueError('Invalid config file: empty bin in "{}"'.format(sec['search']['batch_all_samples']))
                 bins.append([])
             elif s[:5] == 'file:':
                 try:
                     with open(os.path.join(config['software']['path'], s[5:])) as bin_file:
-                        newbin = [line.rstrip() for line in bin_file]
+                        bins[-1].extend([line.rstrip() for line in bin_file])
                 except FileNotFoundError:
                     with open(s[5:]) as bin_file:
-                        newbin = [line.rstrip() for line in bin_file]
-                if not bins[-1]:
-                    bins.pop()
-                bins.append(newbin)
-                bins.append([])
+                        bins[-1].extend([line.rstrip() for line in bin_file])
             else:
                 bins[-1].append(s)
         if len(bins) > 1 and not bins[-1]:

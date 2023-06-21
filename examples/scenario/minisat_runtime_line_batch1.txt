@@ -1,21 +1,11 @@
 [magpie]
-local_original_copy = True
 default_timeout = 30
 default_lengthout = 1e6
-
-[srcml]
-rename =
-    stmt: break continue decl_stmt do expr_stmt for goto if return switch while
-focus = block stmt
-internodes = block
-process_pseudo_blocks = True
-process_literals = False
-process_operators = False
 
 [software]
 path = examples/code/minisat
 target_files =
-    core/Solver.cc.xml
+    core/Solver.cc
 fitness = time
 
 setup_cmd = ./compile.sh
@@ -27,9 +17,10 @@ run_cmd = ./run_single.sh {INST}
 max_steps = 100
 batch_instances =
     file:data/inst_sat.txt
+    ___
     file:data/inst_unsat.txt
 batch_sample_size = 4
 possible_edits =
-    StmtReplacement
-    StmtInsertion
-    StmtDeletion
+    LineReplacement
+    LineInsertion
+    LineDeletion
