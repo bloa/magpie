@@ -1,7 +1,7 @@
 # Usage Philosophy
 
 Magpie's source code is entirely self-contained in the "magpie" folder, whilst the "bin" folder contains Magpie's default entry points.
-Entry points will expect a description of the experimental setup provided by a [scenario file][./config.md].
+Entry points will expect a description of the experimental setup provided by a [scenario file](./config.md).
 Upon execution, Magpie will create two other folders: "_magpie_logs", that will contain all log files (outputs, patches, diffs, etc) created by Magpie, as well as "_magpie_work", that will contain the temporary software variants.
 
 The typical Magpie setup will then look as follows:
