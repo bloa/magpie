@@ -7,8 +7,7 @@ my_test() {
     EXPECTED=$2
     ./simp/minisat $FILENAME $ARGV > /dev/null
     RETURN=$?
-    if [ $RETURN -ne $((EXPECTED)) ]
-    then
+    if [ $RETURN -ne $((EXPECTED)) ]; then
         echo "FAILED ON FILE:" $FILENAME
         echo "GOT:" $RETURN
         echo "EXPECTED:" $EXPECTED
