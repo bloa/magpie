@@ -52,8 +52,8 @@ There are eight magic constants that can be set.
 - `CLI_PREFIX="--"`
 - `CLI_GLUE="="`
 - `CLI_BOOLEAN="show"`
-- `CLI_BOOLEAN_TRUE=""`
-- `CLI_BOOLEAN_FALSE="no-"`
+- `CLI_BOOLEAN_PREFIX_TRUE=""`
+- `CLI_BOOLEAN_PREFIX_FALSE="no-"`
 - `SILENT_PREFIX="@"`
 - `SILENT_SUFFIX="$"`
 
