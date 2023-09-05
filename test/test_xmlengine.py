@@ -111,6 +111,73 @@ def test_replacement3(xml_engine, engine_contents, engine_locations):
     assert not xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target1)
     assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
     assert not xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
+    dump = xml_engine.dump(engine_contents[file_name])
+    new_dump = xml_engine.dump(new_contents[file_name])
+    expected = """--- 
++++ 
+@@ -6,7 +6,7 @@
+ 
+     public static TriangleType classifyTriangle(int a, int b, int c) {
+ 
+-        delay();
++        // Sort the sides so that a <= b <= c
+ 
+         // Sort the sides so that a <= b <= c
+         if (a > b) {
+"""
+    assert_diff(dump, new_dump, expected)
+
+def test_deletethenreplace(xml_engine, engine_contents, engine_locations):
+    """It should be possible to replace something deleted"""
+    file_name = 'Triangle.java.xml'
+    new_contents = copy.deepcopy(engine_contents)
+    new_locations = copy.deepcopy(engine_locations)
+    target1 = (file_name, 'expr_stmt', 0)
+    target2 = (file_name, 'comment', 0)
+    assert xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target1)
+    assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
+    dump = xml_engine.dump(engine_contents[file_name])
+    new_dump = xml_engine.dump(new_contents[file_name])
+    expected = """--- 
++++ 
+@@ -6,7 +6,7 @@
+ 
+     public static TriangleType classifyTriangle(int a, int b, int c) {
+ 
+-        delay();
++        // Sort the sides so that a <= b <= c
+ 
+         // Sort the sides so that a <= b <= c
+         if (a > b) {
+"""
+    assert_diff(dump, new_dump, expected)
+
+def test_replacethendelete(xml_engine, engine_contents, engine_locations):
+    """It should be possible to delete something replaced"""
+    file_name = 'Triangle.java.xml'
+    new_contents = copy.deepcopy(engine_contents)
+    new_locations = copy.deepcopy(engine_locations)
+    target1 = (file_name, 'expr_stmt', 0)
+    target2 = (file_name, 'comment', 0)
+    print(new_locations[file_name]['expr_stmt'])
+    assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
+    print(new_locations[file_name]['expr_stmt'])
+    assert xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target1)
+    dump = xml_engine.dump(engine_contents[file_name])
+    new_dump = xml_engine.dump(new_contents[file_name])
+    expected = """--- 
++++ 
+@@ -6,7 +6,7 @@
+ 
+     public static TriangleType classifyTriangle(int a, int b, int c) {
+ 
+-        delay();
++        
+ 
+         // Sort the sides so that a <= b <= c
+         if (a > b) {
+"""
+    assert_diff(dump, new_dump, expected)
 
 def test_insertion1(xml_engine, engine_contents, engine_locations):
     """Insertion should work"""
