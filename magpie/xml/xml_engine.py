@@ -191,7 +191,7 @@ class XmlEngine(AbstractEngine):
                     new_locations[d_f][o_t][i] = new_pos
         xpath = new_locations[d_f][d_t][d_i]
         for i, xpath_inter in enumerate(new_locations[d_f][d_t]):
-            if xpath_inter[:len(xpath)] == xpath:
+            if xpath_inter > xpath and xpath_inter[:len(xpath)] == xpath:
                 new_locations[d_f][d_t][i] = 'deleted'
         return True
 
