@@ -146,7 +146,7 @@ class XmlEngine(AbstractEngine):
         ingredient = contents[o_f].find(locations[o_f][o_t][o_i])
         if target is None or ingredient is None:
             return False
-        if self.tree_to_string(target) == self.tree_to_string(ingredient):
+        if self.tree_to_string(target, keep_tail=False) == self.tree_to_string(ingredient, keep_tail=False):
             return False
 
         # mutate
