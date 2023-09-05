@@ -172,7 +172,7 @@ class XmlEngine(AbstractEngine):
                     elif t == ingredient.tag:
                         itag += 1
                 elif i == d_i:
-                    new_locations[d_f][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
+                    new_locations[d_f][d_t][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
                 elif h != head:
                     break
                 elif t == tag:
@@ -182,13 +182,13 @@ class XmlEngine(AbstractEngine):
                         new_pos = '{}/{}[{}]/{}'.format(h, t, p-1, s)
                     else:
                         new_pos = '{}/{}[{}]'.format(h, t, p-1)
-                    new_locations[d_f][i] = new_pos
+                    new_locations[d_f][d_t][i] = new_pos
                 elif t == ingredient.tag:
                     if s:
                         new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
                     else:
                         new_pos = '{}/{}[{}]'.format(h, t, p+1)
-                    new_locations[d_f][i] = new_pos
+                    new_locations[d_f][o_t][i] = new_pos
         xpath = new_locations[d_f][d_t][d_i]
         for i, xpath_inter in enumerate(new_locations[d_f][d_t]):
             if xpath_inter[:len(xpath)] == xpath:
