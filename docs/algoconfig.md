@@ -48,7 +48,7 @@ Comments can also be added after any other valid line of the parameter file.
 
 There are eight magic constants that can be set.
 
-- `TIMING="test run"
+- `TIMING="test run"`
 - `CLI_PREFIX="--"`
 - `CLI_GLUE="="`
 - `CLI_BOOLEAN="show"`
