@@ -216,3 +216,18 @@ Genetic programming parameters:
 - `offspring_mutation`: proportion of the old population mutated
 - `uniform_rate`: percentage of edits originating from the first parent
 - `batch_reset`: whether a new set of instances is drawn from `[search] batch_instances` each new generation
+
+
+### `[search.minify]`
+
+Minifier parameters:
+
+    do_cleanup = True
+    do_rebuild = True
+    do_simplify = True
+    round_robin_limit = 3
+
+- `do_cleanup`: removes syntactically useless edits (no impact on the diff)
+- `do_rebuild`: ranks every individual edits and reinsert following fitness order
+- `do_simplify`: removes individual edits from the best patch (round robin exploration)
+- `round_robin_limit`: maximum number of times edits can be considered during the simplification step (use `-1` to disable)

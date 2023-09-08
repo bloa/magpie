@@ -92,6 +92,23 @@ class BasicProtocol:
             else:
                 raise ValueError('[search.gp] batch_reset should be Boolean')
 
+        # minify only
+        if isinstance(self.search, magpie.algo.ValidMinify):
+            sec = config['search.minify']
+            for key in [
+                    'do_cleanup',
+                    'do_rebuild',
+                    'do_simplify',
+            ]:
+                tmp = sec[key].lower()
+                if tmp in ['true', 't', '1']:
+                    self.search.config[key] = True
+                elif tmp in ['false', 'f', '0']:
+                    self.search.config[key] = False
+                else:
+                    raise ValueError('[search.minify] {} should be Boolean'.format(key))
+            self.search.config['round_robin_limit'] = int(sec['round_robin_limit'])
+
         # log config just in case
         with io.StringIO() as ss:
             config.write(ss)

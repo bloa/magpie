@@ -27,9 +27,10 @@ if __name__ == "__main__":
     patch = magpie.bin.patch_from_string(args.patch)
 
     # setup
+    config['search']['algorithm'] = 'ValidTest'
     magpie.bin.setup(config)
     protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
-    protocol.search = magpie.algo.ValidTest()
+    protocol.search = magpie.bin.algo_from_string(config['search']['algorithm'])()
     protocol.search.debug_patch = patch
     protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
     protocol.setup(config)

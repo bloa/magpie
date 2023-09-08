@@ -105,4 +105,12 @@ number: literal_number""",
         'uniform_rate': 0.5, # GeneticProgrammingUniformConcat and GeneticProgrammingUniformInter only
         'batch_reset': True,
     },
+
+    # [search.minify]
+    'search.minify': {
+        'do_cleanup': True,
+        'do_rebuild': True,
+        'do_simplify': True,
+        'round_robin_limit': 3,
+    },
 }

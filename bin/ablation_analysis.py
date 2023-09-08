@@ -27,14 +27,11 @@ if __name__ == "__main__":
             args.patch = f.read().strip()
     patch = magpie.bin.patch_from_string(args.patch)
 
-    # select algorithm
+    # setup
     config['search']['algorithm'] = 'AblationAnalysis'
-    algo = magpie.algo.AblationAnalysis
-
-    # setup protocol
     magpie.bin.setup(config)
     protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
-    protocol.search = algo()
+    protocol.search = magpie.bin.algo_from_string(config['search']['algorithm'])()
     protocol.search.debug_patch = patch
     protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
     protocol.setup(config)
