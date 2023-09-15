@@ -2,14 +2,33 @@ from abc import ABC, abstractmethod
 import os
 import random
 
+import magpie
+
 class AbstractEngine(ABC):
     def renamed_contents_file(self, target_file):
         return target_file
 
     def write_contents_file(self, new_contents, work_path, target_file):
+        # init cache if necessary
+        if 'dump_cache' not in self.__dict__.keys():
+            self.dump_cache = {}
+        # compute dump
         filename = os.path.join(work_path, self.renamed_contents_file(target_file))
+        dump = self.dump(new_contents[target_file])
+        # skip writing if file is (or should be) untouched
+        try:
+            if self.dump_cache[filename] == dump:
+                return
+        except KeyError:
+            self.dump_cache[filename] = dump
+            if magpie.config.trust_local_filesystem:
+                return
+            with open(filename, 'r') as tmp_file:
+                if tmp_file.read() == dump:
+                    return
+        # write only if file _really_ changed
         with open(filename, 'w') as tmp_file:
-            tmp_file.write(self.dump(new_contents[target_file]))
+            tmp_file.write(dump)
 
     def random_target(self, locations, weights, target_file, target_type=None):
         if target_type is None:

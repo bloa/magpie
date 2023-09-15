@@ -201,13 +201,14 @@ class BasicProgram(magpie.base.AbstractProgram):
             # one-time setup
             if not self.setup_performed:
                 self.setup_performed = True
+
+                # make sure this is the unmodified software
+                for filename in self.target_files:
+                    engine = self.get_engine(filename)
+                    assert engine.dump(self.local_contents[filename]) == engine.dump(self.contents[filename])
+
                 # run "[software] setup_cmd" if provided
                 if self.setup_cmd:
-                    # make sure this is the unmodified software
-                    for filename in self.target_files:
-                        engine = self.get_engine(filename)
-                        assert engine.dump(self.local_contents[filename]) == engine.dump(self.contents[filename])
-
                     # setup
                     cli = self.compute_local_cli('setup')
                     setup_cmd = self.setup_cmd.strip()
@@ -228,8 +229,8 @@ class BasicProgram(magpie.base.AbstractProgram):
                         run_result.status = 'SETUP_{}'.format(run_result.status)
                         return run_result
 
-                    # sync work directory
-                    self.sync_folder(self.path, work_path)
+                # sync work directory
+                self.sync_folder(self.path, work_path)
 
             # run "[software] compile_cmd" if provided
             if self.compile_cmd:

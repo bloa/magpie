@@ -27,6 +27,13 @@ def setup(config):
     magpie.config.default_timeout = float(sec['default_timeout'])
     magpie.config.default_lengthout = int(float(sec['default_lengthout']))
     magpie.config.diff_method = sec['diff_method']
+    val = sec['trust_local_filesystem'].lower()
+    if val in ['true', 't', '1']:
+        magpie.config.trust_local_filesystem = True
+    elif val in ['false', 'f', '0']:
+        magpie.config.trust_local_filesystem = False
+    else:
+        raise ValueError('[magpie] trust_local_filesystem should be Boolean')
 
     # [srcml]
     sec = config['srcml']

@@ -12,6 +12,7 @@ default_config = {
         'default_timeout': 30,
         'default_lengthout': 1e4,
         'diff_method': 'unified',
+        'trust_local_filesystem': True,
     },
 
     # [software]

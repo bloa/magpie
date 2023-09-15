@@ -21,6 +21,7 @@ Default values:
     default_timeout = 30
     default_lengthout = 1e4
     diff_method = 'unified'
+    trust_local_filesystem = True
 
 - `import`: the path of an optional Python file to import
 - `seed`: a random seed
@@ -33,6 +34,7 @@ Default values:
 - `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
 - `default_lengthout`: maximum output file size Magpie records before discarding a software variant (used if `compile_lengthout`, `test_lengthout`, or `run_lengthout` is not specified in `[software]`)
 - `diff_method`: type of diff format (either ["unified"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Unified.html) or ["context"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Context.html))
+- `trust_local_filesystem`: when the processed (i.e., after parsing and dump) version of an unmodified file is different to the one currently on disk, trusts that it is indeed semantically equivalent; otherwise, overwrite it. (useful to preserve incremental compilation)
 
 
 ## `[software]`

@@ -13,3 +13,5 @@ config.default_timeout = 30
 config.default_lengthout = 1e4 # 1e6 bytes is 1Mb
 
 config.diff_method = 'unified' # unified / context
+
+config.trust_local_filesystem = True
