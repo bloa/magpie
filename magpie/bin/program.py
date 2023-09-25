@@ -83,7 +83,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             if config['software']['setup_lengthout'].lower() in ['', 'none']:
                 self.setup_lengthout = None
             else:
-                self.setup_lengthout = float(config['software']['setup_lengthout'])
+                self.setup_lengthout = int(config['software']['setup_lengthout'])
 
         # compile
         if 'compile_cmd' in config['software']:
@@ -100,7 +100,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             if config['software']['compile_lengthout'].lower() in ['', 'none']:
                 self.compile_lengthout = None
             else:
-                self.compile_lengthout = float(config['software']['compile_lengthout'])
+                self.compile_lengthout = int(config['software']['compile_lengthout'])
 
         # test
         if 'test_cmd' in config['software']:
@@ -117,7 +117,7 @@ class BasicProgram(magpie.base.AbstractProgram):
             if config['software']['test_lengthout'].lower() in ['', 'none']:
                 self.test_lengthout = None
             else:
-                self.test_lengthout = float(config['software']['test_lengthout'])
+                self.test_lengthout = int(config['software']['test_lengthout'])
 
         # run
         if 'run_cmd' in config['software']:
