@@ -275,7 +275,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                     return run_result
 
             # when fitness is computed from test_cmd, run_cmd is irrelevant
-            if self.fitness_type in ['repair', 'bloat']:
+            if self.fitness_type in ['repair', 'bloat_lines', 'bloat_words', 'bloat_chars']:
                 return run_result
 
             # run "[software] run_cmd" if provided
