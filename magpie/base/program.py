@@ -268,9 +268,9 @@ class AbstractProgram(ABC):
                 os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
                 stdout, stderr = sprocess.communicate()
                 end = time.time()
-                return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
+                return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
             end = time.time()
-        return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
+        return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
 
     def clean_work_dir(self):
         try:
