@@ -53,8 +53,6 @@ class LineEngine(AbstractLineEngine):
         n = len(contents[d_f])
         for i in range(d_i, n+1):
             new_locations[d_f][d_t][i] += 1
-        for i in range(d_i, n):
-            new_locations[o_f][o_t][i] += 1
         return True
 
     def do_delete(self, contents, locations, new_contents, new_locations, target):
