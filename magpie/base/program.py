@@ -104,6 +104,10 @@ class AbstractProgram(ABC):
     def reset_contents(self):
         self.contents = {}
         self.locations = {}
+        if any('*' in f for f in self.target_files):
+            path = pathlib.Path(self.path)
+            tmp = [sorted(path.glob(f)) if '*' in f else [f] for f in self.target_files]
+            self.target_files = [str(f.relative_to(path)) for fl in tmp for f in fl]
         for target_file in self.target_files:
             try:
                 engine = self.engines[target_file]
