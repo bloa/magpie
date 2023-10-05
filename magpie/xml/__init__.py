@@ -21,7 +21,6 @@ edits = [
     XmlLineReplacement, XmlLineInsertion, XmlLineDeletion, XmlLineMoving,
     StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving,
     ExprReplacement,
-    TextSetting, TextWrapping,
     ComparisonOperatorSetting, ArithmeticOperatorSetting,
     NumericSetting, RelativeNumericSetting,
 ]
