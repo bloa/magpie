@@ -1,4 +1,5 @@
 import importlib
+import os
 import random
 
 import magpie
@@ -7,7 +8,11 @@ def setup(config):
     # [magpie]
     sec = config['magpie']
     if val := sec['import']:
-        importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
+        try:
+            s = os.path.join(config['software']['path'], val)
+            importlib.import_module(s.rstrip('.py').lstrip('./').replace('/', '.'))
+        except ModuleNotFoundError:
+            importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
     if val := sec['seed']:
         random.seed(int(val))
     else:
