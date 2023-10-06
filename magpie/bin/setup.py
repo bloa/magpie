@@ -4,7 +4,7 @@ import random
 
 import magpie
 
-def setup(config):
+def pre_setup(config):
     # [magpie]
     sec = config['magpie']
     if val := sec['import']:
@@ -20,6 +20,9 @@ def setup(config):
         random.seed(val)
         sec['seed'] = str(val)
 
+def setup(config):
+    # [magpie]
+    sec = config['magpie']
     magpie.config.log_dir = sec['log_dir']
     magpie.config.work_dir = sec['work_dir']
 

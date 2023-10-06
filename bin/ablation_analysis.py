@@ -20,6 +20,7 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read_dict(magpie.bin.default_config)
     config.read(args.scenario)
+    magpie.bin.pre_setup(config)
 
     # recreate patch
     if args.patch.endswith('.patch'):
