@@ -27,6 +27,9 @@ default_config = {
         'engine_config': """
 *.params : [params]
 *.xml : [srcml]""",
+        'init_cmd': '',
+        'init_timeout': '60',
+        'init_lengthout': '-1',
         'setup_cmd': '',
         'setup_timeout': '',
         'setup_lengthout': '',

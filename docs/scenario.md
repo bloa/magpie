@@ -30,9 +30,9 @@ Default values:
 - `local_original_copy`: whether an intermediary copy of the original software is also cloned in `work_dir` (useful e.g. in cluster to clone everything in `/tmp`.
 - `local_original_name`: the name of the intermerdiary copy in `work_dir` (only if `local_original_copy` is `True`)
 - `output_encoding`: the character encoding used to decode the target software's stdout/stderr
-- `edit_retries`: how many invalid edits Magpie tries to generate in a row before completely giving up on .
-- `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
-- `default_lengthout`: maximum output file size Magpie records before discarding a software variant (used if `compile_lengthout`, `test_lengthout`, or `run_lengthout` is not specified in `[software]`)
+- `edit_retries`: how many invalid edits Magpie tries to generate in a row before completely giving up.
+- `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `init_timeout`, `setup_timeout`, `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
+- `default_lengthout`: maximum output file size Magpie records before discarding a software variant (used if `init_lengthout`, `setup_lengthout`, `compile_lengthout`, `test_lengthout`, or `run_lengthout` is not specified in `[software]`). Set to a negative value (e.g., `-1`) for unlimited output.
 - `diff_method`: type of diff format (either ["unified"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Unified.html) or ["context"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Context.html))
 - `trust_local_filesystem`: when the processed (i.e., after parsing and dump) version of an unmodified file is different to the one currently on disk, trusts that it is indeed semantically equivalent; otherwise, overwrite it. (useful to preserve incremental compilation)
 
@@ -53,6 +53,9 @@ Default values:
         *.params : [params]
         *.xml : [srcml]
     possible_edits =
+    init_cmd =
+    init_timeout = 60
+    init_lengthout = 0
     setup_cmd =
     setup_timeout =
     setup_lengthout =
@@ -76,9 +79,12 @@ Default values:
 - `engine_rules`: the list of rules used to determine how target files are internally represented; engine classes need to belong to either `magpie.xml.engines`, `magpie.line.engines`, or `magpie.params.engines`
 - `engine_config`: the list of rules used to determine which section of the scenario file gets used to configure the engine of the associated files
 - `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
-- `setup_cmd`: command line to execute during the setup step (or "", in which case it is skipped)
-- `setup_timeout`: maximum execution time during the setup step (or "", in which case `default_timeout` from `[magpie]` is used)
-- `setup_lengthout`: maximum output file size during the setup step (or "", in which case `default_lengthout` from `[magpie]` is used)
+- `init_cmd`: command line to execute during the init step (or "", in which case it is skipped)
+- `init_timeout`: maximum execution time during the init step (or "", in which case `default_timeout` from `[magpie]` is used)
+- `init_lengthout`: maximum output file size during the init step (or "", in which case `default_lengthout` from `[magpie]` is used)
+- `setup_cmd`: same but for the setup step
+- `setup_timeout`
+- `setup_lengthout`
 - `compile_cmd`: same but for the compile step
 - `compile_timeout`
 - `compile_lengthout`

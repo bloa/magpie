@@ -40,9 +40,6 @@ class BasicProgram(magpie.base.AbstractProgram):
                     raise ValueError('badly formated section name: "{}"'.format(rule))
                 self.engine_config.append((k.strip(), config[v[1:-1]], v))
 
-        # reset contents here, AFTER engine config
-        self.reset_contents()
-
         # fitness type
         if 'fitness' not in config['software']:
             raise ValueError('Invalid config file: "[software] fitness" must be defined')
@@ -52,6 +49,9 @@ class BasicProgram(magpie.base.AbstractProgram):
         self.fitness_type = config['software']['fitness']
 
         # execution-related parameters
+        self.init_performed = False
+        self.init_cmd = None
+        self.init_timeout = None
         self.setup_performed = False
         self.setup_cmd = None
         self.setup_timeout = None
@@ -67,6 +67,23 @@ class BasicProgram(magpie.base.AbstractProgram):
         self.run_lengthout = None
         self.batch_timeout = None
         self.batch_lengthout = None
+
+        # init
+        if 'init_cmd' in config['software']:
+            if config['software']['init_cmd'].lower() in ['', 'none']:
+                self.init_cmd = None
+            else:
+                self.init_cmd = config['software']['init_cmd']
+        if 'init_timeout' in config['software']:
+            if config['software']['init_timeout'].lower() in ['', 'none']:
+                self.init_timeout = None
+            else:
+                self.init_timeout = float(config['software']['init_timeout'])
+        if 'init_lengthout' in config['software']:
+            if config['software']['init_lengthout'].lower() in ['', 'none']:
+                self.init_lengthout = None
+            else:
+                self.init_lengthout = int(config['software']['init_lengthout'])
 
         # setup
         if 'setup_cmd' in config['software']:
@@ -157,6 +174,32 @@ class BasicProgram(magpie.base.AbstractProgram):
             else:
                 self.batch_lengthout = int(config['software']['batch_lengthout'])
 
+    def ensure_contents(self):
+        if not self.contents:
+            # take care of cmd_init first thing
+            if self.init_cmd:
+                cwd = os.getcwd()
+                try:
+                    os.chdir(self.path)
+                    timeout = self.init_timeout or magpie_config.default_timeout
+                    lengthout = self.init_lengthout or magpie_config.default_lengthout
+                    exec_result = self.exec_cmd(shlex.split(self.init_cmd),
+                                                timeout=timeout,
+                                                lengthout=lengthout)
+                    run_result = magpie.base.RunResult(exec_result.status)
+                    if run_result.status == 'SUCCESS':
+                        self.process_init_exec(run_result, exec_result)
+                    if run_result.status != 'SUCCESS':
+                        run_result.status = f'INIT_{run_result.status}'
+                        run_result.last_exec = exec_result
+                        self.diagnose_error(run_result)
+                        raise RuntimeError('(cmd_init) failed to init target software')
+                finally:
+                    os.chdir(cwd)
+
+            # reset after cmd_init
+            self.reset_contents()
+
     def get_engine(self, target_file):
         for (pattern, engine) in self.engine_rules:
             if any([target_file == pattern,
@@ -222,7 +265,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                                 timeout=timeout,
                                                 lengthout=lengthout)
                     run_result.status = exec_result.status
-                    run_result.debug = exec_result
+                    run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
                         self.process_setup_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
@@ -246,7 +289,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                             timeout=timeout,
                                             lengthout=lengthout)
                 run_result.status = exec_result.status
-                run_result.debug = exec_result
+                run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
                     self.process_compile_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
@@ -267,7 +310,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                             timeout=timeout,
                                             lengthout=lengthout)
                 run_result.status = exec_result.status
-                run_result.debug = exec_result
+                run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
                     self.process_test_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
@@ -302,7 +345,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                                                     timeout=timeout,
                                                     lengthout=lengthout)
                         run_result.status = exec_result.status
-                        run_result.debug = exec_result
+                        run_result.last_exec = exec_result
                         if run_result.status == 'SUCCESS':
                             self.process_run_exec(run_result, exec_result)
                         self.process_batch_single(run_result, inst)
@@ -327,6 +370,11 @@ class BasicProgram(magpie.base.AbstractProgram):
         # final process
         self.process_batch_final(run_result)
         return run_result
+
+    def process_init_exec(self, run_result, exec_result):
+        # "[software] init_cmd" must yield nonzero return code
+        if exec_result.return_code != 0:
+            run_result.status = 'CODE_ERROR'
 
     def process_setup_exec(self, run_result, exec_result):
         # "[software] setup_cmd" must yield nonzero return code
@@ -521,8 +569,35 @@ class BasicProgram(magpie.base.AbstractProgram):
             fit.append(round(v, precision))
         run_result.fitness = fit if multi else fit[0]
 
+    def diagnose_error(self, run):
+        self.logger.info('!*'*40)
+        self.logger.info('Unable to run and evaluate the target software.')
+        self.logger.info('Self-diagnostic:')
+        self.self_diagnostic(run)
+        self.logger.info('!*'*40)
+        if run.last_exec is not None:
+            self.logger.info('CWD: {}'.format(os.path.join(self.work_dir, self.basename)))
+            self.logger.info('CMD: {}'.format(run.last_exec.cmd))
+            self.logger.info('STATUS: {}'.format(run.last_exec.status))
+            self.logger.info('RETURN_CODE: {}'.format(run.last_exec.return_code))
+            self.logger.info('RUNTIME: {}'.format(run.last_exec.runtime))
+            try:
+                s = run.last_exec.stdout.decode(magpie_config.output_encoding)
+                self.logger.info('STDOUT: (see log file)')
+                self.logger.debug('STDOUT:\n{}'.format(s))
+            except UnicodeDecodeError:
+                self.logger.info('STDOUT: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.last_exec.stdout))
+            try:
+                s = run.last_exec.stderr.decode(magpie_config.output_encoding)
+                self.logger.info('STDERR: (see log file)')
+                self.logger.debug('STDERR:\n{}'.format(s))
+            except UnicodeDecodeError:
+                s = magpie_config.output_encoding
+                self.logger.info('STDERR: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.last_exec.stderr))
+            self.logger.info('!*'*40)
+
     def self_diagnostic(self, run):
-        for step in ['setup', 'compile', 'test', 'run']:
+        for step in ['init', 'setup', 'compile', 'test', 'run']:
             if run.status == '{}_CLI_ERROR'.format(step.upper()):
                 self.logger.info('Unable to run the "{}_cmd" command'.format(step))
                 self.logger.info('--> there might be a typo (try it manually)')

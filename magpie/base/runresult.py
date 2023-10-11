@@ -6,3 +6,4 @@ class RunResult(types.SimpleNamespace):
         self.fitness = None
         self.cache = {}
         self.log = ''
+        self.last_exec = None

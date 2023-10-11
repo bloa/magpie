@@ -121,13 +121,22 @@ class BasicProtocol:
         if self.search is None:
             raise AssertionError('Search not specified')
 
-        self.search.program = self.program
-
-        # run the algorithm a single time
-        logger = self.program.logger
+        # init final result dict
         result = {'stop': None, 'best_patch': []}
-        self.search.run()
-        result.update(self.search.report)
+
+        # setup program
+        self.search.program = self.program
+        try:
+            self.program.ensure_contents()
+        except RuntimeError as e:
+            result['stop'] = e.msg
+
+        if not result['stop']:
+            # run the algorithm a single time
+            self.search.run()
+            result.update(self.search.report)
+
+        logger = self.program.logger
         logger.info('')
 
         # print the report

@@ -118,6 +118,10 @@ class AbstractProgram(ABC):
             self.contents[target_file] = engine.get_contents(os.path.join(self.path, target_file))
             self.locations[target_file] = engine.get_locations(self.contents[target_file])
 
+    def ensure_contents(self):
+        if not self.contents:
+            self.reset_contents()
+
     def __str__(self):
         return "{}({}):{}".format(self.__class__.__name__,
                                   self.path, ",".join(self.target_files))

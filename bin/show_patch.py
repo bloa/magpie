@@ -31,6 +31,7 @@ if __name__ == "__main__":
     # setup
     magpie.bin.setup(config)
     program = magpie.bin.program_from_string(config['software']['program'])(config)
+    program.ensure_contents()
 
     # apply patch
     new_contents = program.apply_patch(patch)

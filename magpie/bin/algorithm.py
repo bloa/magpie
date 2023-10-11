@@ -66,28 +66,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
     def hook_warmup_evaluation(self, count, patch, run):
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
         if run.status != 'SUCCESS':
-            self.program.logger.info('!*'*40)
-            self.program.logger.info('CWD: {}'.format(os.path.join(self.program.work_dir, self.program.basename)))
-            self.program.logger.info('CMD: {}'.format(run.debug.cmd))
-            self.program.logger.info('STATUS: {}'.format(run.debug.status))
-            self.program.logger.info('RETURN_CODE: {}'.format(run.debug.return_code))
-            self.program.logger.info('RUNTIME: {}'.format(run.debug.runtime))
-            try:
-                s = run.debug.stdout.decode(magpie_config.output_encoding)
-                self.program.logger.info('STDOUT:\n{}'.format(s))
-            except UnicodeDecodeError:
-                self.program.logger.info('STDOUT: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.debug.stdout))
-            try:
-                s = run.debug.stderr.decode(magpie_config.output_encoding)
-                self.program.logger.info('STDERR:\n{}'.format(s))
-            except UnicodeDecodeError:
-                s = magpie_config.output_encoding
-                self.program.logger.info('STDERR: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.debug.stderr))
-            self.program.logger.info('!*'*40)
-            self.program.logger.info('Magpie stopped because it was unable to run the (unmodified) target software')
-            self.program.logger.info('Self-diagnostic:')
-            self.program.self_diagnostic(run)
-            self.program.logger.info('!*'*40)
+            self.program.diagnose_error(run)
 
     def hook_batch_evaluation(self, count, patch, run, best=False):
         c = '*' if best else ' '
@@ -140,7 +119,6 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
         if self.report['best_patch']:
             self.report['diff'] = self.program.diff_patch(self.report['best_patch'])
         self.program.logger.info('==== END ====')
-        self.program.logger.info('Reason: {}'.format(self.report['stop']))
 
     def warmup(self):
         empty_patch = magpie.base.Patch()
@@ -154,7 +132,9 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
             l = 'INITIAL' if i == 1 else 'WARM'
             self.hook_warmup_evaluation('WARM', empty_patch, run)
             if run.status != 'SUCCESS':
-                raise RuntimeError('initial solution has failed')
+                step = run.status.split('_')[0].lower()
+                self.report['stop'] = f'failed to {step} target software'
+                return
             warmup_values.append(run.fitness)
         if self.config['warmup_strategy'] == 'last':
             current_fitness = warmup_values[-1]

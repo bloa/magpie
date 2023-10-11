@@ -25,9 +25,10 @@ if __name__ == "__main__":
     # setup
     magpie.bin.pre_setup(config)
     magpie.bin.setup(config)
+    program = magpie.bin.program_from_string(config['software']['program'])(config)
+    program.ensure_contents()
 
     # show locations
-    program = magpie.bin.program_from_string(config['software']['program'])(config)
     target_files = config['software']['target_files'].split()
     for filename in program.target_files:
         if args.filename is not None and args.filename != filename:

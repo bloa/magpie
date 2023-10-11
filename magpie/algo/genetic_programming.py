@@ -30,6 +30,10 @@ class GeneticProgramming(BasicAlgorithm):
             self.hook_warmup()
             self.warmup()
 
+            # early stop if something went wrong during warmup
+            if self.report['stop']:
+                return
+
             # start!
             self.hook_start()
 

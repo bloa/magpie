@@ -26,14 +26,21 @@ We provide examples of source code and scenarios in the "example" folder.
 
 # Software Evaluation
 
-Fitness assessment is broken down in four successive steps: "setup", "compile", "test", and "run".
+Fitness assessment is broken down in five successive steps: "init", "setup", "compile", "test", and "run".
 
 In all but one case (the test step when using the "repair" fitness function), a software variant is immediately discarded it any of the step fails (i.e., if any of the provided command returns a nonzero return code).
+
+## Init
+
+This step is only conducted **once**, at the very beginning of the Mapgie execution.
+It is meant to fetch or update software files that wouldn't otherwise be present in the specified directory.
+Since it might modify or initialise from scratch target files (e.g., by automatically computing XML ASTs), this step will **always** be performed.
 
 ## Setup
 
 This step is only conducted **once**, during warmup with the unmodified software, in the original software directory (or in an intermediate copy if the `local_original_copy` option is used).
 It is useful for performing some initial processing or compilation so as to avoid wasting resources on things that would otherwise be repeated for every single software variant.
+Conversely to the "init" step, this step will not be performed when no evaluation of the target software is required.
 
 See for example the `examples/scenario/triangle-cpp_runtime.txt` scenario in which this step is used to create an initialised CMake build directory.
 
@@ -60,6 +67,7 @@ This step is conducted last, and is used to compute the fitness value in most ca
 
 If multiple training instances are specified, this step is performed multiple times on a sample of instances in a fashion similar to machine learning's _batch processing_.
 The fitness value of the software variant is then aggregated from its multiple individual runs and the different instances.
+
 
 # Fitness Function
 

@@ -38,6 +38,21 @@ def my_runresult():
     (255, 'CODE_ERROR'),
     (-1, 'CODE_ERROR'),
 ])
+def test_process_init(my_program, my_runresult, return_code, status):
+    exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
+    my_program.process_init_exec(my_runresult, exec_result)
+    assert my_runresult.status == status, my_runresult
+
+
+@pytest.mark.parametrize('return_code,status', [
+    # SUCCESS on 0
+    (0, 'SUCCESS'),
+    # CODE_ERROR on everything else
+    (1, 'CODE_ERROR'),
+    (2, 'CODE_ERROR'),
+    (255, 'CODE_ERROR'),
+    (-1, 'CODE_ERROR'),
+])
 def test_process_setup(my_program, my_runresult, return_code, status):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
     my_program.process_setup_exec(my_runresult, exec_result)
