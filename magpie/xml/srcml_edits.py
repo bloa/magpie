@@ -1,4 +1,4 @@
-from .xml_edits import NodeDeletion, NodeReplacement, NodeInsertion, NodeMoving
+from .xml_edits import NodeDeletion, NodeReplacement, NodeInsertion, NodeMoving, NodeSwap
 from .xml_edits import TextSetting, TextWrapping
 
 class XmlLineDeletion(NodeDeletion):
@@ -26,6 +26,10 @@ class StmtInsertion(NodeInsertion):
     NODE_TYPE = 'stmt'
 
 class StmtMoving(NodeMoving):
+    NODE_PARENT_TYPE = 'block'
+    NODE_TYPE = 'stmt'
+
+class StmtSwap(NodeSwap):
     NODE_PARENT_TYPE = 'block'
     NODE_TYPE = 'stmt'
 
