@@ -82,7 +82,8 @@ class AbstractAlgorithm(ABC):
                 self.report['stop'] = 'step budget'
                 return True
         if self.stop['fitness'] is not None: # todo: list
-            if self.report['best_fitness'] <= self.stop['fitness']:
-                self.report['stop'] = 'target fitness reached'
-                return True
+            if self.report['best_fitness'] is not None:
+                if self.report['best_fitness'] <= self.stop['fitness']:
+                    self.report['stop'] = 'target fitness reached'
+                    return True
         return False
