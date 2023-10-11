@@ -70,8 +70,9 @@ Out-of-the-box:
 - **bloat_lines**, **bloat_words**, **bloat_chars**: Magpie counts the number of lines, words, or character of every targeted file.
 
 Require specific outputs:
-- **repair**: during the test step, Magpie checks STDOUT for a string matching `XXX fail` or `XXX error`, "XXX" being the number of bugs to repair; if no such string is found, then a string matching "XXX pass" must be present instead (resulting in a fitness value of 0).  
-  This scheme should at least be compatible with JUnit (Java), pytest (Python), and minitest (Ruby).
+- **repair**: during the test step, Magpie checks STDOUT for a specific strings (e.g., `Tests run: XXX` and `Failures: XXX` to support JUnit) and computes the percentage of failing tests.
+  Note that we need the total number of tests to avoid some fairy situations (e.g., the test harness crashing and only reporting the first, and therefore only, test fail).
+  Magpie is currently compatible with JUnit (Java), pytest (Python), and minitest (Ruby).
 - **posix_time**: STDERR is checked for a string matching `real XXX`.
   This can easily be achieved by preceding the vanilla command with, e.g. on most Linux distributions, `/usr/bin/time -p `.
   Note that the GNU time command is not very precise.

@@ -342,19 +342,28 @@ class BasicProgram(magpie.base.AbstractProgram):
         # if "[software] fitness" is "repair", we check STDOUT for the number of failed test cases
         if self.fitness_type == 'repair':
             stdout = exec_result.stdout.decode(magpie.config.output_encoding)
-            matches = re.findall(r'\b(\d+) (?:fail|error)', stdout)
-            fails = 0
-            if matches:
-                for m in matches:
+            for fail_regexp, total_regexp in [
+                (r'Failures: (\d+)\b', r'^Tests run: (\d+)\b'), # junit
+                (r'\b(\d+) failed', r'^collected (\d+) items'), # pytest
+                (r' (\d+) (?:failures|errors)', r'^(\d+) runs,'), # minitest
+            ]:
+                fail_matches = re.findall(fail_regexp, stdout, re.MULTILINE)
+                total_matches = re.findall(total_regexp, stdout, re.MULTILINE)
+                n_fail = 0
+                n_total = 0
+                for m in fail_matches:
                     try:
-                        fails += float(m)
+                        n_fail += float(m)
                     except ValueError:
                         run_result.status = 'PARSE_ERROR'
-                run_result.fitness = fails
-                return
-            matches = re.findall(r'\b(\d+) (?:pass)', stdout)
-            if matches:
-                run_result.fitness = 0
+                for m in total_matches:
+                    try:
+                        n_total += float(m)
+                    except ValueError:
+                        run_result.status = 'PARSE_ERROR'
+                if n_total > 0:
+                    run_result.fitness = round(100*n_fail/n_total, 2)
+                    break
             else:
                 run_result.status = 'PARSE_ERROR'
 
