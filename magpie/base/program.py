@@ -104,6 +104,8 @@ class AbstractProgram(ABC):
     def reset_contents(self):
         self.contents = {}
         self.locations = {}
+        self.dump_cache = {}
+        self.trust_local = {}
         if any('*' in f for f in self.target_files):
             path = pathlib.Path(self.path)
             tmp = [sorted(path.glob(f)) if '*' in f else [f] for f in self.target_files]
@@ -117,6 +119,9 @@ class AbstractProgram(ABC):
                 self.engines[target_file] = engine
             self.contents[target_file] = engine.get_contents(os.path.join(self.path, target_file))
             self.locations[target_file] = engine.get_locations(self.contents[target_file])
+            self.dump_cache[target_file] = engine.dump(self.contents[target_file])
+            self.trust_local[target_file] = magpie_config.trust_local_filesystem
+
 
     def ensure_contents(self):
         if not self.contents:
@@ -173,7 +178,7 @@ class AbstractProgram(ABC):
 
         # process modified files
         for target_file in new_contents.keys():
-            self.engines[target_file].write_contents_file(new_contents, work_path, target_file)
+            self.engines[target_file].write_contents_file(self.dump_cache, self.trust_local, new_contents, work_path, target_file)
 
         # memorise
         self.local_contents = copy.deepcopy(new_contents)
