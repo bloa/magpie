@@ -205,7 +205,7 @@ class AbstractProgram(ABC):
                 shutil.copystat(os.path.join(original, entry), os.path.join(target, entry))
             # else: unmodified file
         for entry in contents_original:
-            if os.path.isdir(os.path.join(target, entry)):
+            if os.path.isdir(os.path.join(original, entry)):
                 if entry in contents_target:
                     # recursion
                     self.sync_folder(os.path.join(target, entry), os.path.join(original, entry))
