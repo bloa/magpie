@@ -309,4 +309,22 @@ Example:
 
 Example:
 
-    python3 bin/line_xml.py --file examples/code/triangle-java_slow/Triangle.java
+    python3 utils/line_xml.py --file examples/code/triangle-java_slow/Triangle.java
+
+
+### Python to AST XML Converter
+
+Examples:
+
+    python3 utils/python_to_xml.py examples/code/triangle-py_bug/triangle.py
+<!-- -->
+    cat examples/code/triangle-py_bug/triangle.py | python3 utils/python_to_xml.py
+
+
+### AST XML to Source Code Converter
+
+Examples:
+
+    python3 utils/clear_xml.py examples/code/triangle-py_slow/triangle.py.xml
+<!-- -->
+    cat examples/code/triangle-py_bug/triangle.py | python3 utils/python_to_xml.py | python3 utils/clear_xml.py
