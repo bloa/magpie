@@ -74,36 +74,37 @@ class XmlEngine(AbstractEngine):
             parent_xpath, insert_index = fakepath.split('><')
             insert_index = int(insert_index)
             parent = copy.deepcopy(contents[target_file].find(parent_xpath))
-            sp = self.guess_spacing(parent.text)
+            sp = self.find_indent(contents[target_file], parent_xpath)
             if insert_index == 0:
-                parent.text = (parent.text or '') + '(INSERTION POINT)'
+                parent.text = f'{parent.text or ""}\n(INSERTION POINT)\n{sp}'
             else:
                 child = None
                 for i, child in enumerate(parent):
                     if i == insert_index-1:
-                        child.tail = sp + '(INSERTION POINT)' + (child.tail or '')
+                        child_xpath = f'{parent_xpath}/{child.tag}[{insert_index}]'
+                        spc = self.find_indent(contents[target_file], child_xpath)
+                        child.tail = f'\n{spc}(INSERTION POINT){child.tail or ""}'
                         break
-                    sp = self.guess_spacing(child.tail)
-            out = '# {}: {}\n{}'.format(
+            out = '# {}: {}\n{}{}'.format(
                 target_loc,
                 fakepath,
+                sp,
                 self.tree_to_string(parent))
         else:
             xpath = locations[target_file][target_type][target_loc]
-            out = '# {}: {}\n{}'.format(
+            sp = self.find_indent(contents[target_file], xpath)
+            out = '# {}: {}\n{}{}'.format(
                 target_loc,
                 xpath,
+                sp,
                 self.tree_to_string(contents[target_file].find(xpath), keep_tail=False))
         return out
 
     @staticmethod
-    def string_to_tree(s):
-        xml = re.sub(r'(?:\s+xmlns[^=]*="[^"]+")+', '', s, count=1)
-        xml = re.sub(r'<(/?)[^>]+:([^:>]+)>', r'<\1\2>', xml)
-        try:
-            return ElementTree.fromstring(xml)
-        except ElementTree.ParseError as e:
-            raise Exception('Program', 'ParseError: {}'.format(str(e))) from None
+    def string_to_tree(xml_str):
+        xml_str = re.sub(r'(?:\s+xmlns[^=]*="[^"]+")+', '', xml_str, count=1)
+        xml_str = re.sub(r'<(/?\w+?):(\w+)>', r'<\1_\2>', xml_str)
+        return ElementTree.fromstring(xml_str)
 
     @staticmethod
     def tree_to_string(tree, keep_tail=True):
@@ -149,6 +150,10 @@ class XmlEngine(AbstractEngine):
         if self.tree_to_string(target, keep_tail=False) == self.tree_to_string(ingredient, keep_tail=False):
             return False
 
+        # lookup indentations
+        ind_t = self.find_indent(new_contents[d_f], new_locations[d_f][d_t][d_i])
+        ind_i = self.find_indent(contents[o_f], locations[o_f][o_t][o_i])
+
         # mutate
         old_tag = target.tag
         old_tail = target.tail
@@ -159,6 +164,7 @@ class XmlEngine(AbstractEngine):
         target.tail = old_tail
         for child in ingredient:
             target.append(copy.deepcopy(child))
+        self.replace_indent(target, ind_t, ind_i)
 
         # update modification points
         if old_tag != ingredient.tag:
@@ -208,26 +214,32 @@ class XmlEngine(AbstractEngine):
         if parent is None or ingredient is None:
             return False
 
+        # lookup indentations
+        for child in parent:
+            ind_t = self.find_indent(new_contents[d_f], f'{parent_xpath}/{child.tag}[1]')
+            break
+        else:
+            ind_t = '  ' # no idea?!
+        ind_i = self.find_indent(contents[o_f], locations[o_f][o_t][o_i])
+
         # mutate
-        sp = self.guess_spacing(parent.text)
         tmp = copy.deepcopy(ingredient)
         if insert_index == 0:
-            tmp.tail = sp
+            tmp.tail = f'\n{ind_t}'
             parent.insert(insert_index, tmp)
         else:
             child = None
             for i, child in enumerate(parent):
                 if i == insert_index-1:
                     tmp.tail = child.tail
-                    child.tail = sp
+                    child.tail = f'\n{ind_t}'
                     parent.insert(insert_index, tmp)
                     break
-                sp = self.guess_spacing(child.tail)
             else:
                 tmp.tail = child.tail
-                child.tail = sp
+                child.tail = f'\n{ind_t}'
                 parent.insert(i+1, tmp)
-                # raise RuntimeError
+        self.replace_indent(tmp, ind_t, ind_i)
 
         # update modification points
         for i, xpath in enumerate(new_locations[d_f][o_t]):
@@ -381,5 +393,41 @@ class XmlEngine(AbstractEngine):
     def guess_spacing(self, text):
         if text is None:
             return ''
-        m = [''] + re.findall(r"(\n\s*)", text, re.MULTILINE)
+        m = [''] + re.findall(r"\n(\s*)", text, re.MULTILINE)
         return m[-1]
+
+    def find_indent(self, root, xpath):
+        if xpath == '.':
+            return ''
+        m = re.match(r'^(.*)\/[^\[]+\[(\d+)\]$', xpath)
+        target = root.find(xpath)
+        parent = root.find(m.groups()[0])
+        assert target is not None
+        if parent is root:
+            return ''
+        index = int(m.groups()[1])
+        if index == 1:
+            parent_lead = parent.text
+        else:
+            for child in parent:
+                if child is target:
+                    break
+                parent_lead = child.tail
+            else:
+                assert False
+        if parent_lead:
+            if '\n' in parent_lead:
+                lead = parent_lead.split('\n')[-1]
+                lead = re.match(r'^(\s*)', lead).groups()[0]
+                return lead
+        lead = self.find_indent(root, m.groups()[0]) + (parent_lead or '')
+        lead = re.match(r'^(\s*)', lead).groups()[0]
+        return lead
+
+    def replace_indent(self, target, ind_t, ind_i, _first=True):
+        if target.text:
+            target.text = target.text.replace(f'\n{ind_i}', f'\n{ind_t}')
+        if target.tail and not _first:
+            target.tail = target.tail.replace(f'\n{ind_i}', f'\n{ind_t}')
+        for child in target:
+            self.replace_indent(child, ind_t, ind_i, False)

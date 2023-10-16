@@ -191,11 +191,10 @@ def test_insertion1(xml_engine, engine_contents, engine_locations):
     new_dump = xml_engine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -7,6 +7,8 @@
+@@ -7,6 +7,7 @@
      public static TriangleType classifyTriangle(int a, int b, int c) {
  
          delay();
-+
 +        a = b;
  
          // Sort the sides so that a <= b <= c
@@ -217,17 +216,15 @@ def test_insertion2(xml_engine, engine_contents, engine_locations):
     new_dump = xml_engine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -5,6 +5,10 @@
-     }
+@@ -6,6 +6,8 @@
  
      public static TriangleType classifyTriangle(int a, int b, int c) {
-+
-+        delay();
-+
-+        a = b;
  
++        delay();
++        a = b;
          delay();
  
+         // Sort the sides so that a <= b <= c
 """
     assert_diff(dump, new_dump, expected)
 
@@ -249,20 +246,16 @@ def test_insertion3(xml_engine, engine_contents, engine_locations):
     new_dump = xml_engine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -6,9 +6,17 @@
+@@ -6,9 +6,13 @@
  
      public static TriangleType classifyTriangle(int a, int b, int c) {
  
 +        a = b;
-+
 +        delay();
-+
 +        a = b;
-+
          delay();
  
          // Sort the sides so that a <= b <= c
-+
 +        a = b;
          if (a > b) {
              int tmp = a;

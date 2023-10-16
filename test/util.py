@@ -6,5 +6,4 @@ def assert_diff(str1, str2, expected):
     expected_list = expected.split("\n")
     for line in diff:
         print(line, end="")
-    for i in range(len(diff)):
-        assert diff[i] == expected_list[i] + "\n"
+    assert ''.join(diff) == expected
