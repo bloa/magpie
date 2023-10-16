@@ -129,7 +129,7 @@ class BasicProtocol:
         try:
             self.program.ensure_contents()
         except RuntimeError as e:
-            result['stop'] = e.msg
+            result['stop'] = str(e)
 
         if not result['stop']:
             # run the algorithm a single time
