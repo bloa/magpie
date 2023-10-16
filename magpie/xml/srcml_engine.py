@@ -36,18 +36,27 @@ class SrcmlEngine(XmlEngine):
         if len(self.config['tag_focus']) > 0:
             self.focus_tags(tree, self.config['tag_focus'])
 
-    def process_pseudo_blocks(self, element, sp_element=''):
-        sp = self.guess_spacing(element.text)
+    def guess_spacing(self, text):
+        if text is None:
+            return ''
+        m = [''] + re.findall(r"\n(\s*)", text, re.MULTILINE)
+        return m[-1]
+
+    def process_pseudo_blocks(self, element, sp_parent='', step_parent=0):
+        sp = max(sp_parent, self.guess_spacing(element.text))
         for child in element:
-            self.process_pseudo_blocks(child, sp)
-            sp = self.guess_spacing(child.tail)
+            step = len(sp) - len(sp_parent)
+            if step == 0:
+                step = step_parent
+            self.process_pseudo_blocks(child, sp, step)
+            sp = max(sp, self.guess_spacing(child.tail))
         if element.tag == 'block' and element.attrib.get('type') == 'pseudo':
             del element.attrib['type']
             if len(element) > 0:
-                element.text = '/*auto*/{' + (element.text or '')
-                child.tail = (child.tail or '') + '\n' + sp_element + '}/*auto*/'
+                element.text = '/*auto*/{\n' + sp_parent + (element.text or '') + ' '*step
+                child.tail = (child.tail or '') + '\n' + sp_parent + '}/*auto*/'
             else:
-                element.text = '/*auto*/{' + (element.text or '') + '}/*auto*/'
+                element.text = '/*auto*/{\n' + sp_parent + (element.text or '') + '\n' + sp_parent + '}/*auto*/'
 
     def process_literals(self, element):
         for child in element:

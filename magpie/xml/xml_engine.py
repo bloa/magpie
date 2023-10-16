@@ -1,7 +1,6 @@
 import copy
 import re
 import os
-
 from xml.etree import ElementTree
 
 from ..base import AbstractEngine
@@ -389,12 +388,6 @@ class XmlEngine(AbstractEngine):
                     element.text += match.group(1)
         for child in element:
             self.rotate_newlines(child)
-
-    def guess_spacing(self, text):
-        if text is None:
-            return ''
-        m = [''] + re.findall(r"\n(\s*)", text, re.MULTILINE)
-        return m[-1]
 
     def find_indent(self, root, xpath):
         if xpath == '.':
