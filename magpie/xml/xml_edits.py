@@ -41,6 +41,8 @@ class NodeReplacement(Edit):
         if target is None:
             return None
         value = program.random_target(ingr_file, cls.NODE_TYPE)
+        if value is None:
+            return None
         return cls(target, value)
 
 class NodeInsertion(Edit):
@@ -63,6 +65,8 @@ class NodeInsertion(Edit):
         if target is None:
             return None
         value = program.random_target(ingr_file, cls.NODE_TYPE)
+        if value is None:
+            return None
         return cls(target, value)
 
 class NodeMoving(Edit):
@@ -89,6 +93,8 @@ class NodeMoving(Edit):
         if target is None:
             return None
         value = program.random_target(ingr_file, cls.NODE_TYPE)
+        if value is None:
+            return None
         return cls(target, value)
 
 class NodeSwap(Edit):
@@ -115,6 +121,8 @@ class NodeSwap(Edit):
         if target is None:
             return None
         value = program.random_target(ingr_file, cls.NODE_TYPE)
+        if value is None:
+            return None
         return cls(target, value)
 
 class TextSetting(Edit):
