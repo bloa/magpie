@@ -309,7 +309,7 @@ Example:
 
 Example:
 
-    python3 utils/line_xml.py --file examples/code/triangle-java_slow/Triangle.java
+    python3 utils/line_to_xml.py --file examples/code/triangle-java_slow/Triangle.java
 
 
 ### Python to AST XML Converter
