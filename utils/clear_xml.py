@@ -4,7 +4,7 @@ import sys
 from xml.etree import ElementTree
 
 def string_to_tree(xml_str):
-    xml_str = re.sub(r'(?:\s+xmlns[^=]*="[^"]+")+', '', xml_str, count=1)
+    xml_str = re.sub(r'(<[^>]+?)(?:\s+xmlns\w*="[^"]+")+', r'\1', xml_str, count=1)
     xml_str = re.sub(r'<(/?\w+?):(\w+)>', r'<\1_\2>', xml_str)
     return ElementTree.fromstring(xml_str)
 
