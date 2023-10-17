@@ -7,7 +7,7 @@ import magpie
 magpie.config.enable_astor = True
 
 from magpie.astor import AstorEngine
-from util import assert_diff
+from .util import assert_diff
 
 @pytest.fixture
 def file_contents():

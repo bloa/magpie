@@ -3,7 +3,7 @@ import os
 import pytest
 
 from magpie.line import LineEngine
-from util import assert_diff
+from .util import assert_diff
 
 
 @pytest.fixture

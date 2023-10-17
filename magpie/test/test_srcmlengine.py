@@ -3,7 +3,7 @@ import os
 import pytest
 
 from magpie.xml import XmlEngine, SrcmlEngine
-from util import assert_diff
+from .util import assert_diff
 
 
 @pytest.fixture

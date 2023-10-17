@@ -3,8 +3,9 @@ import glob
 
 import pytest
 
-from utils.python_to_xml import read_file_or_stdin, unparse_xml
-from utils.clear_xml import string_to_tree, strip_xml_from_tree
+from clear_xml import strip_xml_from_tree, string_to_tree
+from python_to_xml import read_file_or_stdin, unparse_xml
+
 
 @pytest.mark.parametrize('filename', glob.glob('magpie/**/*.py', recursive=True))
 # @pytest.mark.parametrize('filename', glob.glob('/usr/lib/python3.11/**/*.py', recursive=True))
