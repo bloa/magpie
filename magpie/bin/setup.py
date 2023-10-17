@@ -8,11 +8,12 @@ def pre_setup(config):
     # [magpie]
     sec = config['magpie']
     if val := sec['import']:
-        try:
-            s = os.path.join(config['software']['path'], val)
-            importlib.import_module(s.rstrip('.py').lstrip('./').replace('/', '.'))
-        except ModuleNotFoundError:
-            importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
+        for module in val.split():
+            try:
+                s = os.path.join(config['software']['path'], module)
+                importlib.import_module(s.rstrip('.py').lstrip('./').replace('/', '.'))
+            except ModuleNotFoundError:
+                importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
     if val := sec['seed']:
         random.seed(int(val))
     else:
