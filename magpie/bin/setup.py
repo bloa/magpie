@@ -17,7 +17,7 @@ def pre_setup(config):
     if val := sec['seed']:
         random.seed(int(val))
     else:
-        val = random.randint(0, 1e16)
+        val = random.randint(0, int(1e16))
         random.seed(val)
         sec['seed'] = str(val)
 
