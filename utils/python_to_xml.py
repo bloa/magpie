@@ -55,25 +55,23 @@ class XmlUnparser(ast._Unparser):
         self.write(text)
 
     def traverse(self, node):
-        match node:
-            case ast.stmt():
-                with self.add_xml('stmt'):
-                    with self.add_xml(node.__class__.__name__):
-                        super().traverse(node)
-            case ast.expr():
-                with self.add_xml('expr'):
-                    with self.add_xml(node.__class__.__name__):
-                        super().traverse(node)
-            case ast.operator():
-                breakpoint()
-                with self.add_xml('operator'):
-                    with self.add_xml(node.__class__.__name__):
-                        super().traverse(node)
-            case AST():
+        if isinstance(node, ast.stmt):
+            with self.add_xml('stmt'):
                 with self.add_xml(node.__class__.__name__):
                     super().traverse(node)
-            case _:
+        elif isinstance(node, ast.expr):
+            with self.add_xml('expr'):
+                with self.add_xml(node.__class__.__name__):
+                    super().traverse(node)
+        elif isinstance(node, ast.operator):
+            with self.add_xml('operator'):
+                with self.add_xml(node.__class__.__name__):
+                    super().traverse(node)
+        elif isinstance(node, AST):
+            with self.add_xml(node.__class__.__name__):
                 super().traverse(node)
+        else:
+            super().traverse(node)
 
     @contextmanager
     def block(self, *, extra = None):
