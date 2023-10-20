@@ -1,15 +1,14 @@
 import ast
 import copy
 
-import astor
-
 from ..base import AbstractEngine
 
 
 class AstorEngine(AbstractEngine):
     @classmethod
     def get_contents(cls, file_path):
-        return astor.parse_file(file_path)
+        with open(file_path) as f:
+            return ast.parse(f.read()+'\n')
 
     @classmethod
     def get_locations(cls, root):
@@ -29,7 +28,7 @@ class AstorEngine(AbstractEngine):
 
     @classmethod
     def dump(cls, contents_of_file):
-        return astor.to_source(contents_of_file)
+        return ast.unparse(contents_of_file)
 
     @classmethod
     def do_replace(cls, contents, locations, new_contents, new_locations, target_dest, target_orig):

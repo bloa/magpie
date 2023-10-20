@@ -4,7 +4,6 @@ import pytest
 import re
 
 import magpie
-magpie.config.enable_astor = True
 
 from magpie.astor import AstorEngine
 from .util import assert_diff
@@ -33,23 +32,25 @@ def test_dump(file_contents, engine_contents):
     """Immediate dump should be transparent (as much as possible)"""
     file_name = 'triangle.py'
     dump = AstorEngine.dump(engine_contents[file_name])
-    dump_list = [s.replace('  ', ' ') for s in dump.split("\n")]
-    orig_list = [s.replace('  ', ' ') for s in file_contents.split("\n")]
+    dump_list = dump.split("\n")
+    orig_list = file_contents.split("\n")
     while dump_list or orig_list:
+        # skip empty lines
         if dump_list and not dump_list[0]:
             dump_list.pop(0)
             continue
         if orig_list and not orig_list[0]:
             orig_list.pop(0)
             continue
+        # skip comment lines
         if orig_list[0].lstrip()[0] == '#':
             orig_list.pop(0)
             continue
-        if dump_list[0].lstrip()[0] == '#': # corner cases
-            dump_list.pop(0)
-            continue
         l1, l2 = dump_list.pop(0), orig_list.pop(0)
-        assert l1 == l2 or (l1 == l2[:len(l1)] and orig_line[len(l1)] == '#') # close enough?
+        # ast.unparse might add new parentheses
+        l1 = re.sub(r'[()]', '', l1)
+        l2 = re.sub(r'[()]', '', l2)
+        assert l1 == l2[:len(l1)]
 
 def test_deletion1(engine_contents, engine_locations):
     """Deletion should work"""
@@ -62,8 +63,8 @@ def test_deletion1(engine_contents, engine_locations):
     new_dump = AstorEngine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -11,7 +11,7 @@
- 
+@@ -8,7 +8,7 @@
+     time.sleep(0.001)
  
  def classify_triangle(a, b, c):
 -    delay()
@@ -104,8 +105,8 @@ def test_replacement2(engine_contents, engine_locations):
     new_dump = AstorEngine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -11,7 +11,7 @@
- 
+@@ -8,7 +8,7 @@
+     time.sleep(0.001)
  
  def classify_triangle(a, b, c):
 -    delay()
@@ -139,7 +140,7 @@ def test_insertion1(engine_contents, engine_locations):
     new_dump = AstorEngine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -12,6 +12,7 @@
+@@ -9,6 +9,7 @@
  
  def classify_triangle(a, b, c):
      delay()
@@ -164,8 +165,8 @@ def test_insertion2(engine_contents, engine_locations):
     new_dump = AstorEngine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -11,6 +11,8 @@
- 
+@@ -8,6 +8,8 @@
+     time.sleep(0.001)
  
  def classify_triangle(a, b, c):
 +    delay()
@@ -194,8 +195,8 @@ def test_insertion3(engine_contents, engine_locations):
     new_dump = AstorEngine.dump(new_contents[file_name])
     expected = """--- 
 +++ 
-@@ -11,11 +11,15 @@
- 
+@@ -8,11 +8,15 @@
+     time.sleep(0.001)
  
  def classify_triangle(a, b, c):
 +    time.sleep(0.001)
