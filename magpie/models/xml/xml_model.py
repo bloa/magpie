@@ -3,7 +3,7 @@ import re
 import os
 from xml.etree import ElementTree
 
-from ..base import AbstractModel
+from magpie.base import AbstractModel
 
 class XmlModel(AbstractModel):
     def __init__(self):

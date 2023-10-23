@@ -10,7 +10,7 @@ def algo_from_string(s):
     raise RuntimeError('Unknown algorithm "{}"'.format(s))
 
 def model_from_string(s):
-    for klass in [*magpie.xml.models, *magpie.line.models, *magpie.params.models]:
+    for klass in [*magpie.models.xml.models, *magpie.models.line.models, *magpie.models.params.models]:
         if klass.__name__ == s:
             return klass
     raise RuntimeError('Unknown model "{}"'.format(s))

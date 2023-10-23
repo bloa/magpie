@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import random
 
-from ..base import AbstractModel
+from magpie.base import AbstractModel
 from .realms import Realm
 
 class AbstractParamsModel(AbstractModel):

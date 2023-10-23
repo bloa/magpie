@@ -215,9 +215,9 @@ class BasicSoftware(magpie.base.AbstractSoftware):
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                if isinstance(model, magpie.xml.XmlModel):
+                if isinstance(model, magpie.models.xml.XmlModel):
                     magpie.bin.setup_xml_model(model, config_section, section_name)
-                elif isinstance(model, magpie.params.AbstractParamsModel):
+                elif isinstance(model, magpie.models.params.AbstractParamsModel):
                     magpie.bin.setup_params_model(model, config_section, section_name)
                 return
 

@@ -34,7 +34,8 @@ if __name__ == "__main__":
         if args.filename is not None and args.filename != filename:
             continue
         print('==== {} ===='.format(filename))
-        if software.get_model(filename) is magpie.xml.XmlModel:
+        model = software.models[filename]
+        if isinstance(model, magpie.models.xml.XmlModel):
             if not args.xml:
                 print('The detected model for this file is XmlModel, which may lead to a very large and not-so-useful output')
                 print('If you excepted a SrcmlModel instead replace BasicSoftware by your own software class')

@@ -78,7 +78,7 @@ Default values:
 - `software`: the name of the Software class; it needs to belong to `magpie.bin.softwares`
 - `model_rules`: the list of rules used to determine how target files are internally represented; model classes need to belong to either `magpie.xml.models`, `magpie.line.models`, or `magpie.params.models`
 - `model_config`: the list of rules used to determine which section of the scenario file gets used to configure the model of the associated files
-- `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
+- `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.models.xml.edits`, `magpie.models.line.edits`, or `magpie.models.params.edits`
 - `init_cmd`: command line to execute during the init step (or "", in which case it is skipped)
 - `init_timeout`: maximum execution time during the init step (or "", in which case `default_timeout` from `[magpie]` is used)
 - `init_lengthout`: maximum output file size during the init step (or "", in which case `default_lengthout` from `[magpie]` is used)

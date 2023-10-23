@@ -2,7 +2,7 @@ import copy
 import os
 import pytest
 
-from magpie.line import LineModel
+from magpie.models.line import LineModel
 from .util import assert_diff
 
 

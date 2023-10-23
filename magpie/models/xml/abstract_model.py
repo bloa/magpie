@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from ..base import AbstractModel
+
+from magpie.base import AbstractModel
 
 class AbstractTreeModel(AbstractModel):
     @classmethod

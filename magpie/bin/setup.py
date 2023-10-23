@@ -52,26 +52,26 @@ def setup(config):
     sec = config['srcml']
     val = sec['process_pseudo_blocks']
     if val.lower() in ['true', 't', '1']:
-        magpie.xml.SrcmlModel.PROCESS_PSEUDO_BLOCKS = True
+        magpie.models.xml.SrcmlModel.PROCESS_PSEUDO_BLOCKS = True
     elif val.lower() in ['false', 'f', '0']:
-        magpie.xml.SrcmlModel.PROCESS_PSEUDO_BLOCKS = False
+        magpie.models.xml.SrcmlModel.PROCESS_PSEUDO_BLOCKS = False
     else:
         raise ValueError('Invalid config file: "[srcml] process_pseudo_blocks" should be Boolean')
     val = sec['process_literals']
     if val.lower() in ['true', 't', '1']:
-        magpie.xml.SrcmlModel.PROCESS_LITERALS = True
+        magpie.models.xml.SrcmlModel.PROCESS_LITERALS = True
     elif val.lower() in ['false', 'f', '0']:
-        magpie.xml.SrcmlModel.PROCESS_LITERALS = False
+        magpie.models.xml.SrcmlModel.PROCESS_LITERALS = False
     else:
         raise ValueError('Invalid config file: "[srcml] process_literals" should be Boolean')
     val = sec['process_operators']
     if val.lower() in ['true', 't', '1']:
-        magpie.xml.SrcmlModel.PROCESS_OPERATORS = True
+        magpie.models.xml.SrcmlModel.PROCESS_OPERATORS = True
     elif val.lower() in ['false', 'f', '0']:
-        magpie.xml.SrcmlModel.PROCESS_OPERATORS = False
+        magpie.models.xml.SrcmlModel.PROCESS_OPERATORS = False
     else:
         raise ValueError('Invalid config file: "[srcml] process_operators" should be Boolean')
-    magpie.xml.SrcmlModel.INTERNODES = set(sec['internodes'].split())
+    magpie.models.xml.SrcmlModel.INTERNODES = set(sec['internodes'].split())
     h = {}
     for rule in sec['rename'].split("\n"):
         if rule.strip(): # discard potential initial empty line
@@ -80,22 +80,22 @@ def setup(config):
             except ValueError:
                 raise ValueError('badly formated rule: "{}"'.format(rule))
             h[k] = set(v.split())
-    magpie.xml.SrcmlModel.TAG_RENAME = h
-    magpie.xml.SrcmlModel.TAG_FOCUS = set(sec['focus'].split())
+    magpie.models.xml.SrcmlModel.TAG_RENAME = h
+    magpie.models.xml.SrcmlModel.TAG_FOCUS = set(sec['focus'].split())
 
     # [params]
     sec = config['params']
     tmp = sec['timing'].split()
     if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
         raise ValueError('illegal timing value: {}'.format(val))
-    magpie.params.AbstractParamsModel.TIMING = tmp
-    magpie.params.AbstractParamsModel.CLI_PREFIX = sec['cli_prefix']
-    magpie.params.AbstractParamsModel.CLI_GLUE = sec['cli_glue']
-    magpie.params.AbstractParamsModel.CLI_BOOLEAN = sec['cli_boolean']
-    magpie.params.AbstractParamsModel.CLI_BOOLEAN_PREFIX_TRUE = sec['cli_boolean_prefix_true']
-    magpie.params.AbstractParamsModel.CLI_BOOLEAN_PREFIX_FALSE = sec['cli_boolean_prefix_false']
-    magpie.params.AbstractParamsModel.SILENT_PREFIX = sec['silent_prefix']
-    magpie.params.AbstractParamsModel.SILENT_SUFFIX = sec['silent_suffix']
+    magpie.models.params.AbstractParamsModel.TIMING = tmp
+    magpie.models.params.AbstractParamsModel.CLI_PREFIX = sec['cli_prefix']
+    magpie.models.params.AbstractParamsModel.CLI_GLUE = sec['cli_glue']
+    magpie.models.params.AbstractParamsModel.CLI_BOOLEAN = sec['cli_boolean']
+    magpie.models.params.AbstractParamsModel.CLI_BOOLEAN_PREFIX_TRUE = sec['cli_boolean_prefix_true']
+    magpie.models.params.AbstractParamsModel.CLI_BOOLEAN_PREFIX_FALSE = sec['cli_boolean_prefix_false']
+    magpie.models.params.AbstractParamsModel.SILENT_PREFIX = sec['silent_prefix']
+    magpie.models.params.AbstractParamsModel.SILENT_SUFFIX = sec['silent_suffix']
 
 def setup_xml_model(model, config_section, section):
     for k in [

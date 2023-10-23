@@ -3,9 +3,7 @@ import os
 import pytest
 import re
 
-import magpie
-
-from magpie.astor import AstorModel
+from magpie.models.astor import AstorModel
 from .util import assert_diff
 
 @pytest.fixture

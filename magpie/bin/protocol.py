@@ -22,7 +22,11 @@ class BasicProtocol:
 
         self.search.config['possible_edits'] = []
         for edit in sec['possible_edits'].split():
-            for klass in [*magpie.xml.edits, *magpie.line.edits, *magpie.params.edits]:
+            for klass in [
+                    *magpie.models.xml.edits,
+                    *magpie.models.line.edits,
+                    *magpie.models.params.edits
+            ]:
                 if klass.__name__ == edit:
                     self.search.config['possible_edits'].append(klass)
                     break

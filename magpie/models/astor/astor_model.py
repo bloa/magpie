@@ -1,7 +1,7 @@
 import ast
 import copy
 
-from ..base import AbstractModel
+from magpie.base import AbstractModel
 
 
 class AstorModel(AbstractModel):

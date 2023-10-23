@@ -1,6 +1,6 @@
 import random
 
-from ..base import Edit
+from magpie.base import Edit
 from . import AstorModel
 
 

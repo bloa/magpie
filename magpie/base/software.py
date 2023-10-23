@@ -14,8 +14,8 @@ import errno
 import logging
 import re
 
-from .. import config as magpie_config
-from ..params import AbstractParamsModel
+from magpie import config as magpie_config
+from magpie.models.params import AbstractParamsModel
 from .execresult import ExecResult
 
 class AbstractSoftware(ABC):

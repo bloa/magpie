@@ -2,7 +2,7 @@ import copy
 import os
 import pytest
 
-from magpie.xml import XmlModel, SrcmlModel
+from magpie.models.xml import XmlModel, SrcmlModel
 from .util import assert_diff
 
 
