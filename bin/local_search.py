@@ -27,11 +27,11 @@ if __name__ == "__main__":
         config['search']['algorithm'] = args.algo
     if config['search']['algorithm']:
         algo = magpie.bin.algo_from_string(config['search']['algorithm'])
-        if not issubclass(algo, magpie.algo.LocalSearch):
+        if not issubclass(algo, magpie.algos.LocalSearch):
             raise RuntimeError('{} is not a local search'.format(args.algo))
     else:
         config['search']['algorithm'] = 'FirstImprovement'
-        algo = magpie.algo.FirstImprovement
+        algo = magpie.algos.FirstImprovement
 
     # setup protocol
     magpie.bin.setup(config)

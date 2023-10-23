@@ -4,7 +4,7 @@ import re
 import magpie
 
 def algo_from_string(s):
-    for klass in magpie.algo.algos:
+    for klass in magpie.algos.algos:
         if klass.__name__ == s:
             return klass
     raise RuntimeError('Unknown algorithm "{}"'.format(s))

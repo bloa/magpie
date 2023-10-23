@@ -71,7 +71,7 @@ class BasicProtocol:
         self.search.config['batch_sample_size'] = int(sec['batch_sample_size'])
 
         # local search only
-        if isinstance(self.search, magpie.algo.LocalSearch):
+        if isinstance(self.search, magpie.algos.LocalSearch):
             sec = config['search.ls']
             self.search.config['delete_prob'] = float(sec['delete_prob'])
             self.search.config['max_neighbours'] = int(val) if (val := sec['max_neighbours']) else None
@@ -80,7 +80,7 @@ class BasicProtocol:
             self.search.config['tabu_length'] = sec['tabu_length']
 
         # genetic programming only
-        if isinstance(self.search, magpie.algo.GeneticProgramming):
+        if isinstance(self.search, magpie.algos.GeneticProgramming):
             sec = config['search.gp']
             self.search.config['pop_size'] = int(sec['pop_size'])
             self.search.config['delete_prob'] = float(sec['delete_prob'])
@@ -97,7 +97,7 @@ class BasicProtocol:
                 raise ValueError('[search.gp] batch_reset should be Boolean')
 
         # minify only
-        if isinstance(self.search, magpie.algo.ValidMinify):
+        if isinstance(self.search, magpie.algos.ValidMinify):
             sec = config['search.minify']
             for key in [
                     'do_cleanup',

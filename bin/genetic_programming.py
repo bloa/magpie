@@ -27,11 +27,11 @@ if __name__ == "__main__":
         config['search']['algorithm'] = args.algo
     if config['search']['algorithm']:
         algo = magpie.bin.algo_from_string(config['search']['algorithm'])
-        if not issubclass(algo, magpie.algo.GeneticProgramming):
+        if not issubclass(algo, magpie.algos.GeneticProgramming):
             raise RuntimeError('{} is not a GP algorithm'.format(args.algo))
     else:
         config['search']['algorithm'] = 'GeneticProgrammingUniformConcat'
-        algo = magpie.algo.GeneticProgrammingUniformConcat
+        algo = magpie.algos.GeneticProgrammingUniformConcat
 
     # setup protocol
     magpie.bin.setup(config)

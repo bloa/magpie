@@ -174,7 +174,7 @@ Default values:
     batch_sample_size = 1
 
 - `protocol`: the name of the Protocol class; it needs to belong to `magpie.bin.protocols`
-- `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.algo.algos`
+- `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.algos.algos`
 - `warmup`: number of initial evaluation to consider
 - `warmup_strategy`: which warmup fitness value to use (possible: `last`, `min`, `max`, `mean`, `median`)
 - `max_steps`: maximum number of steps before Magpie terminates
