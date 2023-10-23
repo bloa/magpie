@@ -1,0 +1,20 @@
+[project]
+name = "magpie"
+version = "1.0.0"
+description = "Machine Automated General Performance Improvement via Evolution of software"
+license = "MIT"
+authors = [
+    "Aymeric Blot <aymeric.blot@univ-rennes.fr>",
+]
+readme = "README.md"
+homepage = "https://github.com/bloa/magpie"
+repository = "https://github.com/bloa/magpie"
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+norecursedirs = ["examples"]

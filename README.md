@@ -30,7 +30,7 @@ Install Magpie by cloning the git repository:
 
 Optionally, run Magpie's unit tests:
 
-    pytest magpie
+    pytest
 
 Try one of the following examples:
 
