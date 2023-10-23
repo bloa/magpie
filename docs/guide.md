@@ -199,11 +199,13 @@ For maximum convenience, we provide the `magpie.py` script that also accept the 
 
     python3 magpie.py bin/local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
-    python3 magpie.py bin/local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py bin/local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
-    python3 magpie.py local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py bin/local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
-    python3 magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
+<!-- -->
+    ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
     ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 
@@ -213,6 +215,7 @@ Alternatively, these entry points (as any custom-written ones) can be moved at t
     python3 local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
     mv bin/local_search.py .
+    chmod +x local_search.py
     ./local_search.py --scenario examples/scenario/triangle-cpp_runtime.txt
 
 

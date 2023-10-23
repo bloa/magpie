@@ -34,13 +34,15 @@ Optionally, run Magpie's unit tests:
 
 Try one of the following examples:
 
-    python3 -m bin.local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 <!-- -->
-    python3 -m bin.local_search --scenario examples/scenario/triangle-java_repair.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-java_repair.txt
 <!-- -->
-    python3 -m bin.show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
+    ./magpie.py show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
 <!-- -->
-    python3 -m bin.minify_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+    ./magpie.py minify_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+
+Note that you need the file "magpie.py" to be executable (e.g., using `chmod +x magpie.py`) unless you want to manually specify which Python interpreter to use (e.g., with `python3 magpie.py` instead of `./magpie.py`).
 
 
 ## Documentation
