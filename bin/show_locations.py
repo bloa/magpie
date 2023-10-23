@@ -34,10 +34,10 @@ if __name__ == "__main__":
         if args.filename is not None and args.filename != filename:
             continue
         print('==== {} ===='.format(filename))
-        if program.get_engine(filename) is magpie.xml.XmlEngine:
+        if program.get_model(filename) is magpie.xml.XmlModel:
             if not args.xml:
-                print('The detected engine for this file is XmlEngine, which may lead to a very large and not-so-useful output')
-                print('If you excepted a SrcmlEngine instead replace BasicProgram by your own program class')
+                print('The detected model for this file is XmlModel, which may lead to a very large and not-so-useful output')
+                print('If you excepted a SrcmlModel instead replace BasicProgram by your own program class')
                 print('To disable this warning and show all XML locations use the --xml argument')
                 continue
         for type_ in program.locations[filename].keys():

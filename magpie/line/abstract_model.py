@@ -1,9 +1,9 @@
 from abc import abstractmethod
 
-from ..base import AbstractEngine
+from ..base import AbstractModel
 
 
-class AbstractLineEngine(AbstractEngine):
+class AbstractLineModel(AbstractModel):
     @abstractmethod
     def do_replace(cls, program, op, new_contents, modification_points):
         pass

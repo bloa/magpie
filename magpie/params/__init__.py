@@ -1,14 +1,14 @@
 from .realms import Realm, CategoricalRealm, UniformRealm, UniformIntRealm, ExponentialRealm, GeometricRealm
-from .abstract_engine import AbstractParamsEngine
-from .configfile_engine import ConfigFileParamsEngine
+from .abstract_model import AbstractParamsModel
+from .configfile_model import ConfigFileParamsModel
 from .params_edits import ParamSetting
 
-# "final" engines only
-engines = [
-    ConfigFileParamsEngine,
+# concrete models only
+models = [
+    ConfigFileParamsModel,
 ]
 
-# "final" edits only
+# concrete edits only
 edits = [
     ParamSetting,
 ]

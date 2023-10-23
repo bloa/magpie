@@ -1,10 +1,10 @@
-from .abstract_engine import AbstractLineEngine
-from .line_engine import LineEngine
+from .abstract_model import AbstractLineModel
+from .line_model import LineModel
 from .line_edits import LineReplacement, LineInsertion, LineDeletion, LineMoving
 
-# "final" engines only
-engines = [
-    LineEngine,
+# "final" models only
+models = [
+    LineModel,
 ]
 
 # "final" edits only

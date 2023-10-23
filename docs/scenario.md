@@ -45,11 +45,11 @@ Default values:
     path =
     target_files =
     program = BasicProgram
-    engine_rules =
-        *.params : ConfigFileParamsEngine
-        *.xml : SrcmlEngine
-        * : LineEngine
-    engine_config =
+    model_rules =
+        *.params : ConfigFileParamsModel
+        *.xml : SrcmlModel
+        * : LineModel
+    model_config =
         *.params : [params]
         *.xml : [srcml]
     possible_edits =
@@ -76,8 +76,8 @@ Default values:
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
 - `program`: the name of the Program class; it needs to belong to `magpie.bin.programs`
-- `engine_rules`: the list of rules used to determine how target files are internally represented; engine classes need to belong to either `magpie.xml.engines`, `magpie.line.engines`, or `magpie.params.engines`
-- `engine_config`: the list of rules used to determine which section of the scenario file gets used to configure the engine of the associated files
+- `model_rules`: the list of rules used to determine how target files are internally represented; model classes need to belong to either `magpie.xml.models`, `magpie.line.models`, or `magpie.params.models`
+- `model_config`: the list of rules used to determine which section of the scenario file gets used to configure the model of the associated files
 - `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`
 - `init_cmd`: command line to execute during the init step (or "", in which case it is skipped)
 - `init_timeout`: maximum execution time during the init step (or "", in which case `default_timeout` from `[magpie]` is used)

@@ -1,10 +1,10 @@
 from abc import abstractmethod
 import random
 
-from ..base import AbstractEngine
+from ..base import AbstractModel
 from .realms import Realm
 
-class AbstractParamsEngine(AbstractEngine):
+class AbstractParamsModel(AbstractModel):
     TIMING = ['run']
     CLI_PREFIX = "--"
     CLI_GLUE = "="

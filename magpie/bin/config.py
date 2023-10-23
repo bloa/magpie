@@ -20,11 +20,11 @@ default_config = {
         'path': '',
         'target_files': '',
         'program': 'BasicProgram',
-        'engine_rules': """
-*.params : ConfigFileParamsEngine
-*.xml : SrcmlEngine
-* : LineEngine""",
-        'engine_config': """
+        'model_rules': """
+*.params : ConfigFileParamsModel
+*.xml : SrcmlModel
+* : LineModel""",
+        'model_config': """
 *.params : [params]
 *.xml : [srcml]""",
         'init_cmd': '',

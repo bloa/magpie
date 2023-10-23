@@ -15,7 +15,7 @@ import logging
 import re
 
 from .. import config as magpie_config
-from ..params import AbstractParamsEngine
+from ..params import AbstractParamsModel
 from .execresult import ExecResult
 
 class AbstractProgram(ABC):
@@ -24,7 +24,7 @@ class AbstractProgram(ABC):
         self.path = os.path.abspath(path.strip())
         self.basename = os.path.basename(self.path)
         self.target_files = []
-        self.engines = {}
+        self.models = {}
         self.contents = {}
         self.local_contents = {}
         self.locations = {}
@@ -112,14 +112,14 @@ class AbstractProgram(ABC):
             self.target_files = [str(f.relative_to(path)) for fl in tmp for f in fl]
         for target_file in self.target_files:
             try:
-                engine = self.engines[target_file]
+                model = self.models[target_file]
             except KeyError:
-                engine = self.get_engine(target_file)
-                self.configure_engine(engine, target_file)
-                self.engines[target_file] = engine
-            self.contents[target_file] = engine.get_contents(os.path.join(self.path, target_file))
-            self.locations[target_file] = engine.get_locations(self.contents[target_file])
-            self.dump_cache[target_file] = engine.dump(self.contents[target_file])
+                model = self.get_model(target_file)
+                self.configure_model(model, target_file)
+                self.models[target_file] = model
+            self.contents[target_file] = model.get_contents(os.path.join(self.path, target_file))
+            self.locations[target_file] = model.get_locations(self.contents[target_file])
+            self.dump_cache[target_file] = model.dump(self.contents[target_file])
             self.trust_local[target_file] = magpie_config.trust_local_filesystem
 
 
@@ -132,31 +132,31 @@ class AbstractProgram(ABC):
                                   self.path, ",".join(self.target_files))
 
     @abstractmethod
-    def get_engine(self, target_file):
+    def get_model(self, target_file):
         pass
 
-    def configure_engine(self, engine, target_file):
+    def configure_model(self, model, target_file):
         pass
 
     def location_names(self, target_file, target_type):
-        return self.get_engine(target_file).location_names(self.locations, target_file, target_type)
+        return self.get_model(target_file).location_names(self.locations, target_file, target_type)
 
     def show_location(self, target_file, target_type, target_loc):
-        return self.get_engine(target_file).show_location(self.contents, self.locations, target_file, target_type, target_loc)
+        return self.get_model(target_file).show_location(self.contents, self.locations, target_file, target_type, target_loc)
 
-    def random_file(self, engine=None):
-        if engine:
-            files = [f for f in self.target_files if isinstance(self.engines[f], engine)]
+    def random_file(self, model=None):
+        if model:
+            files = [f for f in self.target_files if isinstance(self.models[f], model)]
         else:
             files = self.target_files
         if files:
             return random.choice(files)
-        raise RuntimeError('No compatible target file for engine {}'.format(engine.__name__))
+        raise RuntimeError('No compatible target file for model {}'.format(model.__name__))
 
     def random_target(self, target_file=None, target_type=None):
         if target_file is None:
             target_file = random.choice(self.target_files)
-        return self.get_engine(target_file).random_target(self.locations, self.location_weights, target_file, target_type)
+        return self.get_model(target_file).random_target(self.locations, self.location_weights, target_file, target_type)
 
     def apply_patch(self, patch):
         # process modified files
@@ -178,7 +178,7 @@ class AbstractProgram(ABC):
 
         # process modified files
         for target_file in new_contents.keys():
-            self.engines[target_file].write_contents_file(self.dump_cache, self.trust_local, new_contents, work_path, target_file)
+            self.models[target_file].write_contents_file(self.dump_cache, self.trust_local, new_contents, work_path, target_file)
 
         # memorise
         self.local_contents = copy.deepcopy(new_contents)
@@ -224,10 +224,10 @@ class AbstractProgram(ABC):
     def compute_local_cli(self, step):
         cli = ''
         for target in self.target_files:
-            engine = self.engines[target]
-            if isinstance(engine, AbstractParamsEngine):
-                if step in engine.config['timing']:
-                    cli = '{} {}'.format(cli, engine.resolve_cli(self.local_contents[target]))
+            model = self.models[target]
+            if isinstance(model, AbstractParamsModel):
+                if step in model.config['timing']:
+                    cli = '{} {}'.format(cli, model.resolve_cli(self.local_contents[target]))
         return cli
 
     @abstractmethod
@@ -318,9 +318,9 @@ class AbstractProgram(ABC):
             raise ValueError('Unknown diff method: `{}`'.format(magpie_config.diff_method))
         diffs = ''
         for filename in self.target_files:
-            new_filename = self.engines[filename].renamed_contents_file(filename)
-            orig = self.engines[filename].dump(self.contents[filename])
-            modi = self.engines[filename].dump(new_contents[filename])
+            new_filename = self.models[filename].renamed_contents_file(filename)
+            orig = self.models[filename].dump(self.contents[filename])
+            modi = self.models[filename].dump(new_contents[filename])
             orig_list = list(map(lambda s: s+'\n', orig.splitlines()))
             modi_list = list(map(lambda s: s+'\n', modi.splitlines()))
             for diff in diff_method(orig_list, modi_list,

@@ -2,13 +2,13 @@ import copy
 import os
 import pytest
 
-from magpie.xml import XmlEngine
+from magpie.xml import XmlModel
 from .util import assert_diff
 
 
 @pytest.fixture
-def xml_engine():
-    return XmlEngine()
+def xml_model():
+    return XmlModel()
 
 @pytest.fixture
 def file_contents():
@@ -18,33 +18,33 @@ def file_contents():
         return myfile.read()
 
 @pytest.fixture
-def engine_contents(xml_engine):
+def model_contents(xml_model):
     file_name = 'Triangle.java.xml'
     path = os.path.join('examples', 'code', 'triangle-java_slow', file_name)
-    return {file_name: xml_engine.get_contents(path)}
+    return {file_name: xml_model.get_contents(path)}
 
 @pytest.fixture
-def engine_locations(xml_engine, engine_contents):
+def model_locations(xml_model, model_contents):
     file_name = 'Triangle.java.xml'
     path = os.path.join('examples', 'code', 'triangle-java_slow', file_name)
-    contents = xml_engine.get_contents(path)
-    return {file_name: xml_engine.get_locations(contents)}
+    contents = xml_model.get_contents(path)
+    return {file_name: xml_model.get_locations(contents)}
 
-def test_dump(xml_engine, file_contents, engine_contents):
+def test_dump(xml_model, file_contents, model_contents):
     """Immediate dump should be transparent"""
     file_name = 'Triangle.java.xml'
-    dump = xml_engine.dump(engine_contents[file_name])
+    dump = xml_model.dump(model_contents[file_name])
     assert dump == file_contents
 
-def test_deletion1(xml_engine, engine_contents, engine_locations):
+def test_deletion1(xml_model, model_contents, model_locations):
     """Deletion should work"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target = (file_name, 'expr_stmt', 0)
-    assert xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert xml_model.do_delete(model_contents, model_locations, new_contents, new_locations, target)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,7 +6,7 @@
@@ -59,34 +59,34 @@ def test_deletion1(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_deletion2(xml_engine, engine_contents, engine_locations):
+def test_deletion2(xml_model, model_contents, model_locations):
     """Deletions should only be applied once"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target = (file_name, 'expr_stmt', 0)
-    assert xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target)
-    assert not xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target)
+    assert xml_model.do_delete(model_contents, model_locations, new_contents, new_locations, target)
+    assert not xml_model.do_delete(model_contents, model_locations, new_contents, new_locations, target)
 
-def test_replacement1(xml_engine, engine_contents, engine_locations):
+def test_replacement1(xml_model, model_contents, model_locations):
     """Identical replacements should not be applied"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, 'expr_stmt', 3)
-    assert not xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target1)
+    assert not xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target1)
 
-def test_replacement2(xml_engine, engine_contents, engine_locations):
+def test_replacement2(xml_model, model_contents, model_locations):
     """Replacement should work"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, 'expr_stmt', 0)
     target2 = (file_name, 'comment', 0)
-    assert not xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target1)
-    assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert not xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target1)
+    assert xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,7 +6,7 @@
@@ -101,18 +101,18 @@ def test_replacement2(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_replacement3(xml_engine, engine_contents, engine_locations):
+def test_replacement3(xml_model, model_contents, model_locations):
     """Identical replacements should not be applied (even after replacement)"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, 'expr_stmt', 0)
     target2 = (file_name, 'comment', 0)
-    assert not xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target1)
-    assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    assert not xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert not xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target1)
+    assert xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    assert not xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,7 +6,7 @@
@@ -127,17 +127,17 @@ def test_replacement3(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_deletethenreplace(xml_engine, engine_contents, engine_locations):
+def test_deletethenreplace(xml_model, model_contents, model_locations):
     """It should be possible to replace something deleted"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, 'expr_stmt', 0)
     target2 = (file_name, 'comment', 0)
-    assert xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target1)
-    assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert xml_model.do_delete(model_contents, model_locations, new_contents, new_locations, target1)
+    assert xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,7 +6,7 @@
@@ -152,19 +152,19 @@ def test_deletethenreplace(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_replacethendelete(xml_engine, engine_contents, engine_locations):
+def test_replacethendelete(xml_model, model_contents, model_locations):
     """It should be possible to delete something replaced"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, 'expr_stmt', 0)
     target2 = (file_name, 'comment', 0)
     print(new_locations[file_name]['expr_stmt'])
-    assert xml_engine.do_replace(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
+    assert xml_model.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
     print(new_locations[file_name]['expr_stmt'])
-    assert xml_engine.do_delete(engine_contents, engine_locations, new_contents, new_locations, target1)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert xml_model.do_delete(model_contents, model_locations, new_contents, new_locations, target1)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,7 +6,7 @@
@@ -179,16 +179,16 @@ def test_replacethendelete(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_insertion1(xml_engine, engine_contents, engine_locations):
+def test_insertion1(xml_model, model_contents, model_locations):
     """Insertion should work"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, '_inter_block', 10)
     target2 = (file_name, 'expr_stmt', 1)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -7,6 +7,7 @@
@@ -202,18 +202,18 @@ def test_insertion1(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_insertion2(xml_engine, engine_contents, engine_locations):
+def test_insertion2(xml_model, model_contents, model_locations):
     """Insertion should be applied in order"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, '_inter_block', 10)
     target2 = (file_name, 'expr_stmt', 1)
     target3 = (file_name, 'expr_stmt', 0)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target1, target3)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target3)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,6 +6,8 @@
@@ -228,22 +228,22 @@ def test_insertion2(xml_engine, engine_contents, engine_locations):
 """
     assert_diff(dump, new_dump, expected)
 
-def test_insertion3(xml_engine, engine_contents, engine_locations):
+def test_insertion3(xml_model, model_contents, model_locations):
     """Insertion locations should be correctly updated"""
     file_name = 'Triangle.java.xml'
-    new_contents = copy.deepcopy(engine_contents)
-    new_locations = copy.deepcopy(engine_locations)
+    new_contents = copy.deepcopy(model_contents)
+    new_locations = copy.deepcopy(model_locations)
     target1 = (file_name, '_inter_block', 10)
     target2 = (file_name, 'expr_stmt', 1)
     target3 = (file_name, 'expr_stmt', 0)
     target4 = (file_name, '_inter_block', 9)
     target5 = (file_name, '_inter_block', 11)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target1, target2)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target1, target3)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target4, target2)
-    assert xml_engine.do_insert(engine_contents, engine_locations, new_contents, new_locations, target5, target2)
-    dump = xml_engine.dump(engine_contents[file_name])
-    new_dump = xml_engine.dump(new_contents[file_name])
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target3)
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target4, target2)
+    assert xml_model.do_insert(model_contents, model_locations, new_contents, new_locations, target5, target2)
+    dump = xml_model.dump(model_contents[file_name])
+    new_dump = xml_model.dump(new_contents[file_name])
     expected = """--- 
 +++ 
 @@ -6,9 +6,13 @@
@@ -290,4 +290,4 @@ void rotate(int& n1, int& n2, int& n3) {
 ''')
 ])
 def test_build_and_strip(xml, output):
-    assert XmlEngine.strip_xml_from_tree(XmlEngine.string_to_tree(xml)).strip() == output.strip()
+    assert XmlModel.strip_xml_from_tree(XmlModel.string_to_tree(xml)).strip() == output.strip()

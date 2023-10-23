@@ -1,10 +1,10 @@
 import ast
 import copy
 
-from ..base import AbstractEngine
+from ..base import AbstractModel
 
 
-class AstorEngine(AbstractEngine):
+class AstorModel(AbstractModel):
     @classmethod
     def get_contents(cls, file_path):
         with open(file_path) as f:

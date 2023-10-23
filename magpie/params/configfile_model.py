@@ -1,9 +1,9 @@
 import re
 
-from .abstract_engine import AbstractParamsEngine
+from .abstract_model import AbstractParamsModel
 from .realms import Realm
 
-class ConfigFileParamsEngine(AbstractParamsEngine):
+class ConfigFileParamsModel(AbstractParamsModel):
     def get_contents(self, file_path):
         contents = {
             'current': {},

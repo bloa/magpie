@@ -1,22 +1,22 @@
 import random
 
 from ..base import Edit
-from . import XmlEngine
+from . import XmlModel
 
 
 class NodeDeletion(Edit):
     NODE_TYPE = ''
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return engine.do_delete(program.contents, program.locations,
-                                new_contents, new_locations,
-                                self.target)
+        model = program.models[self.target[0]]
+        return model.do_delete(program.contents, program.locations,
+                               new_contents, new_locations,
+                               self.target)
 
     @classmethod
     def create(cls, program, target_file=None):
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         target = program.random_target(target_file, cls.NODE_TYPE)
         if target is None:
             return None
@@ -26,17 +26,17 @@ class NodeReplacement(Edit):
     NODE_TYPE = ''
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return engine.do_replace(program.contents, program.locations,
-                                 new_contents, new_locations,
-                                 self.target, self.data[0])
+        model = program.models[self.target[0]]
+        return model.do_replace(program.contents, program.locations,
+                                new_contents, new_locations,
+                                self.target, self.data[0])
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None):
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+            ingr_file = program.random_file(model=program.models[target_file].__class__)
         target = program.random_target(target_file, cls.NODE_TYPE)
         if target is None:
             return None
@@ -50,17 +50,17 @@ class NodeInsertion(Edit):
     NODE_TYPE = ''
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return engine.do_insert(program.contents, program.locations,
-                                new_contents, new_locations,
-                                self.target, self.data[0])
+        model = program.models[self.target[0]]
+        return model.do_insert(program.contents, program.locations,
+                               new_contents, new_locations,
+                               self.target, self.data[0])
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None):
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+            ingr_file = program.random_file(model=program.models[target_file].__class__)
         target = program.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE))
         if target is None:
             return None
@@ -74,21 +74,21 @@ class NodeMoving(Edit):
     NODE_TYPE = ''
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return (engine.do_insert(program.contents, program.locations,
-                                 new_contents, new_locations,
-                                 self.target, self.data[0])
+        model = program.models[self.target[0]]
+        return (model.do_insert(program.contents, program.locations,
+                                new_contents, new_locations,
+                                self.target, self.data[0])
                 and
-                engine.do_delete(program.contents, program.locations,
-                                 new_contents, new_locations,
-                                 self.data[0]))
+                model.do_delete(program.contents, program.locations,
+                                new_contents, new_locations,
+                                self.data[0]))
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None):
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+            ingr_file = program.random_file(model=program.models[target_file].__class__)
         target = program.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE))
         if target is None:
             return None
@@ -102,21 +102,21 @@ class NodeSwap(Edit):
     NODE_TYPE = ''
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return (engine.do_replace(program.contents, program.locations,
-                                  new_contents, new_locations,
-                                  self.target, self.data[0])
+        model = program.models[self.target[0]]
+        return (model.do_replace(program.contents, program.locations,
+                                 new_contents, new_locations,
+                                 self.target, self.data[0])
                 and
-                engine.do_replace(program.contents, program.locations,
-                                  new_contents, new_locations,
-                                  self.data[0], self.target))
+                model.do_replace(program.contents, program.locations,
+                                 new_contents, new_locations,
+                                 self.data[0], self.target))
 
     @classmethod
     def create(cls, program, target_file=None, ingr_file=None):
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         if ingr_file is None:
-            ingr_file = program.random_file(engine=program.engines[target_file].__class__)
+            ingr_file = program.random_file(model=program.models[target_file].__class__)
         target = program.random_target(target_file, cls.NODE_TYPE)
         if target is None:
             return None
@@ -130,17 +130,17 @@ class TextSetting(Edit):
     CHOICES = ['']
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return engine.do_set_text(program.contents, program.locations,
-                                  new_contents, new_locations,
-                                  self.target, self.data[0])
+        model = program.models[self.target[0]]
+        return model.do_set_text(program.contents, program.locations,
+                                 new_contents, new_locations,
+                                 self.target, self.data[0])
 
     @classmethod
     def create(cls, program, target_file=None, choices=None):
         if choices == None:
             choices = cls.CHOICES
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         target = program.random_target(target_file, cls.NODE_TYPE)
         if target is None:
             return None
@@ -152,17 +152,17 @@ class TextWrapping(Edit):
     CHOICES = [('(', ')')]
 
     def apply(self, program, new_contents, new_locations):
-        engine = program.engines[self.target[0]]
-        return engine.do_wrap_text(program.contents, program.locations,
-                                   new_contents, new_locations,
-                                   self.target, self.data[0][0], self.data[0][1])
+        model = program.models[self.target[0]]
+        return model.do_wrap_text(program.contents, program.locations,
+                                  new_contents, new_locations,
+                                  self.target, self.data[0][0], self.data[0][1])
 
     @classmethod
     def create(cls, program, target_file=None, choices=None):
         if choices == None:
             choices = cls.CHOICES
         if target_file is None:
-            target_file = program.random_file(XmlEngine)
+            target_file = program.random_file(XmlModel)
         target = program.random_target(target_file, cls.NODE_TYPE)
         if target is None:
             return None

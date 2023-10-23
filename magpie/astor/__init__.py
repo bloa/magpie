@@ -1,2 +1,2 @@
-from .astor_engine import AstorEngine
+from .astor_model import AstorModel
 from .astor_edits import StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving

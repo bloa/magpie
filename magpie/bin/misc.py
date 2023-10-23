@@ -9,11 +9,11 @@ def algo_from_string(s):
             return klass
     raise RuntimeError('Unknown algorithm "{}"'.format(s))
 
-def engine_from_string(s):
-    for klass in [*magpie.xml.engines, *magpie.line.engines, *magpie.params.engines]:
+def model_from_string(s):
+    for klass in [*magpie.xml.models, *magpie.line.models, *magpie.params.models]:
         if klass.__name__ == s:
             return klass
-    raise RuntimeError('Unknown engine "{}"'.format(s))
+    raise RuntimeError('Unknown model "{}"'.format(s))
 
 def patch_from_string(s):
     patch = magpie.base.Patch()

@@ -17,19 +17,19 @@ class BasicProgram(magpie.base.AbstractProgram):
             raise ValueError('Invalid config file: "[software] target_files" must defined')
         self.target_files = val.split()
 
-        # engine rules
-        self.engine_rules = []
-        for rule in config['software']['engine_rules'].split("\n"):
+        # model rules
+        self.model_rules = []
+        for rule in config['software']['model_rules'].split("\n"):
             if rule: # discard potential initial empty line
                 try:
                     k, v = rule.split(':')
                 except ValueError:
                     raise ValueError('badly formated rule: "{}"'.format(rule))
-                self.engine_rules.append((k.strip(), magpie.bin.engine_from_string(v.strip())))
+                self.model_rules.append((k.strip(), magpie.bin.model_from_string(v.strip())))
 
-        # engine config
-        self.engine_config = []
-        for rule in config['software']['engine_config'].split("\n"):
+        # model config
+        self.model_config = []
+        for rule in config['software']['model_config'].split("\n"):
             if rule: # discard potential initial empty line
                 try:
                     k, v = rule.split(':')
@@ -38,7 +38,7 @@ class BasicProgram(magpie.base.AbstractProgram):
                 v = v.strip()
                 if v[0]+v[-1] != '[]':
                     raise ValueError('badly formated section name: "{}"'.format(rule))
-                self.engine_config.append((k.strip(), config[v[1:-1]], v))
+                self.model_config.append((k.strip(), config[v[1:-1]], v))
 
         # fitness type
         if 'fitness' not in config['software']:
@@ -200,25 +200,25 @@ class BasicProgram(magpie.base.AbstractProgram):
             # reset after cmd_init
             self.reset_contents()
 
-    def get_engine(self, target_file):
-        for (pattern, engine) in self.engine_rules:
+    def get_model(self, target_file):
+        for (pattern, model) in self.model_rules:
             if any([target_file == pattern,
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                return engine()
-        raise RuntimeError('Unknown engine for target file {}'.format(target_file))
+                return model()
+        raise RuntimeError('Unknown model for target file {}'.format(target_file))
 
-    def configure_engine(self, engine, target_file):
-        for (pattern, config_section, section_name) in self.engine_config:
+    def configure_model(self, model, target_file):
+        for (pattern, config_section, section_name) in self.model_config:
             if any([target_file == pattern,
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                if isinstance(engine, magpie.xml.XmlEngine):
-                    magpie.bin.setup_xml_engine(engine, config_section, section_name)
-                elif isinstance(engine, magpie.params.AbstractParamsEngine):
-                    magpie.bin.setup_params_engine(engine, config_section, section_name)
+                if isinstance(model, magpie.xml.XmlModel):
+                    magpie.bin.setup_xml_model(model, config_section, section_name)
+                elif isinstance(model, magpie.params.AbstractParamsModel):
+                    magpie.bin.setup_params_model(model, config_section, section_name)
                 return
 
     def evaluate_contents(self, new_contents, cached_run=None):
@@ -247,8 +247,8 @@ class BasicProgram(magpie.base.AbstractProgram):
 
                 # make sure this is the unmodified software
                 for filename in self.target_files:
-                    engine = self.get_engine(filename)
-                    assert engine.dump(self.local_contents[filename]) == engine.dump(self.contents[filename])
+                    model = self.get_model(filename)
+                    assert model.dump(self.local_contents[filename]) == model.dump(self.contents[filename])
 
                 # run "[software] setup_cmd" if provided
                 if self.setup_cmd:
@@ -424,17 +424,17 @@ class BasicProgram(magpie.base.AbstractProgram):
         if self.fitness_type == 'bloat_lines':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.get_engine(filename).renamed_contents_file(filename)) as target:
+                with open(self.get_model(filename).renamed_contents_file(filename)) as target:
                     run_result.fitness += len(target.readlines())
         elif self.fitness_type == 'bloat_words':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.get_engine(filename).renamed_contents_file(filename)) as target:
+                with open(self.get_model(filename).renamed_contents_file(filename)) as target:
                     run_result.fitness += sum(len(s.split()) for s in target.readlines())
         elif self.fitness_type == 'bloat_chars':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.get_engine(filename).renamed_contents_file(filename)) as target:
+                with open(self.get_model(filename).renamed_contents_file(filename)) as target:
                     run_result.fitness += sum(len(s) for s in target.readlines())
 
     def process_run_exec(self, run_result, exec_result):

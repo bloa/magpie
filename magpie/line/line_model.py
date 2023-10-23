@@ -1,7 +1,7 @@
-from . import AbstractLineEngine
+from . import AbstractLineModel
 
 
-class LineEngine(AbstractLineEngine):
+class LineModel(AbstractLineModel):
     def get_contents(self, file_path):
         with open(file_path, 'r') as target_file:
             return list(map(str.rstrip, target_file.readlines()))

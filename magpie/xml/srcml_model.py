@@ -1,9 +1,9 @@
 import re
 from xml.etree import ElementTree
 
-from . import XmlEngine
+from . import XmlModel
 
-class SrcmlEngine(XmlEngine):
+class SrcmlModel(XmlModel):
     INTERNODES = {'block'}
     TAG_RENAME = {
         'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},

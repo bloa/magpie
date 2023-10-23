@@ -4,7 +4,7 @@ import random
 
 import magpie
 
-class AbstractEngine(ABC):
+class AbstractModel(ABC):
     def renamed_contents_file(self, target_file):
         return target_file
 

@@ -1,7 +1,7 @@
 from abc import abstractmethod
-from ..base import AbstractEngine
+from ..base import AbstractModel
 
-class AbstractTreeEngine(AbstractEngine):
+class AbstractTreeModel(AbstractModel):
     @classmethod
     @abstractmethod
     def do_replace(cls, program, op, new_contents, modification_points):
