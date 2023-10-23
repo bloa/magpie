@@ -5,10 +5,12 @@ import time
 
 import magpie
 
+from magpie.core import AbstractAlgorithm
+from magpie.core import Patch
 from .. import config as magpie_config
 
 
-class BasicAlgorithm(magpie.base.AbstractAlgorithm):
+class BasicAlgorithm(AbstractAlgorithm):
     def setup(self):
         super().setup()
         self.config['warmup'] = 3
@@ -41,7 +43,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
         if self.report['initial_fitness'] is None:
             return
         # reset initial fitness
-        empty_patch = magpie.base.Patch()
+        empty_patch = Patch()
         run = self.evaluate_patch(empty_patch)
         self.report['initial_fitness'] = run.fitness
         self.report['best_fitness'] = run.fitness
@@ -121,7 +123,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
         self.software.logger.info('==== END ====')
 
     def warmup(self):
-        empty_patch = magpie.base.Patch()
+        empty_patch = Patch()
         if self.report['initial_patch'] is None:
             self.report['initial_patch'] = empty_patch
         warmup_values = []

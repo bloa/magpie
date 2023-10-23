@@ -2,8 +2,8 @@ import copy
 import random
 import time
 
-from ..base import Patch
-from ..bin import BasicAlgorithm
+from magpie.bin import BasicAlgorithm
+from magpie.core import Patch
 
 class LocalSearch(BasicAlgorithm):
     def setup(self):
@@ -335,7 +335,7 @@ class TabuSearch(BestImprovement):
         super().setup()
         self.name = 'Tabu Search'
         self.config['tabu_length'] = 10
-        self.tabu_list = [magpie.base.Patch()] # queues are not iterable
+        self.tabu_list = [Patch()] # queues are not iterable
         self.local_tabu = set()
 
     def explore(self, current_patch, current_fitness):

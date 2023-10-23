@@ -1,4 +1,4 @@
-from magpie.base import Edit, Patch
+from magpie.core import Edit, Patch
 
 def test_str_no_data():
     p = Patch()

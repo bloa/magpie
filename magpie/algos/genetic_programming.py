@@ -3,8 +3,8 @@ import math
 import random
 import time
 
-from ..base import Patch
-from ..bin import BasicAlgorithm
+from magpie.bin import BasicAlgorithm
+from magpie.core import Patch
 
 class GeneticProgramming(BasicAlgorithm):
     def setup(self):

@@ -1,6 +1,6 @@
 import random
 
-from magpie.base import Edit
+from magpie.core import Edit
 from . import AbstractLineModel
 
 

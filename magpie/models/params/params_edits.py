@@ -1,7 +1,8 @@
 import random
 
-from magpie.base import Edit
+from magpie.core import Edit
 from . import AbstractParamsModel
+
 
 class ParamSetting(Edit):
     def apply(self, software, new_contents, new_locations):

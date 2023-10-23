@@ -2,7 +2,7 @@ import copy
 import random
 import time
 
-from ..base import Patch
+from magpie.core import Patch
 
 from .validation import ValidSearch
 

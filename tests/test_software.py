@@ -1,9 +1,8 @@
 import pytest
 
 import magpie
-
 from magpie.bin import BasicSoftware
-from magpie.base import ExecResult, RunResult
+from magpie.core import ExecResult, RunResult
 
 class StubSoftware(BasicSoftware):
     def __init__(self):

@@ -2,6 +2,7 @@ import ast
 import re
 
 import magpie
+from magpie.core import patch
 
 def algo_from_string(s):
     for klass in magpie.algos.algos:
@@ -16,7 +17,7 @@ def model_from_string(s):
     raise RuntimeError('Unknown model "{}"'.format(s))
 
 def patch_from_string(s):
-    patch = magpie.base.Patch()
+    patch = Patch()
     if s == "":
         return patch
     for blob in s.split(' | '):

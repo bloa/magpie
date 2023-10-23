@@ -4,10 +4,12 @@ import shlex
 
 import magpie
 
+from magpie.core import AbstractSoftware
+from magpie.core import RunResult
 from .. import config as magpie_config
 
 
-class BasicSoftware(magpie.base.AbstractSoftware):
+class BasicSoftware(AbstractSoftware):
     def __init__(self, config):
         # AbstractSoftware *requires* a path, a list of target files, and a list of possible edits
         if not (val := config['software']['path']):
@@ -186,7 +188,7 @@ class BasicSoftware(magpie.base.AbstractSoftware):
                     exec_result = self.exec_cmd(shlex.split(self.init_cmd),
                                                 timeout=timeout,
                                                 lengthout=lengthout)
-                    run_result = magpie.base.RunResult(exec_result.status)
+                    run_result = RunResult(exec_result.status)
                     if run_result.status == 'SUCCESS':
                         self.process_init_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
@@ -235,7 +237,7 @@ class BasicSoftware(magpie.base.AbstractSoftware):
         # otherwise
         cwd = os.getcwd()
         work_path = os.path.join(self.work_dir, self.basename)
-        run_result = cached_run or magpie.base.RunResult('UNKNOWN_ERROR')
+        run_result = cached_run or RunResult('UNKNOWN_ERROR')
 
         try:
             # go to work directory
@@ -370,6 +372,15 @@ class BasicSoftware(magpie.base.AbstractSoftware):
         # final process
         self.process_batch_final(run_result)
         return run_result
+
+    def compute_local_cli(self, step):
+        cli = ''
+        for target in self.target_files:
+            model = self.models[target]
+            if isinstance(model, magpie.models.params.AbstractParamsModel):
+                if step in model.config['timing']:
+                    cli = '{} {}'.format(cli, model.resolve_cli(self.local_contents[target]))
+        return cli
 
     def process_init_exec(self, run_result, exec_result):
         # "[software] init_cmd" must yield nonzero return code

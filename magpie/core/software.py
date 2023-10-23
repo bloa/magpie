@@ -15,7 +15,6 @@ import logging
 import re
 
 from magpie import config as magpie_config
-from magpie.models.params import AbstractParamsModel
 from .execresult import ExecResult
 
 class AbstractSoftware(ABC):
@@ -220,15 +219,6 @@ class AbstractSoftware(ABC):
     def evaluate_contents(self, new_contents, cached_run=None):
         self.write_contents(new_contents)
         return self.evaluate_local(cached_run)
-
-    def compute_local_cli(self, step):
-        cli = ''
-        for target in self.target_files:
-            model = self.models[target]
-            if isinstance(model, AbstractParamsModel):
-                if step in model.config['timing']:
-                    cli = '{} {}'.format(cli, model.resolve_cli(self.local_contents[target]))
-        return cli
 
     @abstractmethod
     def evaluate_local(self, cached_run=None):

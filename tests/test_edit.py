@@ -1,4 +1,4 @@
-from magpie.base import Edit
+from magpie.core import Edit
 
 def test_str_no_data():
     e = Edit('target_file')
