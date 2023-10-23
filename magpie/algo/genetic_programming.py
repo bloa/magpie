@@ -50,7 +50,7 @@ class GeneticProgramming(BasicAlgorithm):
                 accept = best = False
                 if run.status == 'SUCCESS':
                     if self.dominates(run.fitness, local_best_fitness):
-                        self.program.logger.debug(self.program.diff_patch(sol))
+                        self.software.logger.debug(self.software.diff_patch(sol))
                         local_best_fitness = run.fitness
                         local_best = sol
                         accept = True
@@ -107,7 +107,7 @@ class GeneticProgramming(BasicAlgorithm):
                     accept = best = False
                     if run.status == 'SUCCESS':
                         if self.dominates(run.fitness, local_best_fitness):
-                            self.program.logger.debug(self.program.diff_patch(sol))
+                            self.software.logger.debug(self.software.diff_patch(sol))
                             local_best_fitness = run.fitness
                             local_best = sol
                             accept = True

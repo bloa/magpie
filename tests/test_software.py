@@ -2,10 +2,10 @@ import pytest
 
 import magpie
 
-from magpie.bin import BasicProgram
+from magpie.bin import BasicSoftware
 from magpie.base import ExecResult, RunResult
 
-class StubProgram(BasicProgram):
+class StubSoftware(BasicSoftware):
     def __init__(self):
         config = magpie.bin.default_config
         config['software'].update({
@@ -21,8 +21,8 @@ class StubProgram(BasicProgram):
         self.locations = {}
 
 @pytest.fixture
-def my_program():
-    return StubProgram()
+def my_software():
+    return StubSoftware()
 
 @pytest.fixture
 def my_runresult():
@@ -38,9 +38,9 @@ def my_runresult():
     (255, 'CODE_ERROR'),
     (-1, 'CODE_ERROR'),
 ])
-def test_process_init(my_program, my_runresult, return_code, status):
+def test_process_init(my_software, my_runresult, return_code, status):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
-    my_program.process_init_exec(my_runresult, exec_result)
+    my_software.process_init_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
 
 
@@ -53,9 +53,9 @@ def test_process_init(my_program, my_runresult, return_code, status):
     (255, 'CODE_ERROR'),
     (-1, 'CODE_ERROR'),
 ])
-def test_process_setup(my_program, my_runresult, return_code, status):
+def test_process_setup(my_software, my_runresult, return_code, status):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
-    my_program.process_setup_exec(my_runresult, exec_result)
+    my_software.process_setup_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
 
 
@@ -68,9 +68,9 @@ def test_process_setup(my_program, my_runresult, return_code, status):
     (255, 'CODE_ERROR'),
     (-1, 'CODE_ERROR'),
 ])
-def test_process_compile(my_program, my_runresult, return_code, status):
+def test_process_compile(my_software, my_runresult, return_code, status):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
-    my_program.process_setup_exec(my_runresult, exec_result)
+    my_software.process_setup_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
 
 
@@ -83,10 +83,10 @@ def test_process_compile(my_program, my_runresult, return_code, status):
     (255, 'CODE_ERROR'),
     (-1, 'CODE_ERROR'),
 ])
-def test_process_test_not_repair(my_program, my_runresult, return_code, status):
-    my_program.fitness_type = 'time'
+def test_process_test_not_repair(my_software, my_runresult, return_code, status):
+    my_software.fitness_type = 'time'
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
-    my_program.process_setup_exec(my_runresult, exec_result)
+    my_software.process_setup_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
 
 
@@ -105,10 +105,10 @@ def test_process_test_not_repair(my_program, my_runresult, return_code, status):
     (b'2 fails', 'PARSE_ERROR', None),
     (b'3 errors', 'PARSE_ERROR', None),
 ])
-def test_process_test_repair(my_program, my_runresult, stdout, status, fitness):
-    my_program.fitness_type = 'repair'
+def test_process_test_repair(my_software, my_runresult, stdout, status, fitness):
+    my_software.fitness_type = 'repair'
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
-    my_program.process_test_exec(my_runresult, exec_result)
+    my_software.process_test_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
 
@@ -122,9 +122,9 @@ def test_process_test_repair(my_program, my_runresult, stdout, status, fitness):
     (255, 'CODE_ERROR'),
     (-1, 'CODE_ERROR'),
 ])
-def test_process_run(my_program, my_runresult, return_code, status):
+def test_process_run(my_software, my_runresult, return_code, status):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
-    my_program.process_run_exec(my_runresult, exec_result)
+    my_software.process_run_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
 
 
@@ -140,10 +140,10 @@ def test_process_run(my_program, my_runresult, return_code, status):
     (b'FITNESS: 1', 'PARSE_ERROR', None),
     (b'', 'PARSE_ERROR', None),
 ])
-def test_process_run_output(my_program, my_runresult, stdout, status, fitness):
-    my_program.fitness_type = 'output'
+def test_process_run_output(my_software, my_runresult, stdout, status, fitness):
+    my_software.fitness_type = 'output'
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
-    my_program.process_run_exec(my_runresult, exec_result)
+    my_software.process_run_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
 
@@ -154,10 +154,10 @@ def test_process_run_output(my_program, my_runresult, stdout, status, fitness):
     # PARSE_ERROR on everything else
     (b'', 'PARSE_ERROR', None),
 ])
-def test_process_run_posixtime(my_program, my_runresult, stderr, status, fitness):
-    my_program.fitness_type = 'posix_time'
+def test_process_run_posixtime(my_software, my_runresult, stderr, status, fitness):
+    my_software.fitness_type = 'posix_time'
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, b'', stderr, 1, 0)
-    my_program.process_run_exec(my_runresult, exec_result)
+    my_software.process_run_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
 
@@ -168,10 +168,10 @@ def test_process_run_posixtime(my_program, my_runresult, stderr, status, fitness
     # PARSE_ERROR on everything else
     (b'', 'PARSE_ERROR', None),
 ])
-def test_process_run_perftime(my_program, my_runresult, stderr, status, fitness):
-    my_program.fitness_type = 'perf_time'
+def test_process_run_perftime(my_software, my_runresult, stderr, status, fitness):
+    my_software.fitness_type = 'perf_time'
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, b'', stderr, 1, 0)
-    my_program.process_run_exec(my_runresult, exec_result)
+    my_software.process_run_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
 
@@ -182,9 +182,9 @@ def test_process_run_perftime(my_program, my_runresult, stderr, status, fitness)
     # PARSE_ERROR on everything else
     (b'', 'PARSE_ERROR', None),
 ])
-def test_process_run_perfinstructions(my_program, my_runresult, stderr, status, fitness):
-    my_program.fitness_type = 'perf_instructions'
+def test_process_run_perfinstructions(my_software, my_runresult, stderr, status, fitness):
+    my_software.fitness_type = 'perf_instructions'
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, b'', stderr, 1, 0)
-    my_program.process_run_exec(my_runresult, exec_result)
+    my_software.process_run_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness

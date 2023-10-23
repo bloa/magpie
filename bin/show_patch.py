@@ -30,19 +30,19 @@ if __name__ == "__main__":
 
     # setup
     magpie.bin.setup(config)
-    program = magpie.bin.program_from_string(config['software']['program'])(config)
-    program.ensure_contents()
+    software = magpie.bin.software_from_string(config['software']['software'])(config)
+    software.ensure_contents()
 
     # apply patch
-    new_contents = program.apply_patch(patch)
+    new_contents = software.apply_patch(patch)
 
     # show patch
-    program.logger.info('==== REPORT ====')
-    program.logger.info('Patch: {}'.format(patch))
-    program.logger.info('Diff:\n{}'.format(program.diff_contents(new_contents)))
+    software.logger.info('==== REPORT ====')
+    software.logger.info('Patch: {}'.format(patch))
+    software.logger.info('Diff:\n{}'.format(software.diff_contents(new_contents)))
     if args.keep:
-        program.logger.info('==== PATH ====')
-        program.logger.info(program.work_dir)
-        program.write_contents(new_contents)
+        software.logger.info('==== PATH ====')
+        software.logger.info(software.work_dir)
+        software.write_contents(new_contents)
     else:
-        program.clean_work_dir()
+        software.clean_work_dir()

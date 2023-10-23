@@ -36,7 +36,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
                         s -= 1
                     if s == 0:
                         break
-        self.program.batch = batch if any(batch) else [['']] # single empty instance when no batch
+        self.software.batch = batch if any(batch) else [['']] # single empty instance when no batch
         # early exit before warmup
         if self.report['initial_fitness'] is None:
             return
@@ -61,12 +61,12 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
     def hook_warmup(self):
         self.hook_reset_batch()
         self.stats['wallclock_start'] = self.stats['wallclock_warmup'] = time.time()
-        self.program.logger.info('==== WARMUP ====')
+        self.software.logger.info('==== WARMUP ====')
 
     def hook_warmup_evaluation(self, count, patch, run):
         self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
         if run.status != 'SUCCESS':
-            self.program.diagnose_error(run)
+            self.software.diagnose_error(run)
 
     def hook_batch_evaluation(self, count, patch, run, best=False):
         c = '*' if best else ' '
@@ -77,7 +77,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
             raise RuntimeError('possible_edits list is empty')
         # TODO: check that every possible edit can be created and simplify create_edit
         self.stats['wallclock_start'] = time.time() # discards warmup time
-        self.program.logger.info('==== START: {} ===='.format(self.__class__.__name__))
+        self.software.logger.info('==== START: {} ===='.format(self.__class__.__name__))
 
     def hook_main_loop(self):
         pass
@@ -89,12 +89,12 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
             c = '+'
         else:
             c = ' '
-        self.program.logger.debug(patch)
-        # self.program.logger.debug(run) # uncomment for detail on last cmd
+        self.software.logger.debug(patch)
+        # self.software.logger.debug(run) # uncomment for detail on last cmd
         counter = self.aux_log_counter()
         self.aux_log_eval(counter, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
         if accept or best:
-            self.program.logger.debug(self.program.diff_patch(patch)) # recomputes contents but meh
+            self.software.logger.debug(self.software.diff_patch(patch)) # recomputes contents but meh
 
     def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
         if fitness is not None and baseline is not None:
@@ -108,7 +108,7 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
             s2 = '[{} edit(s)] '.format(patch_size)
         else:
             s2 = ''
-        self.program.logger.info('{:<7} {:<20} {:>1}{:<24}{}'.format(counter, status, c, str(fitness) + ' ' + s + ' ' + s2, data))
+        self.software.logger.info('{:<7} {:<20} {:>1}{:<24}{}'.format(counter, status, c, str(fitness) + ' ' + s + ' ' + s2, data))
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
@@ -117,8 +117,8 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
         self.stats['wallclock_end'] = time.time()
         self.stats['wallclock_total'] = self.stats['wallclock_end'] - self.stats['wallclock_start']
         if self.report['best_patch']:
-            self.report['diff'] = self.program.diff_patch(self.report['best_patch'])
-        self.program.logger.info('==== END ====')
+            self.report['diff'] = self.software.diff_patch(self.report['best_patch'])
+        self.software.logger.info('==== END ====')
 
     def warmup(self):
         empty_patch = magpie.base.Patch()
@@ -126,8 +126,8 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
             self.report['initial_patch'] = empty_patch
         warmup_values = []
         for i in range(max(self.config['warmup'] or 1, 1), 0, -1):
-            self.program.base_fitness = None
-            self.program.truth_table = {}
+            self.software.base_fitness = None
+            self.software.truth_table = {}
             run = self.evaluate_patch(empty_patch, force=True, forget=True)
             l = 'INITIAL' if i == 1 else 'WARM'
             self.hook_warmup_evaluation('WARM', empty_patch, run)
@@ -162,21 +162,21 @@ class BasicAlgorithm(magpie.base.AbstractAlgorithm):
             else:
                 self.report['best_patch'] = empty_patch
                 self.report['best_fitness'] = current_fitness
-        if self.program.base_fitness is None:
-            self.program.base_fitness = current_fitness
+        if self.software.base_fitness is None:
+            self.software.base_fitness = current_fitness
 
     def evaluate_patch(self, patch, force=False, forget=False):
-        contents = self.program.apply_patch(patch)
+        contents = self.software.apply_patch(patch)
         diff = None
         cached_run = None
         if self.config['cache_maxsize'] > 0 and not force:
-            diff = self.program.diff_contents(contents)
+            diff = self.software.diff_contents(contents)
             cached_run = self.cache_get(diff)
             # no return: now handled in evaluate_contents
-        run = self.program.evaluate_contents(contents, cached_run)
+        run = self.software.evaluate_contents(contents, cached_run)
         if self.config['cache_maxsize'] > 0 and not forget:
             if not diff:
-                diff = self.program.diff_contents(contents)
+                diff = self.software.diff_contents(contents)
             self.cache_set(diff, run)
         self.stats['budget'] += getattr(run, 'budget', 0) or 0
         return run

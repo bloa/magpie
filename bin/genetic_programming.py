@@ -37,7 +37,7 @@ if __name__ == "__main__":
     magpie.bin.setup(config)
     protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
     protocol.search = algo()
-    protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
+    protocol.software = magpie.bin.software_from_string(config['software']['software'])(config)
     protocol.setup(config)
 
     # run experiments

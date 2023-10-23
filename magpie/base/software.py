@@ -18,7 +18,7 @@ from .. import config as magpie_config
 from ..params import AbstractParamsModel
 from .execresult import ExecResult
 
-class AbstractProgram(ABC):
+class AbstractSoftware(ABC):
     def __init__(self, path):
         self.logger = None
         self.path = os.path.abspath(path.strip())
@@ -307,7 +307,7 @@ class AbstractProgram(ABC):
 
     def diff_contents(self, new_contents):
         """
-        Compare the source codes of original program and the patch-applied program
+        Compare the source codes of original software and the patch-applied software
         using *difflib* module(https://docs.python.org/3.6/library/difflib.html).
         """
         if magpie_config.diff_method == 'unified':

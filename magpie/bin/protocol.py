@@ -7,7 +7,7 @@ import magpie
 class BasicProtocol:
     def __init__(self):
         self.search = None
-        self.program = None
+        self.software = None
 
     def setup(self, config):
         # shared parameters
@@ -113,21 +113,21 @@ class BasicProtocol:
         with io.StringIO() as ss:
             config.write(ss)
             ss.seek(0)
-            self.program.logger.debug('==== CONFIG ====\n{}'.format(ss.read()))
+            self.software.logger.debug('==== CONFIG ====\n{}'.format(ss.read()))
 
     def run(self):
-        if self.program is None:
-            raise AssertionError('Program not specified')
+        if self.software is None:
+            raise AssertionError('Software not specified')
         if self.search is None:
             raise AssertionError('Search not specified')
 
         # init final result dict
         result = {'stop': None, 'best_patch': []}
 
-        # setup program
-        self.search.program = self.program
+        # setup software
+        self.search.software = self.software
         try:
-            self.program.ensure_contents()
+            self.software.ensure_contents()
         except RuntimeError as e:
             result['stop'] = str(e)
 
@@ -136,7 +136,7 @@ class BasicProtocol:
             self.search.run()
             result.update(self.search.report)
 
-        logger = self.program.logger
+        logger = self.software.logger
         logger.info('')
 
         # print the report
@@ -146,8 +146,8 @@ class BasicProtocol:
             if handler.__class__.__name__ == 'FileHandler':
                 logger.info('Log file: {}'.format(handler.baseFilename))
         if result['best_patch'] and result['best_patch'].edits:
-            result['diff'] = self.program.diff_patch(result['best_patch'])
-            base_path = os.path.join(magpie.config.log_dir, self.program.run_label)
+            result['diff'] = self.software.diff_patch(result['best_patch'])
+            base_path = os.path.join(magpie.config.log_dir, self.software.run_label)
             logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))
             logger.info('Diff file: {}'.format('{}.diff'.format(base_path)))
             logger.info('Best fitness: {}'.format(result['best_fitness']))
@@ -160,4 +160,4 @@ class BasicProtocol:
                 f.write(result['diff'])
 
         # cleanup temporary software copies
-        self.program.clean_work_dir()
+        self.software.clean_work_dir()

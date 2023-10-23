@@ -23,13 +23,13 @@ class ValidSearch(LocalSearch):
 
     def do_clean_patch(self, patch):
         cleaned = copy.deepcopy(patch)
-        cleaned_diff = self.program.diff_patch(cleaned)
+        cleaned_diff = self.software.diff_patch(cleaned)
         for (k,edit) in reversed(list(enumerate(cleaned.edits))):
             tmp = copy.deepcopy(cleaned)
             del tmp.edits[k]
-            if self.program.diff_patch(tmp) == cleaned_diff:
+            if self.software.diff_patch(tmp) == cleaned_diff:
                 del cleaned.edits[k]
-                # cleaned_diff = self.program.diff_patch(cleaned) # ???
+                # cleaned_diff = self.software.diff_patch(cleaned) # ???
         return cleaned
 
     def do_eval_patch(self, patch):
@@ -94,23 +94,23 @@ class ValidMinify(ValidSearch):
     def explore(self, current_patch, current_fitness):
         # cleanup
         if self.config['do_cleanup']:
-            self.program.logger.info('-- cleanup --')
+            self.software.logger.info('-- cleanup --')
             cleaned_patch = copy.deepcopy(self.debug_patch)
-            cleaned_diff = self.program.diff_patch(cleaned_patch)
+            cleaned_diff = self.software.diff_patch(cleaned_patch)
             for (k,edit) in reversed(list(enumerate(cleaned_patch.edits))):
                 tmp = copy.deepcopy(cleaned_patch)
                 del tmp.edits[k]
-                if self.program.diff_patch(tmp) == cleaned_diff:
-                    self.program.logger.info('removed {}'.format(str(cleaned_patch.edits[k])))
+                if self.software.diff_patch(tmp) == cleaned_diff:
+                    self.software.logger.info('removed {}'.format(str(cleaned_patch.edits[k])))
                     del cleaned_patch.edits[k]
             s1, s2 = len(cleaned_patch.edits), len(self.debug_patch.edits)
             if s1 < s2:
-                self.program.logger.info('cleaned size is %d (was %d)', s1, s2)
-                self.program.logger.info('clean patch: {}'.format(str(cleaned_patch)))
+                self.software.logger.info('cleaned size is %d (was %d)', s1, s2)
+                self.software.logger.info('clean patch: {}'.format(str(cleaned_patch)))
             self.debug_patch = cleaned_patch
 
         # full patch first
-        self.program.logger.info('-- initial patch --')
+        self.software.logger.info('-- initial patch --')
         if self.debug_patch.edits:
             run = self.do_eval_patch(self.debug_patch)
         else:
@@ -119,7 +119,7 @@ class ValidMinify(ValidSearch):
 
         if self.config['do_rebuild']:
             # ranking
-            self.program.logger.info('-- ranking --')
+            self.software.logger.info('-- ranking --')
             ranking = list()
             for edit in self.debug_patch.edits:
                 patch = Patch([edit])
@@ -129,7 +129,7 @@ class ValidMinify(ValidSearch):
 
             # rebuild
             if ranking[0][1] < self.report['initial_fitness']:
-                self.program.logger.info('-- rebuild --')
+                self.software.logger.info('-- rebuild --')
                 rebuild = Patch([ranking[0][0]])
                 rebuild_fitness = ranking[0][1]
                 for (edit,fit) in ranking[1:]:
@@ -145,7 +145,7 @@ class ValidMinify(ValidSearch):
 
         # round robin simplify
         if self.config['do_simplify']:
-            self.program.logger.info('-- simplify --')
+            self.software.logger.info('-- simplify --')
             n = len(self.report['best_patch'].edits)+1
             rr_limit = self.config['round_robin_limit']
             last_i = 0

@@ -7,9 +7,9 @@ import magpie
 from .. import config as magpie_config
 
 
-class BasicProgram(magpie.base.AbstractProgram):
+class BasicSoftware(magpie.base.AbstractSoftware):
     def __init__(self, config):
-        # AbstractProgram *requires* a path, a list of target files, and a list of possible edits
+        # AbstractSoftware *requires* a path, a list of target files, and a list of possible edits
         if not (val := config['software']['path']):
             raise ValueError('Invalid config file: "[software] path" must be defined')
         super().__init__(config['software']['path'])

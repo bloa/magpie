@@ -14,17 +14,17 @@ class AblationAnalysis(ValidSearch):
 
     def hook_analysis(self, patch, edit, run):
         self.aux_log_eval('~', run.status, '', run.fitness, self.report['initial_fitness'], len(patch.edits), edit)
-        self.program.logger.debug('+++ edit +++')
-        self.program.logger.debug(self.program.diff_patch(patch))
-        self.program.logger.debug('+++ partial patch +++')
-        self.program.logger.debug(self.program.diff_patch(patch))
+        self.software.logger.debug('+++ edit +++')
+        self.software.logger.debug(self.software.diff_patch(patch))
+        self.software.logger.debug('+++ partial patch +++')
+        self.software.logger.debug(self.software.diff_patch(patch))
 
     def explore(self, current_patch, current_fitness):
         if self.debug_patch is None:
             raise ValueError()
         self.cleaned_patch = self.do_clean_patch(self.debug_patch)
-        self.program.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
-        self.program.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
+        self.software.logger.debug('CLEAN_PATCH: {}'.format(str(self.cleaned_patch)))
+        self.software.logger.debug('CLEAN_SIZE: %d (was %d)', len(self.cleaned_patch.edits), len(self.debug_patch.edits))
         self.report['best_fitness'] = None
         self.report['best_patch'] = None
         self.report['cleaned_patch'] = self.cleaned_patch
@@ -51,7 +51,7 @@ class AblationAnalysis(ValidSearch):
             rebuild.edits.pop(best_edit_id)
 
         # analysis
-        self.program.logger.info('==== ANALYSIS ====')
+        self.software.logger.info('==== ANALYSIS ====')
         patch = copy.deepcopy(self.cleaned_patch)
         run = self.evaluate_patch(patch) # should be already cached (initial)
         self.hook_analysis(patch, '', run)

@@ -3,7 +3,7 @@ class Edit:
         self.target = target
         self.data = list(args)
 
-    def apply(self, program, new_contents, new_locations):
+    def apply(self, software, new_contents, new_locations):
         pass
 
     def __eq__(self, other):

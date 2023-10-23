@@ -3,5 +3,5 @@ from .patch import Patch
 from .execresult import ExecResult
 from .runresult import RunResult
 from .model import AbstractModel
-from .program import AbstractProgram
+from .software import AbstractSoftware
 from .algorithm import AbstractAlgorithm

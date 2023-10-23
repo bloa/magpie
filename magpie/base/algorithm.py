@@ -40,15 +40,15 @@ class AbstractAlgorithm(ABC):
     def create_edit(self):
         edit_klass = random.choice(self.config['possible_edits'])
         tries = magpie_config.edit_retries
-        while (edit := edit_klass.create(self.program)) is None:
+        while (edit := edit_klass.create(self.software)) is None:
             tries -= 1
             if tries == 0:
                 raise RuntimeError('unable to create an edit of class {}'.format(edit_klass.__name__))
         return edit
 
     def evaluate_patch(self, patch, force=False, forget=False):
-        contents = self.program.apply_patch(patch)
-        return self.program.evaluate_contents(contents)
+        contents = self.software.apply_patch(patch)
+        return self.software.evaluate_contents(contents)
 
     def dominates(self, fit1, fit2):
         if fit1 is None:

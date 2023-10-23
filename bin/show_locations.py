@@ -25,26 +25,26 @@ if __name__ == "__main__":
     # setup
     magpie.bin.pre_setup(config)
     magpie.bin.setup(config)
-    program = magpie.bin.program_from_string(config['software']['program'])(config)
-    program.ensure_contents()
+    software = magpie.bin.software_from_string(config['software']['software'])(config)
+    software.ensure_contents()
 
     # show locations
     target_files = config['software']['target_files'].split()
-    for filename in program.target_files:
+    for filename in software.target_files:
         if args.filename is not None and args.filename != filename:
             continue
         print('==== {} ===='.format(filename))
-        if program.get_model(filename) is magpie.xml.XmlModel:
+        if software.get_model(filename) is magpie.xml.XmlModel:
             if not args.xml:
                 print('The detected model for this file is XmlModel, which may lead to a very large and not-so-useful output')
-                print('If you excepted a SrcmlModel instead replace BasicProgram by your own program class')
+                print('If you excepted a SrcmlModel instead replace BasicSoftware by your own software class')
                 print('To disable this warning and show all XML locations use the --xml argument')
                 continue
-        for type_ in program.locations[filename].keys():
+        for type_ in software.locations[filename].keys():
             if args.type is not None and args.type != type_:
                 continue
             print('---- {} ----'.format(type_))
-            for loc in program.location_names(filename, type_):
-                print(program.show_location(filename, type_, loc))
+            for loc in software.location_names(filename, type_):
+                print(software.show_location(filename, type_, loc))
             print()
-    program.clean_work_dir()
+    software.clean_work_dir()

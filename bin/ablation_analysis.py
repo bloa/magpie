@@ -34,7 +34,7 @@ if __name__ == "__main__":
     protocol = magpie.bin.protocol_from_string(config['search']['protocol'])()
     protocol.search = magpie.bin.algo_from_string(config['search']['algorithm'])()
     protocol.search.debug_patch = patch
-    protocol.program = magpie.bin.program_from_string(config['software']['program'])(config)
+    protocol.software = magpie.bin.software_from_string(config['software']['software'])(config)
     protocol.setup(config)
 
     # run experiments

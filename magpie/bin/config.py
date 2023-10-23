@@ -19,7 +19,7 @@ default_config = {
     'software': {
         'path': '',
         'target_files': '',
-        'program': 'BasicProgram',
+        'software': 'BasicSoftware',
         'model_rules': """
 *.params : ConfigFileParamsModel
 *.xml : SrcmlModel

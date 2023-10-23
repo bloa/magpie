@@ -44,7 +44,7 @@ Default values:
     [software]
     path =
     target_files =
-    program = BasicProgram
+    software = BasicSoftware
     model_rules =
         *.params : ConfigFileParamsModel
         *.xml : SrcmlModel
@@ -75,7 +75,7 @@ Default values:
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
-- `program`: the name of the Program class; it needs to belong to `magpie.bin.programs`
+- `software`: the name of the Software class; it needs to belong to `magpie.bin.softwares`
 - `model_rules`: the list of rules used to determine how target files are internally represented; model classes need to belong to either `magpie.xml.models`, `magpie.line.models`, or `magpie.params.models`
 - `model_config`: the list of rules used to determine which section of the scenario file gets used to configure the model of the associated files
 - `possible_edits`: the list of edits available to the search process; they need to belong to either `magpie.xml.edits`, `magpie.line.edits`, or `magpie.params.edits`

@@ -31,11 +31,11 @@ def patch_from_string(s):
     assert str(patch) == s
     return patch
 
-def program_from_string(s):
-    for klass in magpie.bin.programs:
+def software_from_string(s):
+    for klass in magpie.bin.softwares:
         if klass.__name__ == s:
             return klass
-    raise RuntimeError('Unknown program "{}"'.format(s))
+    raise RuntimeError('Unknown software "{}"'.format(s))
 
 def protocol_from_string(s):
     for klass in magpie.bin.protocols:
