@@ -5,7 +5,7 @@ from .validation import ValidSearch, ValidSingle, ValidTest, ValidMinify
 from .ablation import AblationAnalysis
 
 # "final" algos only
-algos = [
+known_algos = [
     DummySearch, RandomSearch, RandomWalk, DebugSearch,
     FirstImprovement, BestImprovement, WorstImprovement, TabuSearch,
     GeneticProgrammingConcat, GeneticProgramming1Point, GeneticProgramming2Point, GeneticProgrammingUniformConcat, GeneticProgrammingUniformInter,

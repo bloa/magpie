@@ -3,13 +3,13 @@ from .abstract_model import AbstractParamsModel
 from .configfile_model import ConfigFileParamsModel
 from .params_edits import ParamSetting
 
-# concrete models only
-models = [
+# "final" models only
+known_models = [
     ConfigFileParamsModel,
 ]
 
-# concrete edits only
-edits = [
+# "final" edits only
+known_edits = [
     ParamSetting,
 ]
 

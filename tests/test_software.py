@@ -1,12 +1,11 @@
 import pytest
 
-import magpie
-from magpie.bin import BasicSoftware
-from magpie.core import ExecResult, RunResult
+from magpie.core import ExecResult, RunResult, BasicSoftware
+from magpie.core import default_scenario
 
 class StubSoftware(BasicSoftware):
     def __init__(self):
-        config = magpie.bin.default_config
+        config = default_scenario
         config['software'].update({
             'path': 'foo',
             'target_files': 'foo/bar',

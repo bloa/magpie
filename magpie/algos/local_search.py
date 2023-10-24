@@ -2,8 +2,8 @@ import copy
 import random
 import time
 
-from magpie.bin import BasicAlgorithm
-from magpie.core import Patch
+from magpie.core import Patch, BasicAlgorithm
+
 
 class LocalSearch(BasicAlgorithm):
     def setup(self):

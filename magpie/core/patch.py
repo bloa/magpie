@@ -1,6 +1,7 @@
 import os
 import copy
 
+
 class Patch:
     def __init__(self, edits=[]):
         self.edits = [edit for edit in edits]

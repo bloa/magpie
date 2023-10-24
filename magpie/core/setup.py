@@ -97,7 +97,7 @@ def setup(config):
     magpie.models.params.AbstractParamsModel.SILENT_PREFIX = sec['silent_prefix']
     magpie.models.params.AbstractParamsModel.SILENT_SUFFIX = sec['silent_suffix']
 
-def setup_xml_model(model, config_section, section):
+def _setup_xml_model(model, config_section, section):
     for k in [
             'process_pseudo_blocks',
             'process_literals',
@@ -125,7 +125,7 @@ def setup_xml_model(model, config_section, section):
     if 'focus' in config_section:
         model.config['tag_focus'] = set(config_section['focus'].split())
 
-def setup_params_model(model, config_section, section):
+def _setup_params_model(model, config_section, section):
     if (k := 'timing') in config_section:
         tmp = config_section[k].split()
         if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):

@@ -10,13 +10,13 @@ from .srcml_edits import ComparisonOperatorSetting, ArithmeticOperatorSetting
 from .srcml_edits import NumericSetting, RelativeNumericSetting
 
 # "final" models only
-models = [
+known_models = [
     XmlModel,
     SrcmlModel,
 ]
 
 # "final" edits only
-edits = [
+known_edits = [
     XmlLineReplacement, XmlLineInsertion, XmlLineDeletion, XmlLineMoving,
     StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving, StmtSwap,
     ExprReplacement,

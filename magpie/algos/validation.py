@@ -3,8 +3,8 @@ import random
 import time
 
 from magpie.core import Patch
+from .local_search import LocalSearch
 
-from . import LocalSearch
 
 class ValidSearch(LocalSearch):
     def setup(self):

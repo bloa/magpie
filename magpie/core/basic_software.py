@@ -3,11 +3,9 @@ import re
 import shlex
 
 import magpie
-
 from magpie.core import AbstractSoftware
 from magpie.core import RunResult
-from .. import config as magpie_config
-
+from .setup import _setup_xml_model, _setup_params_model
 
 class BasicSoftware(AbstractSoftware):
     def __init__(self, config):
@@ -27,7 +25,7 @@ class BasicSoftware(AbstractSoftware):
                     k, v = rule.split(':')
                 except ValueError:
                     raise ValueError('badly formated rule: "{}"'.format(rule))
-                self.model_rules.append((k.strip(), magpie.bin.model_from_string(v.strip())))
+                self.model_rules.append((k.strip(), magpie.core.utils.model_from_string(v.strip())))
 
         # model config
         self.model_config = []
@@ -183,8 +181,8 @@ class BasicSoftware(AbstractSoftware):
                 cwd = os.getcwd()
                 try:
                     os.chdir(self.path)
-                    timeout = self.init_timeout or magpie_config.default_timeout
-                    lengthout = self.init_lengthout or magpie_config.default_lengthout
+                    timeout = self.init_timeout or magpie.config.default_timeout
+                    lengthout = self.init_lengthout or magpie.config.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(self.init_cmd),
                                                 timeout=timeout,
                                                 lengthout=lengthout)
@@ -218,9 +216,9 @@ class BasicSoftware(AbstractSoftware):
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
                 if isinstance(model, magpie.models.xml.XmlModel):
-                    magpie.bin.setup_xml_model(model, config_section, section_name)
+                    _setup_xml_model(model, config_section, section_name)
                 elif isinstance(model, magpie.models.params.AbstractParamsModel):
-                    magpie.bin.setup_params_model(model, config_section, section_name)
+                    _setup_params_model(model, config_section, section_name)
                 return
 
     def evaluate_contents(self, new_contents, cached_run=None):
@@ -261,8 +259,8 @@ class BasicSoftware(AbstractSoftware):
                         setup_cmd = setup_cmd.replace('{PARAMS}', cli)
                     else:
                         setup_cmd = '{} {}'.format(setup_cmd, cli)
-                    timeout = self.setup_timeout or magpie_config.default_timeout
-                    lengthout = self.setup_lengthout or magpie_config.default_lengthout
+                    timeout = self.setup_timeout or magpie.config.default_timeout
+                    lengthout = self.setup_lengthout or magpie.config.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(setup_cmd),
                                                 timeout=timeout,
                                                 lengthout=lengthout)
@@ -285,8 +283,8 @@ class BasicSoftware(AbstractSoftware):
                     compile_cmd = compile_cmd.replace('{PARAMS}', cli)
                 else:
                     compile_cmd = '{} {}'.format(compile_cmd, cli)
-                timeout = self.compile_timeout or magpie_config.default_timeout
-                lengthout = self.compile_lengthout or magpie_config.default_lengthout
+                timeout = self.compile_timeout or magpie.config.default_timeout
+                lengthout = self.compile_lengthout or magpie.config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(compile_cmd),
                                             timeout=timeout,
                                             lengthout=lengthout)
@@ -306,8 +304,8 @@ class BasicSoftware(AbstractSoftware):
                     test_cmd = test_cmd.replace('{PARAMS}', cli)
                 else:
                     test_cmd = '{} {}'.format(test_cmd, cli)
-                timeout = self.test_timeout or magpie_config.default_timeout
-                lengthout = self.test_lengthout or magpie_config.default_lengthout
+                timeout = self.test_timeout or magpie.config.default_timeout
+                lengthout = self.test_lengthout or magpie.config.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(test_cmd),
                                             timeout=timeout,
                                             lengthout=lengthout)
@@ -326,8 +324,8 @@ class BasicSoftware(AbstractSoftware):
             # run "[software] run_cmd" if provided
             if self.run_cmd:
                 cli = self.compute_local_cli('run')
-                timeout = self.run_timeout or magpie_config.default_timeout
-                lengthout = self.run_lengthout or magpie_config.default_lengthout
+                timeout = self.run_timeout or magpie.config.default_timeout
+                lengthout = self.run_lengthout or magpie.config.default_lengthout
                 batch_timeout = self.batch_timeout
                 batch_lengthout = self.batch_lengthout
                 for b in self.batch:
@@ -456,7 +454,7 @@ class BasicSoftware(AbstractSoftware):
 
         # if "[software] fitness" is "output", we check STDOUT for the string "MAGPIE_FITNESS:"
         if self.fitness_type == 'output':
-            stdout = exec_result.stdout.decode(magpie_config.output_encoding)
+            stdout = exec_result.stdout.decode(magpie.config.output_encoding)
             m = re.search('MAGPIE_FITNESS: (.*)', stdout)
             if m:
                 try:
@@ -472,7 +470,7 @@ class BasicSoftware(AbstractSoftware):
 
         # if "[software] fitness" is "posix_time", we assume a POSIX-compatible output on STDERR
         elif self.fitness_type == 'posix_time':
-            stderr = exec_result.stderr.decode(magpie_config.output_encoding)
+            stderr = exec_result.stderr.decode(magpie.config.output_encoding)
             m = re.search('real (.*)', stderr)
             if m:
                 try:
@@ -484,7 +482,7 @@ class BasicSoftware(AbstractSoftware):
 
         # if "[software] fitness" is "perf_time", we assume a perf-like output on STDERR
         elif self.fitness_type == 'perf_time':
-            stderr = exec_result.stderr.decode(magpie_config.output_encoding)
+            stderr = exec_result.stderr.decode(magpie.config.output_encoding)
             m = re.search('(.*) seconds time elapsed', stderr)
             if m:
                 try:
@@ -496,7 +494,7 @@ class BasicSoftware(AbstractSoftware):
 
         # if "[software] fitness" is "perf_instructions", we assume a perf-like output on STDERR
         elif self.fitness_type == 'perf_instructions':
-            stderr = exec_result.stderr.decode(magpie_config.output_encoding)
+            stderr = exec_result.stderr.decode(magpie.config.output_encoding)
             m = re.search('(.*) instructions', stderr)
             if m:
                 try:
@@ -593,18 +591,18 @@ class BasicSoftware(AbstractSoftware):
             self.logger.info('RETURN_CODE: {}'.format(run.last_exec.return_code))
             self.logger.info('RUNTIME: {}'.format(run.last_exec.runtime))
             try:
-                s = run.last_exec.stdout.decode(magpie_config.output_encoding)
+                s = run.last_exec.stdout.decode(magpie.config.output_encoding)
                 self.logger.info('STDOUT: (see log file)')
                 self.logger.debug('STDOUT:\n{}'.format(s))
             except UnicodeDecodeError:
-                self.logger.info('STDOUT: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.last_exec.stdout))
+                self.logger.info('STDOUT: (failed to decode to: {})\n{}'.format(magpie.config.output_encoding, run.last_exec.stdout))
             try:
-                s = run.last_exec.stderr.decode(magpie_config.output_encoding)
+                s = run.last_exec.stderr.decode(magpie.config.output_encoding)
                 self.logger.info('STDERR: (see log file)')
                 self.logger.debug('STDERR:\n{}'.format(s))
             except UnicodeDecodeError:
-                s = magpie_config.output_encoding
-                self.logger.info('STDERR: (failed to decode to: {})\n{}'.format(magpie_config.output_encoding, run.last_exec.stderr))
+                s = magpie.config.output_encoding
+                self.logger.info('STDERR: (failed to decode to: {})\n{}'.format(magpie.config.output_encoding, run.last_exec.stderr))
             self.logger.info('!*'*40)
 
     def self_diagnostic(self, run):

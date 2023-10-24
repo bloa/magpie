@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod
+import abc
 import os
 import shutil
 import time
 import pathlib
 import random
-import collections
 import subprocess
 import copy
 import difflib
@@ -12,12 +11,12 @@ import select
 import signal
 import errno
 import logging
-import re
 
 from magpie import config as magpie_config
 from .execresult import ExecResult
 
-class AbstractSoftware(ABC):
+
+class AbstractSoftware(abc.ABC):
     def __init__(self, path):
         self.logger = None
         self.path = os.path.abspath(path.strip())
@@ -130,7 +129,7 @@ class AbstractSoftware(ABC):
         return "{}({}):{}".format(self.__class__.__name__,
                                   self.path, ",".join(self.target_files))
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_model(self, target_file):
         pass
 
@@ -220,7 +219,7 @@ class AbstractSoftware(ABC):
         self.write_contents(new_contents)
         return self.evaluate_local(cached_run)
 
-    @abstractmethod
+    @abc.abstractmethod
     def evaluate_local(self, cached_run=None):
         pass
 

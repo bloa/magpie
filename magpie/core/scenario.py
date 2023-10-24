@@ -1,4 +1,4 @@
-default_config = {
+default_scenario = {
     # [magpie]
     'magpie': {
         'import': '',

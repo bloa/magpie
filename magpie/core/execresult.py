@@ -1,5 +1,6 @@
 import types
 
+
 class ExecResult(types.SimpleNamespace):
     def __init__(self, cmd, status, return_code, stdout, stderr, runtime, output_length):
         self.cmd = cmd

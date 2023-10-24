@@ -16,21 +16,21 @@ if __name__ == "__main__":
     parser.add_argument('--keep', action='store_true')
     args = parser.parse_args()
 
-    # read config file
+    # read scenario file
     config = configparser.ConfigParser()
-    config.read_dict(magpie.bin.default_config)
+    config.read_dict(magpie.core.default_scenario)
     config.read(args.scenario)
-    magpie.bin.pre_setup(config)
+    magpie.core.pre_setup(config)
 
     # recreate patch
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = magpie.bin.patch_from_string(args.patch)
+    patch = magpie.core.utils.patch_from_string(args.patch)
 
     # setup
-    magpie.bin.setup(config)
-    software = magpie.bin.software_from_string(config['software']['software'])(config)
+    magpie.core.setup(config)
+    software = magpie.core.utils.software_from_string(config['software']['software'])(config)
     software.ensure_contents()
 
     # apply patch

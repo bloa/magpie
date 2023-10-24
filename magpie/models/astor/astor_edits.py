@@ -4,7 +4,7 @@ from magpie.core import Edit
 from . import AstorModel
 
 
-class StmtReplacement(Edit):
+class AstorStmtReplacement(Edit):
     def apply(self, software, new_contents, new_locations):
         model = software.models[self.target[0]]
         return model.do_replace(software.contents, software.locations,
@@ -21,7 +21,7 @@ class StmtReplacement(Edit):
         return cls(software.random_target(target_file, 'stmt'),
                    software.random_target(ingr_file, 'stmt'))
 
-class StmtInsertion(Edit):
+class AstorStmtInsertion(Edit):
     def apply(self, software, new_contents, new_locations):
         model = software.models[self.target[0]]
         return model.do_insert(software.contents, software.locations,
@@ -38,7 +38,7 @@ class StmtInsertion(Edit):
         return cls(software.random_target(target_file, '_inter_block'),
                    software.random_target(ingr_file, 'stmt'))
 
-class StmtDeletion(Edit):
+class AstorStmtDeletion(Edit):
     def apply(self, software, new_contents, new_locations):
         model = software.models[self.target[0]]
         return model.do_delete(software.contents, software.locations,
@@ -51,7 +51,7 @@ class StmtDeletion(Edit):
             target_file = software.random_file(AstorModel)
         return cls(software.random_target(target_file, 'stmt'))
 
-class StmtMoving(Edit):
+class AstorStmtMoving(Edit):
     def apply(self, software, new_contents, new_locations):
         model = software.models[self.target[0]]
         model.do_insert(software.contents, software.locations,

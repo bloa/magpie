@@ -1,13 +1,14 @@
-from abc import ABC, abstractmethod
+import abc
 import itertools
 import random
 import os
 import time
 
-from .. import config as magpie_config
+from magpie import config as magpie_config
 from .patch import Patch
 
-class AbstractAlgorithm(ABC):
+
+class AbstractAlgorithm(abc.ABC):
     def __init__(self):
         self.setup()
 
@@ -33,7 +34,7 @@ class AbstractAlgorithm(ABC):
         self.report['stop'] = None
         self.cache_reset()
 
-    @abstractmethod
+    @abc.abstractmethod
     def run(self):
         pass
 

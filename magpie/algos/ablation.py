@@ -3,8 +3,8 @@ import random
 import time
 
 from magpie.core import Patch
-
 from .validation import ValidSearch
+
 
 class AblationAnalysis(ValidSearch):
     def setup(self):

@@ -2,16 +2,16 @@ import ast
 import re
 
 import magpie
-from magpie.core import patch
+from magpie.core import Patch
 
 def algo_from_string(s):
-    for klass in magpie.algos.algos:
+    for klass in magpie.algos.known_algos:
         if klass.__name__ == s:
             return klass
     raise RuntimeError('Unknown algorithm "{}"'.format(s))
 
 def model_from_string(s):
-    for klass in [*magpie.models.xml.models, *magpie.models.line.models, *magpie.models.params.models]:
+    for klass in magpie.models.known_models:
         if klass.__name__ == s:
             return klass
     raise RuntimeError('Unknown model "{}"'.format(s))
@@ -22,7 +22,7 @@ def patch_from_string(s):
         return patch
     for blob in s.split(' | '):
         match = re.search(r"^(\w+)\((.+)\)$", blob)
-        for klass in [*magpie.xml.edits, *magpie.line.edits, *magpie.params.edits]:
+        for klass in magpie.models.known_edits:
             if klass.__name__ == match.group(1):
                 args = ast.literal_eval("[{}]".format(match.group(2)))
                 patch.edits.append(klass(*args))
@@ -33,13 +33,13 @@ def patch_from_string(s):
     return patch
 
 def software_from_string(s):
-    for klass in magpie.bin.softwares:
+    for klass in magpie.core.known_software:
         if klass.__name__ == s:
             return klass
     raise RuntimeError('Unknown software "{}"'.format(s))
 
 def protocol_from_string(s):
-    for klass in magpie.bin.protocols:
+    for klass in magpie.core.known_protocols:
         if klass.__name__ == s:
             return klass
     raise RuntimeError('Unknown protocol "{}"'.format(s))

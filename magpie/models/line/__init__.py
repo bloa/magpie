@@ -3,11 +3,11 @@ from .line_model import LineModel
 from .line_edits import LineReplacement, LineInsertion, LineDeletion, LineMoving
 
 # "final" models only
-models = [
+known_models = [
     LineModel,
 ]
 
 # "final" edits only
-edits = [
+known_edits = [
     LineReplacement, LineInsertion, LineDeletion, LineMoving,
 ]

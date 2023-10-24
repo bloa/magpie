@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod
+import abc
 import os
 import random
 
-import magpie
 
-class AbstractModel(ABC):
+class AbstractModel(abc.ABC):
     def renamed_contents_file(self, target_file):
         return target_file
 
@@ -43,19 +42,19 @@ class AbstractModel(ABC):
             except (KeyError, ValueError):
                 return None
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_contents(self, file_path):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_locations(self, contents):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def location_names(self, locations, target_file, target_type):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def dump(self, file_contents):
         pass
 
