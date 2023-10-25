@@ -3,8 +3,8 @@
 shopt -s globstar
 
 bash clean.sh
-rsync --archive ../../../{examples,magpie,utils} .
+rsync --archive ../../../{examples,magpie,tests} .
 for file in **/*.py;
 do
-    python3 utils/python_to_xml.py $file > $file.xml
+    python3 magpie utils/python_to_xml $file > $file.xml
 done

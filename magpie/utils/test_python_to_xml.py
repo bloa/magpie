@@ -3,7 +3,8 @@ import glob
 
 import pytest
 
-from clear_xml import strip_xml_from_tree, string_to_tree
+from magpie.models.xml import XmlModel
+
 from python_to_xml import read_file_or_stdin, unparse_xml
 
 
@@ -17,6 +18,6 @@ def test_on_file(filename):
     oracle = ast.unparse(ast.parse(oracle, filename='oracle')) # ensures oracle is not buggy
 
     output = unparse_xml(root, filename)
-    naked = strip_xml_from_tree(string_to_tree(output))
+    naked = XmlModel.strip_xml_from_tree(XmlModel.string_to_tree(output))
     roundtrip = ast.unparse(ast.parse(naked, filename='roundtrip'))
     assert roundtrip == oracle

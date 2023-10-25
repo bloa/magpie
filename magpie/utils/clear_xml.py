@@ -3,14 +3,7 @@ import re
 import sys
 from xml.etree import ElementTree
 
-def string_to_tree(xml_str):
-    xml_str = re.sub(r'(<[^>]+?)(?:\s+xmlns\w*="[^"]+")+', r'\1', xml_str, count=1)
-    xml_str = re.sub(r'<(/?\w+?):(\w+)>', r'<\1_\2>', xml_str)
-    return ElementTree.fromstring(xml_str)
-
-def strip_xml_from_tree(tree):
-    return ''.join(tree.itertext())
-
+from magpie.models.xml import XmlModel
 
 # ================================================================================
 # Main function
@@ -26,5 +19,5 @@ if __name__ == "__main__":
     else:
         with open(args.file) as f:
             full = f.read()
-    output = strip_xml_from_tree(string_to_tree(full))
+    output = XmlModel.strip_xml_from_tree(XmlModel.string_to_tree(full))
     print(output)

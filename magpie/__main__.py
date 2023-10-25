@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
 
-import glob
 import os
 import pathlib
+import runpy
 import sys
 
-def usage(pref, suff):
-    print('usage: {} TARGET [ARGS]...'.format(sys.argv[0]))
-    print('possible targets:', file=sys.stderr)
-    for f in sorted(glob.glob('bin/*.py')):
-        path = pathlib.PurePath('bin' if pref else '') / '{}{}'.format(f[4:-3], '.py' if suff else '')
-        print('    {}'.format(path), file=sys.stderr)
-    exit(1)
+root = pathlib.Path('.')
+all_valid_targets = sum([sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'utils']], [])
 
-# split argv
-if len(sys.argv) == 1:
-    usage(None, None)
-path = pathlib.PurePath(sys.argv[1])
-argv = sys.argv[2:]
+def usage():
+    print('usage: python3 magpie ((magpie/){bin,utils}/)TARGET(.py) [ARGS]...')
+    print('possible TARGET:', file=sys.stderr)
+    for path in all_valid_targets:
+        print(f'    {path.stem:16}	({path})', file=sys.stderr)
 
-# split target "path"
-pref = str(path.parent) if str(path.parent) != '.' else None
-stem = path.stem
-suff = ''.join(path.suffixes) if path.suffix else None
+def get_valid_target(argv):
+    if len(argv) < 2:
+        return None
+    path = pathlib.PurePath(argv[1])
+    for target in all_valid_targets:
+        if path.stem == target.stem:
+            return f'magpie.{target.parent.name}.{path.stem}'
+    return None
 
-# check usage
-if ((pref and pref != 'bin') or
-    (suff and suff != '.py') or
-    not (pathlib.Path('bin') / '{}.py'.format(stem)).exists()):
-    usage(pref, suff)
+if __name__ == "__main__":
+    target = get_valid_target(sys.argv)
+    if not target:
+        usage()
+        exit(1)
 
-# replace current process
-os.execlp('python3', 'python3', '-m', 'bin.{}'.format(stem), *argv)
+    # replace current process
+    sys.argv = sys.argv[1:]
+    sys.path.append('.')
+    runpy.run_module(target, run_name='__main__', alter_sys=True)
