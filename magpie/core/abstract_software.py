@@ -109,12 +109,8 @@ class AbstractSoftware(abc.ABC):
             tmp = [sorted(path.glob(f)) if '*' in f else [f] for f in self.target_files]
             self.target_files = [str(f.relative_to(path)) for fl in tmp for f in fl]
         for target_file in self.target_files:
-            try:
-                model = self.models[target_file]
-            except KeyError:
-                model = self.get_model(target_file)
-                self.configure_model(model, target_file)
-                self.models[target_file] = model
+            model = self.init_model(target_file)
+            self.models[target_file] = model
             self.contents[target_file] = model.get_contents(os.path.join(self.path, target_file))
             self.locations[target_file] = model.get_locations(self.contents[target_file])
             self.dump_cache[target_file] = model.dump(self.contents[target_file])
@@ -130,17 +126,14 @@ class AbstractSoftware(abc.ABC):
                                   self.path, ",".join(self.target_files))
 
     @abc.abstractmethod
-    def get_model(self, target_file):
-        pass
-
-    def configure_model(self, model, target_file):
+    def init_model(self, target_file):
         pass
 
     def location_names(self, target_file, target_type):
-        return self.get_model(target_file).location_names(self.locations, target_file, target_type)
+        return self.models[target_file].location_names(self.locations, target_file, target_type)
 
     def show_location(self, target_file, target_type, target_loc):
-        return self.get_model(target_file).show_location(self.contents, self.locations, target_file, target_type, target_loc)
+        return self.models[target_file].show_location(self.contents, self.locations, target_file, target_type, target_loc)
 
     def random_file(self, model=None):
         if model:
@@ -154,7 +147,7 @@ class AbstractSoftware(abc.ABC):
     def random_target(self, target_file=None, target_type=None):
         if target_file is None:
             target_file = random.choice(self.target_files)
-        return self.get_model(target_file).random_target(self.locations, self.location_weights, target_file, target_type)
+        return self.models[target_file].random_target(self.locations, self.location_weights, target_file, target_type)
 
     def apply_patch(self, patch):
         # process modified files

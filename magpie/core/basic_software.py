@@ -200,16 +200,16 @@ class BasicSoftware(AbstractSoftware):
             # reset after cmd_init
             self.reset_contents()
 
-    def get_model(self, target_file):
-        for (pattern, model) in self.model_rules:
+    def init_model(self, target_file):
+        for (pattern, klass) in self.model_rules:
             if any([target_file == pattern,
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                return model()
-        raise RuntimeError('Unknown model for target file {}'.format(target_file))
-
-    def configure_model(self, model, target_file):
+                model = klass()
+                break
+        else:
+            raise RuntimeError('Unknown model for target file {}'.format(target_file))
         for (pattern, config_section, section_name) in self.model_config:
             if any([target_file == pattern,
                     pattern == '*',
@@ -219,7 +219,8 @@ class BasicSoftware(AbstractSoftware):
                     _setup_xml_model(model, config_section, section_name)
                 elif isinstance(model, magpie.models.params.AbstractParamsModel):
                     _setup_params_model(model, config_section, section_name)
-                return
+                break
+        return model
 
     def evaluate_contents(self, new_contents, cached_run=None):
         # write if batch unsynced
@@ -247,7 +248,7 @@ class BasicSoftware(AbstractSoftware):
 
                 # make sure this is the unmodified software
                 for filename in self.target_files:
-                    model = self.get_model(filename)
+                    model = self.models[filename]
                     assert model.dump(self.local_contents[filename]) == model.dump(self.contents[filename])
 
                 # run "[software] setup_cmd" if provided
@@ -433,17 +434,17 @@ class BasicSoftware(AbstractSoftware):
         if self.fitness_type == 'bloat_lines':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.get_model(filename).renamed_contents_file(filename)) as target:
+                with open(self.models[filename].renamed_contents_file(filename)) as target:
                     run_result.fitness += len(target.readlines())
         elif self.fitness_type == 'bloat_words':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.get_model(filename).renamed_contents_file(filename)) as target:
+                with open(self.models[filename].renamed_contents_file(filename)) as target:
                     run_result.fitness += sum(len(s.split()) for s in target.readlines())
         elif self.fitness_type == 'bloat_chars':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.get_model(filename).renamed_contents_file(filename)) as target:
+                with open(self.models[filename].renamed_contents_file(filename)) as target:
                     run_result.fitness += sum(len(s) for s in target.readlines())
 
     def process_run_exec(self, run_result, exec_result):
