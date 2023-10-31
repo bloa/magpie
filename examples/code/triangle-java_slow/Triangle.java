@@ -30,7 +30,7 @@ public class Triangle {
         if (a + b <= c) {
             return TriangleType.INVALID;
         } else if (a == b && b == c) {
-            return TriangleType.EQUALATERAL;
+            return TriangleType.EQUILATERAL;
         } else if (a == b || b == c) {
             return TriangleType.ISOSCELES;
         } else {
