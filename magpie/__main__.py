@@ -5,7 +5,7 @@ import pathlib
 import runpy
 import sys
 
-root = pathlib.Path('.')
+root = pathlib.Path(__file__).parent.parent
 all_valid_targets = sum([sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'utils']], [])
 
 def usage():
@@ -31,5 +31,5 @@ if __name__ == "__main__":
 
     # replace current process
     sys.argv = sys.argv[1:]
-    sys.path.append('.')
+    sys.path.append(str(root.resolve()))
     runpy.run_module(target, run_name='__main__', alter_sys=True)
