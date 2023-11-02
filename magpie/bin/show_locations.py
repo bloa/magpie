@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # setup
     magpie.core.pre_setup(config)
     magpie.core.setup(config)
-    software = magpie.core.utils.software_from_string(config['software']['software'])(config)
+    software = magpie.utils.software_from_string(config['software']['software'])(config)
     software.ensure_contents()
 
     # show locations

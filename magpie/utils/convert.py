@@ -2,7 +2,6 @@ import ast
 import re
 
 import magpie
-from magpie.core import Patch
 
 def algo_from_string(s):
     for klass in magpie.algos.known_algos:
@@ -16,19 +15,21 @@ def model_from_string(s):
             return klass
     raise RuntimeError('Unknown model "{}"'.format(s))
 
+def edit_from_string(s):
+    m = re.search(r"^(\w+)\((.+)\)$", s)
+    for klass in magpie.models.known_edits:
+        if klass.__name__ == m.group(1):
+            args = ast.literal_eval("[{}]".format(m.group(2)))
+            return klass(*args)
+    else:
+        raise RuntimeError('Unknown edit type "{}" in patch'.format(m.group(1)))
+
 def patch_from_string(s):
-    patch = Patch()
+    patch = magpie.core.Patch()
     if s == "":
         return patch
     for blob in s.split(' | '):
-        match = re.search(r"^(\w+)\((.+)\)$", blob)
-        for klass in magpie.models.known_edits:
-            if klass.__name__ == match.group(1):
-                args = ast.literal_eval("[{}]".format(match.group(2)))
-                patch.edits.append(klass(*args))
-                break
-        else:
-            raise RuntimeError('Unknown edit type "{}" in patch'.format(match.group(1)))
+        patch.edits.append(edit_from_string(blob))
     assert str(patch) == s
     return patch
 

@@ -26,11 +26,11 @@ if __name__ == "__main__":
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = magpie.core.utils.patch_from_string(args.patch)
+    patch = magpie.utils.patch_from_string(args.patch)
 
     # setup
     magpie.core.setup(config)
-    software = magpie.core.utils.software_from_string(config['software']['software'])(config)
+    software = magpie.utils.software_from_string(config['software']['software'])(config)
     software.ensure_contents()
 
     # apply patch

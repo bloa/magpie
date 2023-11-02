@@ -13,7 +13,6 @@ from .basic_protocol import BasicProtocol
 
 from .scenario import default_scenario
 from .setup import pre_setup, setup
-from . import utils
 
 # "final" software only
 known_software = [

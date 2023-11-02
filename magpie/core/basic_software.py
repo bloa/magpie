@@ -25,7 +25,7 @@ class BasicSoftware(AbstractSoftware):
                     k, v = rule.split(':')
                 except ValueError:
                     raise ValueError('badly formated rule: "{}"'.format(rule))
-                self.model_rules.append((k.strip(), magpie.core.utils.model_from_string(v.strip())))
+                self.model_rules.append((k.strip(), magpie.utils.model_from_string(v.strip())))
 
         # model config
         self.model_config = []

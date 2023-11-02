@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if args.algo is not None:
         config['search']['algorithm'] = args.algo
     if config['search']['algorithm']:
-        algo = magpie.core.utils.algo_from_string(config['search']['algorithm'])
+        algo = magpie.utils.algo_from_string(config['search']['algorithm'])
         if not issubclass(algo, magpie.algos.LocalSearch):
             raise RuntimeError('{} is not a local search'.format(args.algo))
     else:
@@ -35,9 +35,9 @@ if __name__ == "__main__":
 
     # setup protocol
     magpie.core.setup(config)
-    protocol = magpie.core.utils.protocol_from_string(config['search']['protocol'])()
+    protocol = magpie.utils.protocol_from_string(config['search']['protocol'])()
     protocol.search = algo()
-    protocol.software = magpie.core.utils.software_from_string(config['software']['software'])(config)
+    protocol.software = magpie.utils.software_from_string(config['software']['software'])(config)
     protocol.setup(config)
 
     # run experiments

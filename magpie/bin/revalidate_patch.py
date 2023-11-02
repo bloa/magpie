@@ -25,15 +25,15 @@ if __name__ == "__main__":
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = magpie.core.utils.patch_from_string(args.patch)
+    patch = magpie.utils.patch_from_string(args.patch)
 
     # setup
     config['search']['algorithm'] = 'ValidTest'
     magpie.core.setup(config)
-    protocol = magpie.core.utils.protocol_from_string(config['search']['protocol'])()
-    protocol.search = magpie.core.utils.algo_from_string(config['search']['algorithm'])()
+    protocol = magpie.utils.protocol_from_string(config['search']['protocol'])()
+    protocol.search = magpie.utils.algo_from_string(config['search']['algorithm'])()
     protocol.search.debug_patch = patch
-    protocol.software = magpie.core.utils.software_from_string(config['software']['software'])(config)
+    protocol.software = magpie.utils.software_from_string(config['software']['software'])(config)
     protocol.setup(config)
 
     # run experiments

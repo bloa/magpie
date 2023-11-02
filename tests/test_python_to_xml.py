@@ -4,7 +4,7 @@ import glob
 import pytest
 
 from magpie.models.xml import XmlModel
-from magpie.utils.python_to_xml import read_file_or_stdin, unparse_xml
+from magpie.scripts.python_to_xml import read_file_or_stdin, unparse_xml
 
 
 @pytest.mark.parametrize('filename', glob.glob('magpie/**/*.py', recursive=True))
