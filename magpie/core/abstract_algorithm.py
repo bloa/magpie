@@ -4,7 +4,7 @@ import random
 import os
 import time
 
-from magpie import config as magpie_config
+import magpie
 from .patch import Patch
 
 
@@ -40,7 +40,7 @@ class AbstractAlgorithm(abc.ABC):
 
     def create_edit(self):
         edit_klass = random.choice(self.config['possible_edits'])
-        tries = magpie_config.edit_retries
+        tries = magpie.settings.edit_retries
         while (edit := edit_klass.create(self.software)) is None:
             tries -= 1
             if tries == 0:

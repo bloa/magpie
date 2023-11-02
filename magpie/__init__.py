@@ -1,4 +1,4 @@
-from .config import config
+import magpie.settings
 import magpie.core
 import magpie.utils
 import magpie.algos

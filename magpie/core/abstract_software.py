@@ -1,18 +1,19 @@
 import abc
-import os
-import shutil
-import time
-import pathlib
-import random
-import subprocess
+import contextlib
 import copy
 import difflib
-import select
-import signal
 import errno
 import logging
+import os
+import pathlib
+import random
+import select
+import shutil
+import signal
+import subprocess
+import time
 
-from magpie import config as magpie_config
+import magpie
 from .execresult import ExecResult
 
 
@@ -39,12 +40,12 @@ class AbstractSoftware(abc.ABC):
         # ensures a unique timestamp unique
         self.timestamp = str(int(time.time()))
         try:
-            os.makedirs(magpie_config.work_dir)
+            os.makedirs(magpie.settings.work_dir)
         except FileExistsError:
             pass
         while True:
             self.run_label = '{}_{}'.format(self.basename, self.timestamp)
-            new_work_dir = os.path.join(os.path.abspath(magpie_config.work_dir), self.run_label)
+            new_work_dir = os.path.join(os.path.abspath(magpie.settings.work_dir), self.run_label)
             lock_file = '{}.lock'.format(new_work_dir)
             try:
                 fd = os.open(lock_file, os.O_CREAT | os.O_EXCL)
@@ -70,10 +71,10 @@ class AbstractSoftware(abc.ABC):
 
         # add file logging
         try:
-            pathlib.Path(magpie_config.log_dir).mkdir(parents=True)
+            pathlib.Path(magpie.settings.log_dir).mkdir(parents=True)
         except FileExistsError:
             pass
-        file_handler = logging.FileHandler(os.path.join(magpie_config.log_dir, "{}.log".format(self.run_label)), delay=True)
+        file_handler = logging.FileHandler(os.path.join(magpie.settings.log_dir, "{}.log".format(self.run_label)), delay=True)
         file_handler.setFormatter(logging.Formatter('%(asctime)s\t[%(levelname)s]\t%(message)s'))
         file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(file_handler)
@@ -85,15 +86,15 @@ class AbstractSoftware(abc.ABC):
 
     def reset_workdir(self):
         # creates or move current work_dir
-        new_work_dir = os.path.join(os.path.abspath(magpie_config.work_dir), self.run_label)
+        new_work_dir = os.path.join(os.path.abspath(magpie.settings.work_dir), self.run_label)
         if self.work_dir and os.path.exists(self.work_dir):
             self.work_dir = shutil.move(self.work_dir, new_work_dir)
-            if magpie_config.local_original_copy:
-                self.path = os.path.join(self.work_dir, magpie_config.local_original_name)
+            if magpie.settings.local_original_copy:
+                self.path = os.path.join(self.work_dir, magpie.settings.local_original_name)
         else:
             self.work_dir = new_work_dir
-            if magpie_config.local_original_copy:
-                new_path = os.path.join(self.work_dir, magpie_config.local_original_name)
+            if magpie.settings.local_original_copy:
+                new_path = os.path.join(self.work_dir, magpie.settings.local_original_name)
                 if self.path != new_path:
                     self.path = shutil.copytree(self.path, new_path)
         lock_file = '{}.lock'.format(new_work_dir)
@@ -114,7 +115,7 @@ class AbstractSoftware(abc.ABC):
             self.contents[target_file] = model.get_contents(os.path.join(self.path, target_file))
             self.locations[target_file] = model.get_locations(self.contents[target_file])
             self.dump_cache[target_file] = model.dump(self.contents[target_file])
-            self.trust_local[target_file] = magpie_config.trust_local_filesystem
+            self.trust_local[target_file] = magpie.settings.trust_local_filesystem
 
 
     def ensure_contents(self):
@@ -273,7 +274,7 @@ class AbstractSoftware(abc.ABC):
         except FileNotFoundError:
             pass
         try:
-            os.rmdir(magpie_config.work_dir)
+            os.rmdir(magpie.settings.work_dir)
         except FileNotFoundError:
             pass
         except OSError as e:
@@ -292,12 +293,12 @@ class AbstractSoftware(abc.ABC):
         Compare the source codes of original software and the patch-applied software
         using *difflib* module(https://docs.python.org/3.6/library/difflib.html).
         """
-        if magpie_config.diff_method == 'unified':
+        if magpie.settings.diff_method == 'unified':
             diff_method = difflib.unified_diff
-        elif magpie_config.diff_method == 'context':
+        elif magpie.settings.diff_method == 'context':
             diff_method = difflib.context_diff
         else:
-            raise ValueError('Unknown diff method: `{}`'.format(magpie_config.diff_method))
+            raise ValueError('Unknown diff method: `{}`'.format(magpie.settings.diff_method))
         diffs = ''
         for filename in self.target_files:
             new_filename = self.models[filename].renamed_contents_file(filename)

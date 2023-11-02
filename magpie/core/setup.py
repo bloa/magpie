@@ -24,27 +24,27 @@ def pre_setup(config):
 def setup(config):
     # [magpie]
     sec = config['magpie']
-    magpie.config.log_dir = sec['log_dir']
-    magpie.config.work_dir = sec['work_dir']
+    magpie.settings.log_dir = sec['log_dir']
+    magpie.settings.work_dir = sec['work_dir']
 
     tmp = sec['local_original_copy'].lower()
     if tmp in ['true', 't', '1']:
-        magpie.config.local_original_copy = True
+        magpie.settings.local_original_copy = True
     elif tmp in ['false', 'f', '0']:
-        magpie.config.local_original_copy = False
+        magpie.settings.local_original_copy = False
     else:
         raise ValueError('[magpie] local_original_copy should be Boolean')
-    magpie.config.local_original_copy = sec['local_original_name']
-    magpie.config.output_encoding = sec['output_encoding']
-    magpie.config.edit_retries = int(sec['edit_retries'])
-    magpie.config.default_timeout = float(sec['default_timeout'])
-    magpie.config.default_lengthout = int(float(sec['default_lengthout']))
-    magpie.config.diff_method = sec['diff_method']
+    magpie.settings.local_original_copy = sec['local_original_name']
+    magpie.settings.output_encoding = sec['output_encoding']
+    magpie.settings.edit_retries = int(sec['edit_retries'])
+    magpie.settings.default_timeout = float(sec['default_timeout'])
+    magpie.settings.default_lengthout = int(float(sec['default_lengthout']))
+    magpie.settings.diff_method = sec['diff_method']
     val = sec['trust_local_filesystem'].lower()
     if val in ['true', 't', '1']:
-        magpie.config.trust_local_filesystem = True
+        magpie.settings.trust_local_filesystem = True
     elif val in ['false', 'f', '0']:
-        magpie.config.trust_local_filesystem = False
+        magpie.settings.trust_local_filesystem = False
     else:
         raise ValueError('[magpie] trust_local_filesystem should be Boolean')
 

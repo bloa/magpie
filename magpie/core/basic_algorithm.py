@@ -3,7 +3,6 @@ import random
 import os
 import time
 
-from magpie import config as magpie_config
 from magpie.core import AbstractAlgorithm
 from magpie.core import Patch
 

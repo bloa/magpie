@@ -147,7 +147,7 @@ class BasicProtocol:
                 logger.info('Log file: {}'.format(handler.baseFilename))
         if result['best_patch'] and result['best_patch'].edits:
             result['diff'] = self.software.diff_patch(result['best_patch'])
-            base_path = os.path.join(magpie.config.log_dir, self.software.run_label)
+            base_path = os.path.join(magpie.settings.log_dir, self.software.run_label)
             logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))
             logger.info('Diff file: {}'.format('{}.diff'.format(base_path)))
             logger.info('Best fitness: {}'.format(result['best_fitness']))
