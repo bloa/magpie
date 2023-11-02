@@ -6,10 +6,10 @@ import runpy
 import sys
 
 root = pathlib.Path(__file__).parent.parent
-all_valid_targets = sum([sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'utils']], [])
+all_valid_targets = sum([sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'scripts']], [])
 
 def usage():
-    print('usage: python3 magpie ((magpie/){bin,utils}/)TARGET(.py) [ARGS]...')
+    print('usage: python3 magpie ((magpie/){bin,scripts}/)TARGET(.py) [ARGS]...')
     print('possible TARGET:', file=sys.stderr)
     for path in all_valid_targets:
         print(f'    {path.stem:16}	({path})', file=sys.stderr)
