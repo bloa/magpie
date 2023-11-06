@@ -1,17 +1,17 @@
-from abc import abstractmethod
+import abc
 
 from magpie.core import AbstractModel
 
 
 class AbstractLineModel(AbstractModel):
-    @abstractmethod
-    def do_replace(cls, software, op, new_contents, modification_points):
+    @abc.abstractmethod
+    def do_replace(self, ref_model, target_dest, target_orig):
         pass
 
-    @abstractmethod
-    def do_insert(cls, software, op, new_contents, modification_points):
+    @abc.abstractmethod
+    def do_insert(self, ref_model, target_dest, target_orig):
         pass
 
-    @abstractmethod
-    def do_delete(cls, software, op, new_contents, modification_points):
+    @abc.abstractmethod
+    def do_delete(self, ref_model, target):
         pass

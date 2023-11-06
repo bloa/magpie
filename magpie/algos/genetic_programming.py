@@ -3,7 +3,7 @@ import math
 import random
 import time
 
-from magpie.core import Patch, BasicAlgorithm
+from magpie.core import Patch, BasicAlgorithm, Variant
 
 
 class GeneticProgramming(BasicAlgorithm):
@@ -46,11 +46,11 @@ class GeneticProgramming(BasicAlgorithm):
                 self.mutate(sol)
                 if sol in pop:
                     continue
-                run = self.evaluate_patch(sol)
+                variant = Variant(self.software, sol)
+                run = self.evaluate_variant(variant)
                 accept = best = False
                 if run.status == 'SUCCESS':
                     if self.dominates(run.fitness, local_best_fitness):
-                        self.software.logger.debug(self.software.diff_patch(sol))
                         local_best_fitness = run.fitness
                         local_best = sol
                         accept = True
@@ -58,7 +58,7 @@ class GeneticProgramming(BasicAlgorithm):
                             self.report['best_fitness'] = run.fitness
                             self.report['best_patch'] = sol
                             best = True
-                self.hook_evaluation(sol, run, accept, best)
+                self.hook_evaluation(variant, run, accept, best)
                 pop[sol] = run
                 self.stats['steps'] += 1
 
@@ -103,11 +103,11 @@ class GeneticProgramming(BasicAlgorithm):
                 for sol in offsprings:
                     if self.stopping_condition():
                         break
-                    run = self.evaluate_patch(sol)
+                    variant = Variant(self.software, sol)
+                    run = self.evaluate_variant(variant)
                     accept = best = False
                     if run.status == 'SUCCESS':
                         if self.dominates(run.fitness, local_best_fitness):
-                            self.software.logger.debug(self.software.diff_patch(sol))
                             local_best_fitness = run.fitness
                             local_best = sol
                             accept = True
@@ -115,7 +115,7 @@ class GeneticProgramming(BasicAlgorithm):
                                 self.report['best_fitness'] = run.fitness
                                 self.report['best_patch'] = sol
                                 best = True
-                    self.hook_evaluation(sol, run, accept, best)
+                    self.hook_evaluation(variant, run, accept, best)
                     pop[sol] = run
                     self.stats['steps'] += 1
 
@@ -130,7 +130,7 @@ class GeneticProgramming(BasicAlgorithm):
         if patch.edits and random.random() < self.config['delete_prob']:
             del patch.edits[random.randrange(0, len(patch.edits))]
         else:
-            patch.edits.append(self.create_edit())
+            patch.edits.append(self.create_edit(self.software.noop_variant))
 
     def crossover(self, sol1, sol2):
         c = copy.deepcopy(sol1)

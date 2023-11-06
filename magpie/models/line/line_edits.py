@@ -4,67 +4,44 @@ from magpie.core import Edit
 from . import AbstractLineModel
 
 
-class LineReplacement(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_replace(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.target, self.data[0])
-
+class LineDeletion(Edit):
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(AbstractLineModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        return cls(software.random_target(target_file, 'line'),
-                   software.random_target(ingr_file, 'line'))
+    def auto_create(cls, ref):
+        target = ref.random_model(AbstractLineModel).random_target('line')
+        if not target:
+            return None
+        return cls(target)
+
+    def apply(self, ref, variant):
+        model = variant.models[self.target[0]]
+        return model.do_delete(self.target)
+
+
+class LineReplacement(Edit):
+    @classmethod
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AbstractLineModel, 'line', 'line')
+        if not (target and ingredient):
+            return None
+        return cls(target, ingredient)
+
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        return model.do_replace(ref_model, self.target, ingredient)
+
 
 class LineInsertion(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_insert(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target, self.data[0])
-
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(AbstractLineModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        return cls(software.random_target(target_file, '_inter_line'),
-                   software.random_target(ingr_file, 'line'))
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AbstractLineModel, '_inter_line', 'line')
+        if not (target and ingredient):
+            return None
+        return cls(target, ingredient)
 
-class LineDeletion(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_delete(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target)
-
-    @classmethod
-    def create(cls, software, target_file=None):
-        if target_file is None:
-            target_file = software.random_file()
-        return cls(software.random_target(target_file, 'line'))
-
-class LineMoving(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return (model.do_insert(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.target, self.data[0])
-                and
-                model.do_delete(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.data[0]))
-
-    @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file()
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        return cls(software.random_target(target_file, '_inter_line'),
-                   software.random_target(ingr_file, 'line'))
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        return model.do_insert(ref_model, self.target, ingredient)

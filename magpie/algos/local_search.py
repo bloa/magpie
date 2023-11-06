@@ -2,7 +2,7 @@ import copy
 import random
 import time
 
-from magpie.core import Patch, BasicAlgorithm
+from magpie.core import Patch, BasicAlgorithm, Variant
 
 
 class LocalSearch(BasicAlgorithm):
@@ -44,17 +44,17 @@ class LocalSearch(BasicAlgorithm):
             # the end
             self.hook_end()
 
-    def mutate(self, patch, force=None):
+    def mutate(self, patch):
         n = len(patch.edits)
         if n == 0:
             if self.config['delete_prob'] == 1:
                 self.report['stop'] = 'trapped'
             else:
-                patch.edits.append(self.create_edit())
+                patch.edits.append(self.create_edit(self.software.noop_variant))
         elif random.random() < self.config['delete_prob']:
             del patch.edits[random.randrange(0, n)]
         else:
-            patch.edits.append(self.create_edit())
+            patch.edits.append(self.create_edit(self.software.noop_variant))
 
     def check_if_trapped(self):
         if self.config['max_neighbours'] is None:
@@ -88,7 +88,8 @@ class DebugSearch(LocalSearch):
             patch = Patch([edit])
 
             # compare
-            run = self.evaluate_patch(patch)
+            variant = Variant(self.software, patch)
+            run = self.evaluate_variant(variant)
             accept = best = False
             if run.status == 'SUCCESS':
                 accept = True
@@ -118,7 +119,8 @@ class RandomSearch(LocalSearch):
         self.mutate(patch)
 
         # compare
-        run = self.evaluate_patch(patch)
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         best = False
         if run.status == 'SUCCESS':
             if self.dominates(run.fitness, self.report['best_fitness']):
@@ -127,7 +129,7 @@ class RandomSearch(LocalSearch):
                 best = True
 
         # hook
-        self.hook_evaluation(patch, run, False, best)
+        self.hook_evaluation(variant, run, False, best)
 
         # next
         self.stats['steps'] += 1
@@ -146,7 +148,8 @@ class RandomWalk(LocalSearch):
         self.mutate(patch)
 
         # compare
-        run = self.evaluate_patch(patch)
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         accept = self.config['accept_fail']
         best = False
         if run.status == 'SUCCESS':
@@ -188,7 +191,8 @@ class FirstImprovement(LocalSearch):
                 break
 
         # compare
-        run = self.evaluate_patch(patch)
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(current_fitness, run.fitness):
@@ -211,7 +215,7 @@ class FirstImprovement(LocalSearch):
             self.check_if_trapped()
 
         # hook
-        self.hook_evaluation(patch, run, accept, best)
+        self.hook_evaluation(variant, run, accept, best)
 
         # next
         self.stats['steps'] += 1

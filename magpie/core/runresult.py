@@ -2,7 +2,8 @@ import types
 
 
 class RunResult(types.SimpleNamespace):
-    def __init__(self, status):
+    def __init__(self, variant, status=None):
+        self.variant = variant
         self.status = status
         self.fitness = None
         self.cache = {}

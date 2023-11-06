@@ -1,170 +1,90 @@
 import random
 
 from magpie.core import Edit
-from . import XmlModel
+from .abstract_model import AbstractXmlModel
 
 
-class NodeDeletion(Edit):
-    NODE_TYPE = ''
-
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_delete(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target)
+class XmlNodeDeletion(Edit):
+    NODE_TAG = ''
 
     @classmethod
-    def create(cls, software, target_file=None):
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        target = software.random_target(target_file, cls.NODE_TYPE)
-        if target is None:
+    def auto_create(cls, ref):
+        target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
+        if not target:
             return None
         return cls(target)
 
-class NodeReplacement(Edit):
-    NODE_TYPE = ''
+    def apply(self, ref, variant):
+        model = variant.models[self.target[0]]
+        return model.do_delete(self.target)
 
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_replace(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.target, self.data[0])
 
-    @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        target = software.random_target(target_file, cls.NODE_TYPE)
-        if target is None:
-            return None
-        value = software.random_target(ingr_file, cls.NODE_TYPE)
-        if value is None:
-            return None
-        return cls(target, value)
-
-class NodeInsertion(Edit):
-    NODE_PARENT_TYPE = ''
-    NODE_TYPE = ''
-
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_insert(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target, self.data[0])
+class XmlNodeReplacement(Edit):
+    NODE_TAG = ''
 
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        target = software.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE))
-        if target is None:
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AbstractXmlModel, cls.NODE_TAG, cls.NODE_TAG)
+        if not (target and ingredient):
             return None
-        value = software.random_target(ingr_file, cls.NODE_TYPE)
-        if value is None:
-            return None
-        return cls(target, value)
+        return cls(target, ingredient)
 
-class NodeMoving(Edit):
-    NODE_PARENT_TYPE = ''
-    NODE_TYPE = ''
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        return model.do_replace(ref_model, self.target, ingredient)
 
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return (model.do_insert(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.target, self.data[0])
-                and
-                model.do_delete(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.data[0]))
+
+class XmlNodeInsertion(Edit):
+    NODE_PARENT_TAG = ''
+    NODE_TAG = ''
 
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        target = software.random_target(target_file, '_inter_{}'.format(cls.NODE_PARENT_TYPE))
-        if target is None:
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AbstractXmlModel, f'_inter_{cls.NODE_PARENT_TAG}', cls.NODE_TAG)
+        if not (target and ingredient):
             return None
-        value = software.random_target(ingr_file, cls.NODE_TYPE)
-        if value is None:
-            return None
-        return cls(target, value)
+        return cls(target, ingredient)
 
-class NodeSwap(Edit):
-    NODE_PARENT_TYPE = ''
-    NODE_TYPE = ''
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        return model.do_insert(ref_model, self.target, ingredient)
 
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return (model.do_replace(software.contents, software.locations,
-                                 new_contents, new_locations,
-                                 self.target, self.data[0])
-                and
-                model.do_replace(software.contents, software.locations,
-                                 new_contents, new_locations,
-                                 self.data[0], self.target))
 
-    @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file].__class__)
-        target = software.random_target(target_file, cls.NODE_TYPE)
-        if target is None:
-            return None
-        value = software.random_target(ingr_file, cls.NODE_TYPE)
-        if value is None:
-            return None
-        return cls(target, value)
-
-class TextSetting(Edit):
-    NODE_TYPE = ''
+class XmlTextSetting(Edit):
+    NODE_TAG = ''
     CHOICES = ['']
 
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_set_text(software.contents, software.locations,
-                                 new_contents, new_locations,
-                                 self.target, self.data[0])
-
     @classmethod
-    def create(cls, software, target_file=None, choices=None):
-        if choices == None:
-            choices = cls.CHOICES
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        target = software.random_target(target_file, cls.NODE_TYPE)
-        if target is None:
+    def auto_create(cls, ref):
+        target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
+        ingredient = random.choice(cls.CHOICES)
+        if not target:
             return None
-        value = random.choice(choices)
-        return cls(target, value)
+        return cls(target, ingredient)
 
-class TextWrapping(Edit):
-    NODE_TYPE = ''
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        model = variant.models[self.target[0]]
+        return model.do_set_text(self.target, ingredient)
+
+
+class XmlTextWrapping(Edit):
+    NODE_TAG = ''
     CHOICES = [('(', ')')]
 
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_wrap_text(software.contents, software.locations,
-                                  new_contents, new_locations,
-                                  self.target, self.data[0][0], self.data[0][1])
-
     @classmethod
-    def create(cls, software, target_file=None, choices=None):
-        if choices == None:
-            choices = cls.CHOICES
-        if target_file is None:
-            target_file = software.random_file(XmlModel)
-        target = software.random_target(target_file, cls.NODE_TYPE)
-        if target is None:
+    def auto_create(cls, variant):
+        target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
+        ingredient = random.choice(cls.CHOICES)
+        if not target:
             return None
-        value = random.choice(choices)
-        return cls(target, value)
+        return cls(target, ingredient)
+
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        model = variant.models[self.target[0]]
+        return model.do_wrap_text(self.target, *ingredient)

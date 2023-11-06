@@ -1,13 +1,13 @@
 from .xml_model import XmlModel
-from .xml_edits import NodeDeletion, NodeReplacement, NodeInsertion, NodeMoving
-from .xml_edits import TextSetting, TextWrapping
+from .xml_edits import XmlNodeDeletion, XmlNodeReplacement, XmlNodeInsertion
+from .xml_edits import XmlTextSetting, XmlTextWrapping
 
 from .srcml_model import SrcmlModel
-from .srcml_edits import XmlLineReplacement, XmlLineInsertion, XmlLineDeletion, XmlLineMoving
-from .srcml_edits import StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving, StmtSwap
-from .srcml_edits import ExprReplacement
-from .srcml_edits import ComparisonOperatorSetting, ArithmeticOperatorSetting
-from .srcml_edits import NumericSetting, RelativeNumericSetting
+from .srcml_edits import XmlLineDeletion, XmlLineReplacement, XmlLineInsertion
+from .srcml_edits import SrcmlStmtDeletion, SrcmlStmtReplacement, SrcmlStmtInsertion
+from .srcml_edits import SrcmlExprReplacement
+from .srcml_edits import SrcmlComparisonOperatorSetting, SrcmlArithmeticOperatorSetting
+from .srcml_edits import SrcmlNumericSetting, SrcmlRelativeNumericSetting
 
 # "final" models only
 known_models = [
@@ -17,9 +17,9 @@ known_models = [
 
 # "final" edits only
 known_edits = [
-    XmlLineReplacement, XmlLineInsertion, XmlLineDeletion, XmlLineMoving,
-    StmtReplacement, StmtInsertion, StmtDeletion, StmtMoving, StmtSwap,
-    ExprReplacement,
-    ComparisonOperatorSetting, ArithmeticOperatorSetting,
-    NumericSetting, RelativeNumericSetting,
+    XmlLineDeletion, XmlLineReplacement, XmlLineInsertion,
+    SrcmlStmtDeletion, SrcmlStmtReplacement, SrcmlStmtInsertion,
+    SrcmlExprReplacement,
+    SrcmlComparisonOperatorSetting, SrcmlArithmeticOperatorSetting,
+    SrcmlNumericSetting, SrcmlRelativeNumericSetting,
 ]

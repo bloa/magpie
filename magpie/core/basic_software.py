@@ -1,3 +1,4 @@
+import contextlib
 import os
 import re
 import shlex
@@ -5,14 +6,13 @@ import shlex
 import magpie
 from magpie.core import AbstractSoftware
 from magpie.core import RunResult
-from .setup import _setup_xml_model, _setup_params_model
 
 class BasicSoftware(AbstractSoftware):
     def __init__(self, config):
         # AbstractSoftware *requires* a path, a list of target files, and a list of possible edits
         if not (val := config['software']['path']):
             raise ValueError('Invalid config file: "[software] path" must be defined')
-        super().__init__(config['software']['path'])
+        super().__init__(val, reset=False)
         if not (val := config['software']['target_files']):
             raise ValueError('Invalid config file: "[software] target_files" must defined')
         self.target_files = val.split()
@@ -174,19 +174,23 @@ class BasicSoftware(AbstractSoftware):
             else:
                 self.batch_lengthout = int(config['software']['batch_lengthout'])
 
-    def ensure_contents(self):
-        if not self.contents:
-            # take care of cmd_init first thing
+        # reset everything
+        self.reset_timestamp()
+        self.reset_logger()
+        self.reset_workdir()
+        self.reset_contents()
+
+    def reset_contents(self):
+        if not self.init_performed:
+            self.init_performed = True
             if self.init_cmd:
-                cwd = os.getcwd()
-                try:
-                    os.chdir(self.path)
+                with contextlib.chdir(self.path):
                     timeout = self.init_timeout or magpie.settings.default_timeout
                     lengthout = self.init_lengthout or magpie.settings.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(self.init_cmd),
                                                 timeout=timeout,
                                                 lengthout=lengthout)
-                    run_result = RunResult(exec_result.status)
+                    run_result = RunResult(None, exec_result.status)
                     if run_result.status == 'SUCCESS':
                         self.process_init_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
@@ -194,67 +198,35 @@ class BasicSoftware(AbstractSoftware):
                         run_result.last_exec = exec_result
                         self.diagnose_error(run_result)
                         raise RuntimeError('(cmd_init) failed to init target software')
-                finally:
-                    os.chdir(cwd)
+        super().reset_contents()
 
-            # reset after cmd_init
-            self.reset_contents()
-
-    def init_model(self, target_file):
-        for (pattern, klass) in self.model_rules:
-            if any([target_file == pattern,
-                    pattern == '*',
-                    pattern.startswith('*') and target_file.endswith(pattern[1:]),
-            ]):
-                model = klass()
-                break
-        else:
-            raise RuntimeError('Unknown model for target file {}'.format(target_file))
-        for (pattern, config_section, section_name) in self.model_config:
-            if any([target_file == pattern,
-                    pattern == '*',
-                    pattern.startswith('*') and target_file.endswith(pattern[1:]),
-            ]):
-                if isinstance(model, magpie.models.xml.XmlModel):
-                    _setup_xml_model(model, config_section, section_name)
-                elif isinstance(model, magpie.models.params.AbstractParamsModel):
-                    _setup_params_model(model, config_section, section_name)
-                break
-        return model
-
-    def evaluate_contents(self, new_contents, cached_run=None):
-        # write if batch unsynced
-        if cached_run is None or not set(inst for b in self.batch for inst in b).issubset(cached_run.cache.keys()):
-            self.write_contents(new_contents)
-        return self.evaluate_local(cached_run)
-
-    def evaluate_local(self, cached_run=None):
+    def evaluate_variant(self, variant, cached_run=None):
         # check batch sync
-        if cached_run is not None and set(inst for b in self.batch for inst in b).issubset(cached_run.cache.keys()):
+        if cached_run is None or not set(inst for b in self.batch for inst in b).issubset(cached_run.cache.keys()):
+            self.write_variant(variant)
+        else:
             self.process_batch_final(cached_run)
             return cached_run
-        # otherwise
+
+        # evaluate
         cwd = os.getcwd()
         work_path = os.path.join(self.work_dir, self.basename)
-        run_result = cached_run or RunResult('UNKNOWN_ERROR')
+        run_result = cached_run or RunResult(variant, 'UNKNOWN_ERROR')
 
-        try:
-            # go to work directory
-            os.chdir(work_path)
-
+        with contextlib.chdir(work_path):
             # one-time setup
             if not self.setup_performed:
                 self.setup_performed = True
 
                 # make sure this is the unmodified software
                 for filename in self.target_files:
-                    model = self.models[filename]
-                    assert model.dump(self.local_contents[filename]) == model.dump(self.contents[filename])
+                    model = variant.models[filename]
+                    assert model.dump() == model.cached_dump
 
                 # run "[software] setup_cmd" if provided
                 if self.setup_cmd:
                     # setup
-                    cli = self.compute_local_cli('setup')
+                    cli = self.compute_local_cli(variant, 'setup')
                     setup_cmd = self.setup_cmd.strip()
                     if '{PARAMS}' in self.setup_cmd:
                         setup_cmd = setup_cmd.replace('{PARAMS}', cli)
@@ -324,7 +296,7 @@ class BasicSoftware(AbstractSoftware):
 
             # run "[software] run_cmd" if provided
             if self.run_cmd:
-                cli = self.compute_local_cli('run')
+                cli = self.compute_local_cli(variant, 'run')
                 timeout = self.run_timeout or magpie.settings.default_timeout
                 lengthout = self.run_lengthout or magpie.settings.default_lengthout
                 batch_timeout = self.batch_timeout
@@ -364,21 +336,17 @@ class BasicSoftware(AbstractSoftware):
                                 run_result.status = 'BATCH_LENGTHOUT'
                                 break
 
-        finally:
-            # make sure to go back to main directory
-            os.chdir(cwd)
-
         # final process
         self.process_batch_final(run_result)
         return run_result
 
-    def compute_local_cli(self, step):
+    def compute_local_cli(self, variant, step):
         cli = ''
         for target in self.target_files:
-            model = self.models[target]
+            model = variant.models[target]
             if isinstance(model, magpie.models.params.AbstractParamsModel):
                 if step in model.config['timing']:
-                    cli = '{} {}'.format(cli, model.resolve_cli(self.local_contents[target]))
+                    cli = '{} {}'.format(cli, model.resolve_cli())
         return cli
 
     def process_init_exec(self, run_result, exec_result):
@@ -402,7 +370,7 @@ class BasicSoftware(AbstractSoftware):
             stdout = exec_result.stdout.decode(magpie.settings.output_encoding)
             for fail_regexp, total_regexp in [
                 (r'Failures: (\d+)\b', r'^Tests run: (\d+)\b'), # junit
-                (r'\b(\d+) failed', r'^collected (\d+) items'), # pytest
+                (r'\b(\d+) (?:failed|error)', r'^collected (\d+) items'), # pytest
                 (r' (\d+) (?:failures|errors)', r'^(\d+) runs,'), # minitest
             ]:
                 fail_matches = re.findall(fail_regexp, stdout, re.MULTILINE)
@@ -431,21 +399,17 @@ class BasicSoftware(AbstractSoftware):
             return
 
         # if "[software] fitness" is one of "bloat_*", we can count here
-        if self.fitness_type == 'bloat_lines':
+        if self.fitness_type[:6] == 'bloat_':
             run_result.fitness = 0
             for filename in self.target_files:
-                with open(self.models[filename].renamed_contents_file(filename)) as target:
-                    run_result.fitness += len(target.readlines())
-        elif self.fitness_type == 'bloat_words':
-            run_result.fitness = 0
-            for filename in self.target_files:
-                with open(self.models[filename].renamed_contents_file(filename)) as target:
-                    run_result.fitness += sum(len(s.split()) for s in target.readlines())
-        elif self.fitness_type == 'bloat_chars':
-            run_result.fitness = 0
-            for filename in self.target_files:
-                with open(self.models[filename].renamed_contents_file(filename)) as target:
-                    run_result.fitness += sum(len(s) for s in target.readlines())
+                renamed = run_result.variant.models[filename].renamed_filename
+                with open(renamed) as target:
+                    if self.fitness_type == 'bloat_lines':
+                        run_result.fitness += len(target.readlines())
+                    elif self.fitness_type == 'bloat_words':
+                        run_result.fitness += sum(len(s.split()) for s in target.readlines())
+                    elif self.fitness_type == 'bloat_chars':
+                        run_result.fitness += sum(len(s) for s in target.readlines())
 
     def process_run_exec(self, run_result, exec_result):
         # in all cases "[software] run_cmd" must yield nonzero return code

@@ -3,8 +3,7 @@ import random
 import os
 import time
 
-from magpie.core import AbstractAlgorithm
-from magpie.core import Patch
+from magpie.core import AbstractAlgorithm, Patch, Variant
 
 
 class BasicAlgorithm(AbstractAlgorithm):
@@ -40,22 +39,24 @@ class BasicAlgorithm(AbstractAlgorithm):
         if self.report['initial_fitness'] is None:
             return
         # reset initial fitness
-        empty_patch = Patch()
-        run = self.evaluate_patch(empty_patch)
+        patch = Patch([])
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         self.report['initial_fitness'] = run.fitness
         self.report['best_fitness'] = run.fitness
-        self.hook_warmup_evaluation('INITIAL', empty_patch, run)
+        self.hook_warmup_evaluation('INITIAL', patch, run)
         if run.status != 'SUCCESS':
             raise RuntimeError('initial solution has failed')
         # update best patch
         if self.report['best_patch'] and self.report['best_patch'].edits:
-            run = self.evaluate_patch(self.report['best_patch'])
+            variant = Variant(self.software, self.report['best_patch'])
+            run = self.evaluate_variant(variant)
             best = self.dominates(run.fitness, self.report['best_fitness'])
             self.hook_batch_evaluation('BEST', self.report['best_patch'], run, best)
             if run.status == 'SUCCESS' and best:
                 self.report['best_fitness'] = run.fitness
             else:
-                self.report['best_patch'] = empty_patch
+                self.report['best_patch'] = patch
 
     def hook_warmup(self):
         self.hook_reset_batch()
@@ -81,19 +82,19 @@ class BasicAlgorithm(AbstractAlgorithm):
     def hook_main_loop(self):
         pass
 
-    def hook_evaluation(self, patch, run, accept=False, best=False):
+    def hook_evaluation(self, variant, run, accept=False, best=False):
         if best:
             c = '*'
         elif accept:
             c = '+'
         else:
             c = ' '
-        self.software.logger.debug(patch)
+        self.software.logger.debug(variant.patch)
         # self.software.logger.debug(run) # uncomment for detail on last cmd
         counter = self.aux_log_counter()
-        self.aux_log_eval(counter, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
+        self.aux_log_eval(counter, run.status, c, run.fitness, self.report['initial_fitness'], len(variant.patch.edits), run.log)
         if accept or best:
-            self.software.logger.debug(self.software.diff_patch(patch)) # recomputes contents but meh
+            self.software.logger.debug(variant.diff)
 
     def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
         if fitness is not None and baseline is not None:
@@ -116,20 +117,22 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stats['wallclock_end'] = time.time()
         self.stats['wallclock_total'] = self.stats['wallclock_end'] - self.stats['wallclock_start']
         if self.report['best_patch']:
-            self.report['diff'] = self.software.diff_patch(self.report['best_patch'])
+            variant = Variant(self.software, self.report['best_patch'])
+            self.report['diff'] = variant.diff
         self.software.logger.info('==== END ====')
 
     def warmup(self):
-        empty_patch = Patch()
+        patch = Patch([])
+        variant = Variant(self.software, patch)
         if self.report['initial_patch'] is None:
-            self.report['initial_patch'] = empty_patch
+            self.report['initial_patch'] = patch
         warmup_values = []
         for i in range(max(self.config['warmup'] or 1, 1), 0, -1):
             self.software.base_fitness = None
             self.software.truth_table = {}
-            run = self.evaluate_patch(empty_patch, force=True, forget=True)
+            run = self.evaluate_variant(variant, force=True)
             l = 'INITIAL' if i == 1 else 'WARM'
-            self.hook_warmup_evaluation('WARM', empty_patch, run)
+            self.hook_warmup_evaluation('WARM', patch, run)
             if run.status != 'SUCCESS':
                 step = run.status.split('_')[0].lower()
                 self.report['stop'] = f'failed to {step} target software'
@@ -148,35 +151,30 @@ class BasicAlgorithm(AbstractAlgorithm):
         else:
             raise ValueError('unknown warmup strategy')
         run.fitness = current_fitness
-        self.hook_warmup_evaluation('INITIAL', empty_patch, run)
+        self.cache_set(variant.diff, run)
+        self.hook_warmup_evaluation('INITIAL', patch, run)
         self.report['initial_fitness'] = current_fitness
         if self.report['best_patch'] is None:
             self.report['best_fitness'] = current_fitness
-            self.report['best_patch'] = empty_patch
+            self.report['best_patch'] = patch
         else:
             run = self.evaluate_patch(self.report['best_patch'], force=True)
-            self.hook_warmup_evaluation('BEST', empty_patch, run)
+            self.hook_warmup_evaluation('BEST', patch, run)
             if self.dominates(run.fitness, current_fitness):
                 self.report['best_fitness'] = run.fitness
             else:
-                self.report['best_patch'] = empty_patch
+                self.report['best_patch'] = patch
                 self.report['best_fitness'] = current_fitness
         if self.software.base_fitness is None:
             self.software.base_fitness = current_fitness
 
-    def evaluate_patch(self, patch, force=False, forget=False):
-        contents = self.software.apply_patch(patch)
-        diff = None
+    def evaluate_variant(self, variant, force=False):
         cached_run = None
         if self.config['cache_maxsize'] > 0 and not force:
-            diff = self.software.diff_contents(contents)
-            cached_run = self.cache_get(diff)
-            # no return: now handled in evaluate_contents
-        run = self.software.evaluate_contents(contents, cached_run)
-        if self.config['cache_maxsize'] > 0 and not forget:
-            if not diff:
-                diff = self.software.diff_contents(contents)
-            self.cache_set(diff, run)
+            cached_run = self.cache_get(variant.diff) # potentially partial
+        run = self.software.evaluate_variant(variant, cached_run)
+        if self.config['cache_maxsize'] > 0:
+            self.cache_set(variant.diff, run)
         self.stats['budget'] += getattr(run, 'budget', 0) or 0
         return run
 

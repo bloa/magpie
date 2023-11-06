@@ -1,56 +1,44 @@
-from .xml_edits import NodeDeletion, NodeReplacement, NodeInsertion, NodeMoving, NodeSwap
-from .xml_edits import TextSetting, TextWrapping
+from .xml_edits import XmlNodeDeletion, XmlNodeReplacement, XmlNodeInsertion
+from .xml_edits import XmlTextSetting, XmlTextWrapping
 
-class XmlLineDeletion(NodeDeletion):
-    NODE_TYPE = 'line'
+class XmlLineDeletion(XmlNodeDeletion):
+    NODE_TAG = 'line'
 
-class XmlLineReplacement(NodeReplacement):
-    NODE_TYPE = 'line'
+class XmlLineReplacement(XmlNodeReplacement):
+    NODE_TAG = 'line'
 
-class XmlLineInsertion(NodeInsertion):
-    NODE_PARENT_TYPE = 'unit'
-    NODE_TYPE = 'line'
+class XmlLineInsertion(XmlNodeInsertion):
+    NODE_PARENT_TAG = 'unit'
+    NODE_TAG = 'line'
 
-class XmlLineMoving(NodeMoving):
-    NODE_PARENT_TYPE = 'unit'
-    NODE_TYPE = 'line'
+class SrcmlStmtDeletion(XmlNodeDeletion):
+    NODE_TAG = 'stmt'
 
-class StmtDeletion(NodeDeletion):
-    NODE_TYPE = 'stmt'
+class SrcmlStmtReplacement(XmlNodeReplacement):
+    NODE_TAG = 'stmt'
 
-class StmtReplacement(NodeReplacement):
-    NODE_TYPE = 'stmt'
+class SrcmlStmtInsertion(XmlNodeInsertion):
+    NODE_PARENT_TAG = 'block'
+    NODE_TAG = 'stmt'
 
-class StmtInsertion(NodeInsertion):
-    NODE_PARENT_TYPE = 'block'
-    NODE_TYPE = 'stmt'
+class SrcmlConditionReplacement(XmlNodeReplacement):
+    NODE_TAG = 'condition'
 
-class StmtMoving(NodeMoving):
-    NODE_PARENT_TYPE = 'block'
-    NODE_TYPE = 'stmt'
+class SrcmlExprReplacement(XmlNodeReplacement):
+    NODE_TAG = 'expr'
 
-class StmtSwap(NodeSwap):
-    NODE_PARENT_TYPE = 'block'
-    NODE_TYPE = 'stmt'
-
-class ConditionReplacement(NodeReplacement):
-    NODE_TYPE = 'condition'
-
-class ExprReplacement(NodeReplacement):
-    NODE_TYPE = 'expr'
-
-class ComparisonOperatorSetting(TextSetting):
-    NODE_TYPE = 'operator_comp'
+class SrcmlComparisonOperatorSetting(XmlTextSetting):
+    NODE_TAG = 'operator_comp'
     CHOICES = ['==', '!=', '<', '<=', '>', '>=']
 
-class ArithmeticOperatorSetting(TextSetting):
-    NODE_TYPE = 'operator_arith'
+class SrcmlArithmeticOperatorSetting(XmlTextSetting):
+    NODE_TAG = 'operator_arith'
     CHOICES = ['+', '-', '*', '/', '%']
 
-class NumericSetting(TextSetting):
-    NODE_TYPE = 'number'
+class SrcmlNumericSetting(XmlTextSetting):
+    NODE_TAG = 'number'
     CHOICES = ['-1', '0', '1']
 
-class RelativeNumericSetting(TextWrapping):
-    NODE_TYPE = 'number'
+class SrcmlRelativeNumericSetting(XmlTextWrapping):
+    NODE_TAG = 'number'
     CHOICES = [('(', '+1)'), ('(', '-1)'), ('(', '/2)'), ('(', '*2)'), ('(', '*3/2)'), ('(', '*2/3)')]

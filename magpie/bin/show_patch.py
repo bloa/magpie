@@ -31,18 +31,15 @@ if __name__ == "__main__":
     # setup
     magpie.core.setup(config)
     software = magpie.utils.software_from_string(config['software']['software'])(config)
-    software.ensure_contents()
-
-    # apply patch
-    new_contents = software.apply_patch(patch)
+    variant = magpie.core.Variant(software, patch)
 
     # show patch
     software.logger.info('==== REPORT ====')
-    software.logger.info('Patch: {}'.format(patch))
-    software.logger.info('Diff:\n{}'.format(software.diff_contents(new_contents)))
+    software.logger.info(f'Patch: {patch}')
+    software.logger.info(f'Diff:\n{variant.diff}')
     if args.keep:
         software.logger.info('==== PATH ====')
         software.logger.info(software.work_dir)
-        software.write_contents(new_contents)
+        software.write_variant(variant)
     else:
         software.clean_work_dir()

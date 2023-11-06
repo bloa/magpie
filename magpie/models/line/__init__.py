@@ -1,6 +1,6 @@
 from .abstract_model import AbstractLineModel
 from .line_model import LineModel
-from .line_edits import LineReplacement, LineInsertion, LineDeletion, LineMoving
+from .line_edits import LineReplacement, LineInsertion, LineDeletion
 
 # "final" models only
 known_models = [
@@ -9,5 +9,5 @@ known_models = [
 
 # "final" edits only
 known_edits = [
-    LineReplacement, LineInsertion, LineDeletion, LineMoving,
+    LineReplacement, LineInsertion, LineDeletion,
 ]

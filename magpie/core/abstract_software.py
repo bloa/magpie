@@ -15,26 +15,22 @@ import time
 
 import magpie
 from .execresult import ExecResult
-
+from .variant import Variant
 
 class AbstractSoftware(abc.ABC):
-    def __init__(self, path):
+    def __init__(self, path, reset=True):
         self.logger = None
         self.path = os.path.abspath(path.strip())
         self.basename = os.path.basename(self.path)
         self.target_files = []
-        self.models = {}
-        self.contents = {}
-        self.local_contents = {}
-        self.locations = {}
-        self.location_weights = {}
-        self.possible_edits = []
+        self.noop_variant = None
         self.work_dir = None
 
-        self.reset_timestamp()
-        self.reset_logger()
-        self.reset_workdir()
-        # self.reset_contents()
+        if reset:
+            self.reset_timestamp()
+            self.reset_logger()
+            self.reset_workdir()
+            self.reset_contents()
 
     def reset_timestamp(self):
         # ensures a unique timestamp unique
@@ -101,79 +97,28 @@ class AbstractSoftware(abc.ABC):
         os.remove(lock_file)
 
     def reset_contents(self):
-        self.contents = {}
-        self.locations = {}
-        self.dump_cache = {}
-        self.trust_local = {}
+        # expend wildcards in target file list
         if any('*' in f for f in self.target_files):
             path = pathlib.Path(self.path)
             tmp = [sorted(path.glob(f)) if '*' in f else [f] for f in self.target_files]
             self.target_files = [str(f.relative_to(path)) for fl in tmp for f in fl]
-        for target_file in self.target_files:
-            model = self.init_model(target_file)
-            self.models[target_file] = model
-            self.contents[target_file] = model.get_contents(os.path.join(self.path, target_file))
-            self.locations[target_file] = model.get_locations(self.contents[target_file])
-            self.dump_cache[target_file] = model.dump(self.contents[target_file])
-            self.trust_local[target_file] = magpie.settings.trust_local_filesystem
 
-
-    def ensure_contents(self):
-        if not self.contents:
-            self.reset_contents()
-
-    def __str__(self):
-        return "{}({}):{}".format(self.__class__.__name__,
-                                  self.path, ",".join(self.target_files))
+        # reset noop variant
+        self.noop_variant = Variant(self)
 
     @abc.abstractmethod
-    def init_model(self, target_file):
+    def evaluate_variant(self, variant, cached_run=None):
         pass
 
-    def location_names(self, target_file, target_type):
-        return self.models[target_file].location_names(self.locations, target_file, target_type)
-
-    def show_location(self, target_file, target_type, target_loc):
-        return self.models[target_file].show_location(self.contents, self.locations, target_file, target_type, target_loc)
-
-    def random_file(self, model=None):
-        if model:
-            files = [f for f in self.target_files if isinstance(self.models[f], model)]
-        else:
-            files = self.target_files
-        if files:
-            return random.choice(files)
-        raise RuntimeError('No compatible target file for model {}'.format(model.__name__))
-
-    def random_target(self, target_file=None, target_type=None):
-        if target_file is None:
-            target_file = random.choice(self.target_files)
-        return self.models[target_file].random_target(self.locations, self.location_weights, target_file, target_type)
-
-    def apply_patch(self, patch):
-        # process modified files
-        new_contents = copy.deepcopy(self.contents)
-        new_locations = copy.deepcopy(self.locations)
-        for target_file in self.contents.keys():
-            # filter edits
-            edits = list(filter(lambda a: a.target[0] == target_file, patch.edits))
-            for edit in edits:
-                edit.apply(self, new_contents, new_locations)
-
-        # return modified content
-        return new_contents
-
-    def write_contents(self, new_contents):
+    def write_variant(self, variant):
         # reset work directory
         work_path = os.path.join(self.work_dir, self.basename)
         self.sync_folder(work_path, self.path)
 
         # process modified files
-        for target_file in new_contents.keys():
-            self.models[target_file].write_contents_file(self.dump_cache, self.trust_local, new_contents, work_path, target_file)
-
-        # memorise
-        self.local_contents = copy.deepcopy(new_contents)
+        with contextlib.chdir(work_path):
+            for filename in self.target_files:
+                variant.models[filename].write_to_file()
 
     def sync_folder(self, target, original):
         try:
@@ -209,14 +154,6 @@ class AbstractSoftware(abc.ABC):
                 shutil.copyfile(os.path.join(original, entry), os.path.join(target, entry))
             # else: appears in both (already handled)
 
-    def evaluate_contents(self, new_contents, cached_run=None):
-        self.write_contents(new_contents)
-        return self.evaluate_local(cached_run)
-
-    @abc.abstractmethod
-    def evaluate_local(self, cached_run=None):
-        pass
-
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, lengthout=1e6):
         # 1e6 bytes is 1Mb
         sprocess = None
@@ -224,6 +161,12 @@ class AbstractSoftware(abc.ABC):
         stderr = b''
         start = time.time()
         sprocess = None
+        env = env or os.environ.copy()
+        env['MAGPIE_ROOT'] = magpie.settings.magpie_root
+        env['MAGPIE_LOG_DIR'] = magpie.settings.log_dir
+        env['MAGPIE_WORK_DIR'] = magpie.settings.work_dir
+        env['MAGPIE_BASENAME'] = self.basename
+        env['MAGPIE_TIMESTAMP'] = self.timestamp
         try:
             sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
         except FileNotFoundError:
@@ -280,37 +223,3 @@ class AbstractSoftware(abc.ABC):
         except OSError as e:
             if e.errno != errno.ENOTEMPTY:
                 raise
-
-    def diff_patch(self, patch):
-        new_contents = self.apply_patch(patch)
-        return self.diff_contents(new_contents)
-
-    def diff_local(self):
-        return self.diff_contents(self.local_contents)
-
-    def diff_contents(self, new_contents):
-        """
-        Compare the source codes of original software and the patch-applied software
-        using *difflib* module(https://docs.python.org/3.6/library/difflib.html).
-        """
-        if magpie.settings.diff_method == 'unified':
-            diff_method = difflib.unified_diff
-        elif magpie.settings.diff_method == 'context':
-            diff_method = difflib.context_diff
-        else:
-            raise ValueError('Unknown diff method: `{}`'.format(magpie.settings.diff_method))
-        diffs = ''
-        for filename in self.target_files:
-            new_filename = self.models[filename].renamed_contents_file(filename)
-            orig = self.models[filename].dump(self.contents[filename])
-            modi = self.models[filename].dump(new_contents[filename])
-            orig_list = list(map(lambda s: s+'\n', orig.splitlines()))
-            modi_list = list(map(lambda s: s+'\n', modi.splitlines()))
-            for diff in diff_method(orig_list, modi_list,
-                                    fromfile="before: " + new_filename,
-                                    tofile="after: " + new_filename):
-                diffs += diff
-        return diffs
-
-    def self_diagnostic(self, run):
-        pass

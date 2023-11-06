@@ -14,7 +14,9 @@ class SrcmlModel(XmlModel):
     PROCESS_LITERALS = True
     PROCESS_OPERATORS = True
 
-    def __init__(self):
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.renamed_filename = filename.split('.xml')[0]
         self.config = {
             'internodes': self.INTERNODES,
             'tag_rename': self.TAG_RENAME,
@@ -35,21 +37,24 @@ class SrcmlModel(XmlModel):
             self.rewrite_tags(tree, self.config['tag_rename'][tag], tag)
         if len(self.config['tag_focus']) > 0:
             self.focus_tags(tree, self.config['tag_focus'])
+        return tree
 
-    def guess_spacing(self, text):
+    @staticmethod
+    def guess_spacing(text):
         if text is None:
             return ''
         m = [''] + re.findall(r"\n(\s*)", text, re.MULTILINE)
         return m[-1]
 
-    def process_pseudo_blocks(self, element, sp_parent='', step_parent=0):
-        sp = max(sp_parent, self.guess_spacing(element.text))
+    @staticmethod
+    def process_pseudo_blocks(element, sp_parent='', step_parent=0):
+        sp = max(sp_parent, SrcmlModel.guess_spacing(element.text))
         for child in element:
             step = len(sp) - len(sp_parent)
             if step == 0:
                 step = step_parent
-            self.process_pseudo_blocks(child, sp, step)
-            sp = max(sp, self.guess_spacing(child.tail))
+            SrcmlModel.process_pseudo_blocks(child, sp, step)
+            sp = max(sp, SrcmlModel.guess_spacing(child.tail))
         if element.tag == 'block' and element.attrib.get('type') == 'pseudo':
             del element.attrib['type']
             if len(element) > 0:
@@ -58,16 +63,18 @@ class SrcmlModel(XmlModel):
             else:
                 element.text = '/*auto*/{\n' + sp_parent + (element.text or '') + '\n' + sp_parent + '}/*auto*/'
 
-    def process_literals(self, element):
+    @staticmethod
+    def process_literals(element):
         for child in element:
-            self.process_literals(child)
+            SrcmlModel.process_literals(child)
         if element.tag == 'literal':
             element.tag = 'literal_{}'.format(element.attrib.get('type'))
             del element.attrib['type']
 
-    def process_operators(self, element):
+    @staticmethod
+    def process_operators(element):
         for child in element:
-            self.process_operators(child)
+            SrcmlModel.process_operators(child)
         if element.tag == 'operator':
             # TODO
             if element.text in ['==', '!=', '<', '<=', '>', '>=']:

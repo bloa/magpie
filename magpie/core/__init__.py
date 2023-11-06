@@ -7,6 +7,7 @@ from .abstract_model import AbstractModel
 from .abstract_software import AbstractSoftware
 from .abstract_algorithm import AbstractAlgorithm
 
+from .variant import Variant
 from .basic_software import BasicSoftware
 from .basic_algorithm import BasicAlgorithm
 from .basic_protocol import BasicProtocol

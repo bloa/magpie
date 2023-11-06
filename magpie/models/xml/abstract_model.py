@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from magpie.core import AbstractModel
 
-class AbstractTreeModel(AbstractModel):
+class AbstractXmlModel(AbstractModel):
     @classmethod
     @abstractmethod
     def do_replace(cls, software, op, new_contents, modification_points):

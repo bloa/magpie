@@ -82,7 +82,7 @@ number: literal_number""",
         'max_steps': '',
         'max_time': '',
         'target_fitness': '',
-        'cache_maxsize': 40,
+        'cache_maxsize': 100,
         'cache_keep': 0.2,
         'batch_instances': '', # separated by "|" see also "file:"
         'batch_shuffle': True,

@@ -2,62 +2,61 @@ import abc
 import os
 import random
 
+import magpie
 
 class AbstractModel(abc.ABC):
-    def renamed_contents_file(self, target_file):
-        return target_file
+    def __init__(self, filename):
+        self.filename = filename
+        self.renamed_filename = filename
+        self.contents = {}
+        self.locations = {}
+        self.locations_names = {} # for indirection
+        self.indirect_locations = True
+        self.weights = {}
+        self.trust_local = magpie.settings.trust_local_filesystem
+        self.cached_dump = None
 
-    def write_contents_file(self, dump_cache, trust_local, new_contents, work_path, target_file):
+    @abc.abstractmethod
+    def init_contents(self, file_path):
+        pass
+
+    @abc.abstractmethod
+    def dump(self):
+        pass
+
+    def show_location(self, target_type, target_loc):
+        return '(unsupported)'
+
+    def write_to_file(self):
         # compute dump
-        filename = os.path.join(work_path, self.renamed_contents_file(target_file))
-        dump = self.dump(new_contents[target_file])
+        dump = self.dump()
         # skip writing if file is (or should be) untouched
-        if dump_cache[target_file] == dump:
-            if trust_local[target_file]:
+        if not self.cached_dump:
+            raise RuntimeError()
+        if dump == self.cached_dump:
+            if self.trust_local:
                 return
             else:
-                with open(filename, 'r') as tmp_file:
+                with open(self.renamed_filename, 'r') as tmp_file:
                     if tmp_file.read() == dump:
                         return
-                trust_local[target_file] = True
+                self.trust_local = True
         # write only if file _really_ changed
-        with open(filename, 'w') as tmp_file:
+        with open(self.renamed_filename, 'w') as tmp_file:
             tmp_file.write(dump)
 
-    def random_target(self, locations, weights, target_file, target_type=None):
+    def random_target(self, target_type=None):
         if target_type is None:
-            target_type = random.choice(locations[target_file])
-        if weights and target_file in weights and target_type in weights[target_file]:
-            total_weight = sum(weights[target_file][target_type])
+            target_type = random.choice(list(self.locations.keys()))
+        if target_type in self.weights:
+            total_weight = sum(self.weights[target_type])
             r = random.uniform(0, total_weight)
-            for loc, w in enumerate(weights[target_file][target_type]):
+            for loc, w in enumerate(self.weights[target_type]):
                 if r < w:
-                    return (target_file, target_type, loc)
+                    return (self.filename, target_type, loc)
                 r -= w
-            return None
+            raise RuntimeError()
         else:
-            try:
-                loc = random.randrange(len(locations[target_file][target_type]))
-                return (target_file, target_type, loc)
-            except (KeyError, ValueError):
-                return None
-
-    @abc.abstractmethod
-    def get_contents(self, file_path):
-        pass
-
-    @abc.abstractmethod
-    def get_locations(self, contents):
-        pass
-
-    @abc.abstractmethod
-    def location_names(self, locations, target_file, target_type):
-        pass
-
-    @abc.abstractmethod
-    def dump(self, file_contents):
-        pass
-
-    def show_location(self, contents, locations, target_file, target_type, target_loc):
-        return '(unsupported)'
+            loc = random.choice(self.locations_names[target_type])
+            return (self.filename, target_type, loc)
 

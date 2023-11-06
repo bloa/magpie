@@ -126,15 +126,10 @@ class BasicProtocol:
 
         # setup software
         self.search.software = self.software
-        try:
-            self.software.ensure_contents()
-        except RuntimeError as e:
-            result['stop'] = str(e)
 
-        if not result['stop']:
-            # run the algorithm a single time
-            self.search.run()
-            result.update(self.search.report)
+        # run the algorithm a single time
+        self.search.run()
+        result.update(self.search.report)
 
         logger = self.software.logger
         logger.info('')
@@ -146,7 +141,6 @@ class BasicProtocol:
             if handler.__class__.__name__ == 'FileHandler':
                 logger.info('Log file: {}'.format(handler.baseFilename))
         if result['best_patch'] and result['best_patch'].edits:
-            result['diff'] = self.software.diff_patch(result['best_patch'])
             base_path = os.path.join(magpie.settings.log_dir, self.software.run_label)
             logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))
             logger.info('Diff file: {}'.format('{}.diff'.format(base_path)))

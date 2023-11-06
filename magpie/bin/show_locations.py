@@ -13,8 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Magpie show locations')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--filename', type=str)
-    parser.add_argument('--type', type=str)
-    parser.add_argument('--xml', default=False, action='store_true')
+    parser.add_argument('--tag', type=str)
     args = parser.parse_args()
 
     # read scenario file
@@ -26,7 +25,6 @@ if __name__ == "__main__":
     magpie.core.pre_setup(config)
     magpie.core.setup(config)
     software = magpie.utils.software_from_string(config['software']['software'])(config)
-    software.ensure_contents()
 
     # show locations
     target_files = config['software']['target_files'].split()
@@ -34,18 +32,12 @@ if __name__ == "__main__":
         if args.filename is not None and args.filename != filename:
             continue
         print('==== {} ===='.format(filename))
-        model = software.models[filename]
-        if isinstance(model, magpie.models.xml.XmlModel):
-            if not args.xml:
-                print('The detected model for this file is XmlModel, which may lead to a very large and not-so-useful output')
-                print('If you excepted a SrcmlModel instead replace BasicSoftware by your own software class')
-                print('To disable this warning and show all XML locations use the --xml argument')
+        model = software.noop_variant.models[filename]
+        for tag in model.locations.keys():
+            if args.tag is not None and args.tag != tag:
                 continue
-        for type_ in software.locations[filename].keys():
-            if args.type is not None and args.type != type_:
-                continue
-            print('---- {} ----'.format(type_))
-            for loc in software.location_names(filename, type_):
-                print(software.show_location(filename, type_, loc))
+            print('---- {} ----'.format(tag))
+            for loc in model.locations_names[tag]:
+                print(model.show_location(tag, loc))
             print()
     software.clean_work_dir()
