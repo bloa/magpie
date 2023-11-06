@@ -23,8 +23,8 @@ def my_software():
     return StubSoftware()
 
 @pytest.fixture
-def my_runresult():
-    return RunResult('SUCCESS')
+def my_runresult(my_software):
+    return RunResult(my_software, 'SUCCESS')
 
 
 @pytest.mark.parametrize('return_code,status', [

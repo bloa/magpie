@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import os
 import pytest
@@ -7,29 +8,21 @@ from magpie.models.astor import AstorModel
 from .util import assert_diff
 
 @pytest.fixture
+def astor_model():
+    model = AstorModel('triangle.py')
+    with contextlib.chdir(os.path.join('tests', 'examples')):
+        model.init_contents()
+    return model
+
+@pytest.fixture
 def file_contents():
-    file_name = 'triangle.py'
-    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
+    path = os.path.join('tests', 'examples', 'triangle.py')
     with open(path, 'r') as myfile:
         return myfile.read()
 
-@pytest.fixture
-def model_contents():
-    file_name = 'triangle.py'
-    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
-    return {file_name: AstorModel.get_contents(path)}
-
-@pytest.fixture
-def model_locations(model_contents):
-    file_name = 'triangle.py'
-    path = os.path.join('examples', 'code', 'triangle-py_slow', file_name)
-    contents = AstorModel.get_contents(path)
-    return {file_name: AstorModel.get_locations(contents)}
-
-def test_dump(file_contents, model_contents):
+def test_dump(astor_model, file_contents):
     """Immediate dump should be transparent (as much as possible)"""
-    file_name = 'triangle.py'
-    dump = AstorModel.dump(model_contents[file_name])
+    dump = astor_model.dump()
     dump_list = dump.split("\n")
     orig_list = file_contents.split("\n")
     while dump_list or orig_list:
@@ -50,19 +43,15 @@ def test_dump(file_contents, model_contents):
         l2 = re.sub(r'[()]', '', l2)
         assert l1 == l2[:len(l1)]
 
-def test_deletion1(model_contents, model_locations):
+def test_deletion1(astor_model):
     """Deletion should work"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target = (file_name, 'stmt', 7)
-    assert AstorModel.do_delete(model_contents, model_locations, new_contents, new_locations, target)
-    dump = AstorModel.dump(model_contents[file_name])
-    new_dump = AstorModel.dump(new_contents[file_name])
+    variant = copy.deepcopy(astor_model)
+    target = ('triangle.py', 'stmt', 7)
+    assert variant.do_delete(target)
     expected = """--- 
 +++ 
 @@ -8,7 +8,7 @@
-     time.sleep(0.001)
+     time.sleep(0.01)
  
  def classify_triangle(a, b, c):
 -    delay()
@@ -71,143 +60,120 @@ def test_deletion1(model_contents, model_locations):
          tmp = a
          a = b
 """
-    assert_diff(dump, new_dump, expected)
+    assert_diff(astor_model.dump(), variant.dump(), expected)
 
-def test_deletion2(model_contents, model_locations):
+def test_deletion2(astor_model):
     """Deletions should only be applied once"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target = (file_name, 'stmt', 7)
-    assert AstorModel.do_delete(model_contents, model_locations, new_contents, new_locations, target)
-    assert not AstorModel.do_delete(model_contents, model_locations, new_contents, new_locations, target)
+    variant = copy.deepcopy(astor_model)
+    target = ('triangle.py', 'stmt', 7)
+    assert variant.do_delete(target)
+    assert not variant.do_delete(target)
 
-def test_replacement1(model_contents, model_locations):
+def test_replacement1(astor_model):
     """Identical replacements should not be applied"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target1 = (file_name, 'stmt', 7)
-    assert not AstorModel.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target1)
+    variant = copy.deepcopy(astor_model)
+    target1 = ('triangle.py', 'stmt', 7)
+    assert not variant.do_replace(astor_model, target1, target1)
 
-def test_replacement2(model_contents, model_locations):
+def test_replacement2(astor_model):
     """Replacement should work"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target1 = (file_name, 'stmt', 7)
-    target2 = (file_name, 'stmt', 5)
-    assert not AstorModel.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target1)
-    assert AstorModel.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
-    dump = AstorModel.dump(model_contents[file_name])
-    new_dump = AstorModel.dump(new_contents[file_name])
+    variant = copy.deepcopy(astor_model)
+    target1 = ('triangle.py', 'stmt', 7)
+    target2 = ('triangle.py', 'stmt', 5)
+    assert not variant.do_replace(astor_model, target1, target1)
+    assert variant.do_replace(astor_model, target1, target2)
     expected = """--- 
 +++ 
 @@ -8,7 +8,7 @@
-     time.sleep(0.001)
+     time.sleep(0.01)
  
  def classify_triangle(a, b, c):
 -    delay()
-+    time.sleep(0.001)
++    time.sleep(0.01)
      if a > b:
          tmp = a
          a = b
 """
-    assert_diff(dump, new_dump, expected)
+    assert_diff(astor_model.dump(), variant.dump(), expected)
 
-def test_replacement3(model_contents, model_locations):
+def test_replacement3(astor_model):
     """Identical replacements should not be applied (even after replacement)"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target1 = (file_name, 'stmt', 7)
-    target2 = (file_name, 'stmt', 5)
-    assert not AstorModel.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target1)
-    assert AstorModel.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
-    assert not AstorModel.do_replace(model_contents, model_locations, new_contents, new_locations, target1, target2)
+    variant = copy.deepcopy(astor_model)
+    target1 = ('triangle.py', 'stmt', 7)
+    target2 = ('triangle.py', 'stmt', 5)
+    assert not variant.do_replace(astor_model, target1, target1)
+    assert variant.do_replace(astor_model, target1, target2)
+    assert not variant.do_replace(astor_model, target1, target2)
 
-def test_insertion1(model_contents, model_locations):
+def test_insertion1(astor_model):
     """Insertion should work"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target1 = (file_name, '_inter_block', 11)
-    target2 = (file_name, 'stmt', 5)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target2)
-    dump = AstorModel.dump(model_contents[file_name])
-    new_dump = AstorModel.dump(new_contents[file_name])
+    variant = copy.deepcopy(astor_model)
+    target1 = ('triangle.py', '_inter_block', 11)
+    target2 = ('triangle.py', 'stmt', 5)
+    assert variant.do_insert(astor_model, target1, target2)
     expected = """--- 
 +++ 
 @@ -9,6 +9,7 @@
  
  def classify_triangle(a, b, c):
      delay()
-+    time.sleep(0.001)
++    time.sleep(0.01)
      if a > b:
          tmp = a
          a = b
 """
-    assert_diff(dump, new_dump, expected)
+    assert_diff(astor_model.dump(), variant.dump(), expected)
 
-def test_insertion2(model_contents, model_locations):
+def test_insertion2(astor_model):
     """Insertion should be applied in order"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target1 = (file_name, '_inter_block', 11)
-    target2 = (file_name, 'stmt', 5)
-    target3 = (file_name, 'stmt', 7)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target2)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target3)
-    dump = AstorModel.dump(model_contents[file_name])
-    new_dump = AstorModel.dump(new_contents[file_name])
+    variant = copy.deepcopy(astor_model)
+    target1 = ('triangle.py', '_inter_block', 11)
+    target2 = ('triangle.py', 'stmt', 5)
+    target3 = ('triangle.py', 'stmt', 7)
+    assert variant.do_insert(astor_model, target1, target2)
+    assert variant.do_insert(astor_model, target1, target3)
     expected = """--- 
 +++ 
 @@ -8,6 +8,8 @@
-     time.sleep(0.001)
+     time.sleep(0.01)
  
  def classify_triangle(a, b, c):
 +    delay()
-+    time.sleep(0.001)
++    time.sleep(0.01)
      delay()
      if a > b:
          tmp = a
 """
-    assert_diff(dump, new_dump, expected)
+    assert_diff(astor_model.dump(), variant.dump(), expected)
 
-def test_insertion3(model_contents, model_locations):
+def test_insertion3(astor_model):
     """Insertion locations should be correctly updated"""
-    file_name = 'triangle.py'
-    new_contents = copy.deepcopy(model_contents)
-    new_locations = copy.deepcopy(model_locations)
-    target1 = (file_name, '_inter_block', 11)
-    target2 = (file_name, 'stmt', 5)
-    target3 = (file_name, 'stmt', 7)
-    target4 = (file_name, '_inter_block', 10)
-    target5 = (file_name, '_inter_block', 12)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target2)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target1, target3)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target4, target2)
-    assert AstorModel.do_insert(model_contents, model_locations, new_contents, new_locations, target5, target2)
-    dump = AstorModel.dump(model_contents[file_name])
-    new_dump = AstorModel.dump(new_contents[file_name])
+    variant = copy.deepcopy(astor_model)
+    target1 = ('triangle.py', '_inter_block', 11)
+    target2 = ('triangle.py', 'stmt', 5)
+    target3 = ('triangle.py', '_inter_block', 10)
+    target4 = ('triangle.py', '_inter_block', 12)
+    assert variant.do_insert(astor_model, target1, target2)
+    assert variant.do_insert(astor_model, target3, target2)
+    assert variant.do_insert(astor_model, target1, target2)
+    assert variant.do_insert(astor_model, target4, target2)
     expected = """--- 
 +++ 
 @@ -8,11 +8,15 @@
-     time.sleep(0.001)
+     time.sleep(0.01)
  
  def classify_triangle(a, b, c):
-+    time.sleep(0.001)
-+    delay()
-+    time.sleep(0.001)
++    time.sleep(0.01)
      delay()
++    time.sleep(0.01)
++    time.sleep(0.01)
      if a > b:
          tmp = a
          a = b
          b = tmp
-+    time.sleep(0.001)
++    time.sleep(0.01)
      if a > c:
          tmp = a
          a = c
 """
-    assert_diff(dump, new_dump, expected)
+    assert_diff(astor_model.dump(), variant.dump(), expected)

@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import os
 import pytest
@@ -8,23 +9,14 @@ from .util import assert_diff
 
 @pytest.fixture
 def xml_model():
-    return XmlModel()
-
-@pytest.fixture
-def srcml_model():
-    return SrcmlModel()
-
-@pytest.fixture
-def model_contents(xml_model):
-    file_name = 'triangle.c.xml'
-    path = os.path.join('examples', 'code', 'triangle-c_slow', file_name)
-    return {file_name: xml_model.get_contents(path)}
+    model = XmlModel('triangle.c.xml')
+    with contextlib.chdir(os.path.join('tests', 'examples')):
+        model.init_contents()
+    return model
 
 
-def test_process_blocks(srcml_model, model_contents):
-    filename = 'triangle.c.xml'
-    tree = model_contents[filename]
-    tree = tree[2][3]
+def test_process_blocks(xml_model):
+    tree = xml_model.contents[2][3]
     oracle = '''<block>{
   <decl_stmt><decl><type><name>double</name></type> <name>tmp</name></decl>;</decl_stmt>
 
@@ -57,8 +49,8 @@ def test_process_blocks(srcml_model, model_contents):
     <block type="pseudo"><return>return <expr><name>ISOSCELES</name></expr>;</return></block></then></if>
   <return>return <expr><name>SCALENE</name></expr>;</return>
 }</block>'''
-    assert srcml_model.tree_to_string(tree).strip() == oracle
-    srcml_model.process_pseudo_blocks(tree)
+    assert XmlModel.tree_to_string(tree).strip() == oracle
+    SrcmlModel.process_pseudo_blocks(tree)
     oracle = '''<block>{
   <decl_stmt><decl><type><name>double</name></type> <name>tmp</name></decl>;</decl_stmt>
 
@@ -97,24 +89,20 @@ def test_process_blocks(srcml_model, model_contents):
     }/*auto*/</block></then></if>
   <return>return <expr><name>SCALENE</name></expr>;</return>
 }</block>'''
-    assert srcml_model.tree_to_string(tree).strip() == oracle
+    assert XmlModel.tree_to_string(tree).strip() == oracle
 
-def test_process_literals(srcml_model, model_contents):
-    filename = 'triangle.c.xml'
-    tree = model_contents[filename]
-    tree = tree[1][3][0]
+def test_process_literals(xml_model):
+    tree = xml_model.contents[1][3][0]
     oracle = '<decl_stmt><decl><type><specifier>const</specifier> <name><name>struct</name> <name>timespec</name></name></type> <name>ms</name> <init>= <expr><block>{<expr><literal type="number">0</literal></expr>, <expr><literal type="number">0.001</literal><operator>*</operator><literal type="number">1e9</literal></expr>}</block></expr></init></decl>;</decl_stmt>'
-    assert srcml_model.tree_to_string(tree).strip() == oracle
-    srcml_model.process_literals(tree)
+    assert XmlModel.tree_to_string(tree).strip() == oracle
+    SrcmlModel.process_literals(tree)
     oracle = '<decl_stmt><decl><type><specifier>const</specifier> <name><name>struct</name> <name>timespec</name></name></type> <name>ms</name> <init>= <expr><block>{<expr><literal_number>0</literal_number></expr>, <expr><literal_number>0.001</literal_number><operator>*</operator><literal_number>1e9</literal_number></expr>}</block></expr></init></decl>;</decl_stmt>'
-    assert srcml_model.tree_to_string(tree).strip() == oracle
+    assert XmlModel.tree_to_string(tree).strip() == oracle
 
-def test_process_operators(srcml_model, model_contents):
-    filename = 'triangle.c.xml'
-    tree = model_contents[filename]
-    tree = tree[1][3][0]
+def test_process_operators(xml_model):
+    tree = xml_model.contents[1][3][0]
     oracle = '<decl_stmt><decl><type><specifier>const</specifier> <name><name>struct</name> <name>timespec</name></name></type> <name>ms</name> <init>= <expr><block>{<expr><literal type="number">0</literal></expr>, <expr><literal type="number">0.001</literal><operator>*</operator><literal type="number">1e9</literal></expr>}</block></expr></init></decl>;</decl_stmt>'
-    assert srcml_model.tree_to_string(tree).strip() == oracle
-    srcml_model.process_operators(tree)
+    assert XmlModel.tree_to_string(tree).strip() == oracle
+    SrcmlModel.process_operators(tree)
     oracle = '<decl_stmt><decl><type><specifier>const</specifier> <name><name>struct</name> <name>timespec</name></name></type> <name>ms</name> <init>= <expr><block>{<expr><literal type="number">0</literal></expr>, <expr><literal type="number">0.001</literal><operator_arith>*</operator_arith><literal type="number">1e9</literal></expr>}</block></expr></init></decl>;</decl_stmt>'
-    assert srcml_model.tree_to_string(tree).strip() == oracle
+    assert XmlModel.tree_to_string(tree).strip() == oracle
