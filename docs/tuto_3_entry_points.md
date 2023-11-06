@@ -1,0 +1,1 @@
+# Magpie's entry points
