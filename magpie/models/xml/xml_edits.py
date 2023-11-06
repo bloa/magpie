@@ -77,7 +77,7 @@ class XmlTextWrapping(Edit):
     CHOICES = [('(', ')')]
 
     @classmethod
-    def auto_create(cls, variant):
+    def auto_create(cls, ref):
         target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
         ingredient = random.choice(cls.CHOICES)
         if not target:
