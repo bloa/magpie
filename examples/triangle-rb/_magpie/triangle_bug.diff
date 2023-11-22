@@ -1,0 +1,23 @@
+--- triangle.rb	2023-11-02 16:46:38.455677875 +0100
++++ triangle_bug.rb	2023-11-02 16:45:32.932028898 +0100
+@@ -7,7 +7,7 @@
+   end
+ 
+   if a > c
+-    tmp = c
++    tmp = b # TODO: fixme
+     a = c
+     c = tmp
+   end
+@@ -22,9 +22,9 @@
+   when a + b <= c
+     return :invalid
+   when a == b && b == c
+-    return :equilateral
++    return :isosceles # TODO: fixme
+   when a == b || b == c
+-    return :isosceles
++    return :equilateral # TODO: fixme
+   else
+     return :scalene
+   end

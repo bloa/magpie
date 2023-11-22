@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unit xmlns="http://www.srcML.org/srcML/src" xmlns:cpp="http://www.srcML.org/srcML/cpp" revision="1.0.0" language="C" filename="triangle_slow.h"><cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file>&lt;time.h&gt;</cpp:file></cpp:include>
+
+<typedef>typedef <type><enum>enum <block>{ <decl><name>INVALID</name></decl>, <decl><name>EQUILATERAL</name></decl>, <decl><name>ISOSCELES</name></decl>, <decl><name>SCALENE</name></decl> }</block></enum></type> <name>triangle_type</name>;</typedef> <comment type="line">// 0, 1, 2, 3</comment>
+
+<function_decl><type><name>void</name></type> <name>delay</name><parameter_list>()</parameter_list>;</function_decl>
+
+<function_decl><type><name>int</name></type> <name>classify_triangle</name><parameter_list>(<parameter><decl><type><name>double</name></type> <name>a</name></decl></parameter>, <parameter><decl><type><name>double</name></type> <name>b</name></decl></parameter>, <parameter><decl><type><name>double</name></type> <name>c</name></decl></parameter>)</parameter_list>;</function_decl>
+</unit>

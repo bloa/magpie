@@ -1,0 +1,38 @@
+--- triangle.py	2023-10-31 17:11:44.071532212 +0100
++++ triangle_bloat.py	2023-10-31 17:11:54.278248047 +0100
+@@ -1,10 +1,16 @@
+ import enum
++import time
+ 
+ 
+ class TriangleType(enum.Enum):
+     INVALID, EQUILATERAL, ISOSCELES, SCALENE = 0, 1, 2, 3
+ 
+ 
++# never used
++def delay():
++    time.sleep(0.001)
++
++
+ def classify_triangle(a, b, c):
+     # sort the sides so that a <= b <= c
+     if a > b:
+@@ -12,6 +18,11 @@
+         a = b
+         b = tmp
+ 
++    if a > b: # duplicate
++        tmp = a
++        a = b
++        b = tmp
++
+     if a > c:
+         tmp = a
+         a = c
+@@ -30,3 +41,6 @@
+         return TriangleType.ISOSCELES
+     else:
+         return TriangleType.SCALENE
++
++    # never executed
++    return TriangleType.INVALID

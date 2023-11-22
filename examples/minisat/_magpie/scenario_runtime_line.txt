@@ -1,0 +1,21 @@
+[magpie]
+default_timeout = 30
+default_lengthout = 1e6
+
+[software]
+path = examples/minisat
+target_files =
+    core/Solver.cc
+fitness = time
+
+init_cmd = bash init.sh
+compile_cmd = bash compile.sh
+test_cmd = bash test.sh
+run_cmd = bash run_fixed.sh
+
+[search]
+max_steps = 100
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

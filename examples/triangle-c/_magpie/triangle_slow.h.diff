@@ -1,0 +1,9 @@
+--- triangle.h	2023-11-06 14:57:54.894958666 +0100
++++ triangle_slow.h	2023-11-06 14:57:45.824914974 +0100
+@@ -2,4 +2,6 @@
+ 
+ typedef enum { INVALID, EQUILATERAL, ISOSCELES, SCALENE } triangle_type; // 0, 1, 2, 3
+ 
++void delay();
++
+ int classify_triangle(double a, double b, double c);

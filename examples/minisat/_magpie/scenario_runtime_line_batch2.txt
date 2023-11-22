@@ -1,0 +1,48 @@
+[magpie]
+default_timeout = 30
+default_lengthout = 1e6
+
+[software]
+path = examples/minisat
+target_files =
+    core/Solver.cc
+fitness = time
+
+init_cmd = bash init.sh
+setup_cmd = bash compile.sh
+compile_cmd = bash compile.sh
+test_cmd = bash test.sh
+run_cmd = bash run_single.sh {INST}
+
+[search]
+max_steps = 100
+batch_instances =
+    data/uf50-01.cnf
+    data/uf50-02.cnf
+    data/uuf50-01.cnf
+    data/uuf50-02.cnf
+    ___
+    data/uf100-01.cnf
+    data/uf100-02.cnf
+    data/uuf100-01.cnf
+    data/uuf100-02.cnf
+    ___
+    data/uf150-01.cnf
+    data/uf150-02.cnf
+    data/uuf150-01.cnf
+    data/uuf150-02.cnf
+    ___
+    data/uf200-01.cnf
+    data/uf200-02.cnf
+    data/uuf200-01.cnf
+    data/uuf200-02.cnf
+    ___
+    data/uf250-01.cnf
+    data/uf250-02.cnf
+    data/uuf250-01.cnf
+    data/uuf250-02.cnf
+batch_sample_size = 5
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

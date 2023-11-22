@@ -1,0 +1,17 @@
+[software]
+path = examples/triangle-py
+target_files =
+    triangle.py.xml
+fitness = repair
+
+init_cmd = bash init_bug.sh
+test_cmd = pytest
+test_timeout = 2
+
+[search]
+target_fitness = 0
+max_steps = 100
+possible_edits =
+    SrcmlStmtReplacement
+    SrcmlStmtDeletion
+    SrcmlStmtInsertion

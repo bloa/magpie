@@ -1,0 +1,14 @@
+[software]
+path = examples/triangle-py
+target_files =
+    triangle.py
+fitness = bloat_lines
+
+init_cmd = bash init_bloat.sh
+test_cmd = pytest
+test_timeout = 1
+
+[search]
+max_steps = 100
+max_time = 60
+possible_edits = LineDeletion

@@ -1,0 +1,20 @@
+[magpie]
+default_timeout = 30
+default_lengthout = 1e6
+local_original_copy = True
+
+[software]
+path = examples/minisat
+target_files = minisat_advanced.params
+fitness = time
+
+init_cmd = bash init.sh
+setup_cmd = bash compile.sh
+compile_cmd =
+test_cmd = bash test.sh
+run_cmd = bash run_fixed.sh
+
+[search]
+max_steps = 1000
+max_time = 60
+possible_edits = ParamSetting

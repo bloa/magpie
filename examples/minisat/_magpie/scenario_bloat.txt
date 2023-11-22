@@ -1,0 +1,18 @@
+[magpie]
+default_lengthout = 1e6
+local_original_copy = True
+
+[software]
+path = examples/minisat
+target_files =
+    core/Solver.cc.xml
+fitness = bloat_words
+
+init_cmd = bash init.sh
+compile_cmd = bash compile.sh
+test_cmd = bash test.sh
+
+[search]
+max_steps = 100
+possible_edits =
+    SrcmlStmtDeletion

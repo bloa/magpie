@@ -1,0 +1,32 @@
+[magpie]
+local_original_copy = True
+default_timeout = 30
+default_lengthout = 1e6
+
+[srcml]
+rename =
+    stmt: break continue decl_stmt do expr_stmt for goto if return switch while
+focus = block stmt
+internodes = block
+process_pseudo_blocks = True
+process_literals = False
+process_operators = False
+
+[software]
+path = examples/minisat
+target_files =
+    core/Solver.cc.xml
+fitness = time
+
+init_cmd = bash init.sh
+setup_cmd = bash compile.sh
+compile_cmd = bash compile.sh
+test_cmd = bash test.sh
+run_cmd = bash run_fixed.sh
+
+[search]
+max_steps = 100
+possible_edits =
+    SrcmlStmtReplacement
+    SrcmlStmtInsertion
+    SrcmlStmtDeletion

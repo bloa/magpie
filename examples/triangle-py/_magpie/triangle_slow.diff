@@ -1,0 +1,22 @@
+--- triangle.py	2023-10-31 17:11:44.071532212 +0100
++++ triangle_slow.py	2023-10-31 17:13:03.998583906 +0100
+@@ -1,11 +1,19 @@
+ import enum
++import time
+ 
+ 
+ class TriangleType(enum.Enum):
+     INVALID, EQUILATERAL, ISOSCELES, SCALENE = 0, 1, 2, 3
+ 
+ 
++def delay():
++    time.sleep(0.001)
++
++
+ def classify_triangle(a, b, c):
++    # slow down execution
++    delay()
++
+     # sort the sides so that a <= b <= c
+     if a > b:
+         tmp = a

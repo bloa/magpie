@@ -1,0 +1,27 @@
+[magpie]
+default_timeout = 30
+default_lengthout = 1e6
+
+[software]
+path = examples/minisat
+target_files =
+    core/Solver.cc
+fitness = time
+
+init_cmd = bash init.sh
+setup_cmd = bash compile.sh
+compile_cmd = bash compile.sh
+test_cmd = bash test.sh
+run_cmd = bash run_single.sh {INST}
+
+[search]
+max_steps = 100
+batch_instances =
+    file:data/inst_sat.txt
+    ___
+    file:data/inst_unsat.txt
+batch_sample_size = 4
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

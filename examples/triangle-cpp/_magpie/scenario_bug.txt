@@ -1,0 +1,22 @@
+[magpie]
+local_original_copy = True
+
+[software]
+path = examples/triangle-cpp
+target_files =
+    triangle.cpp.xml
+fitness = repair
+
+init_cmd = bash init_bug.sh
+setup_cmd = bash setup.sh
+compile_cmd = bash compile.sh
+test_cmd = ./build/test_triangle
+run_cmd =
+
+[search]
+target_fitness = 0
+max_steps = 100
+possible_edits =
+    SrcmlStmtReplacement
+    SrcmlStmtInsertion
+    SrcmlStmtDeletion

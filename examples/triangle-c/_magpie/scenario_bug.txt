@@ -1,0 +1,17 @@
+[software]
+path = examples/triangle-c
+target_files =
+    triangle.c.xml
+fitness = repair
+
+init_cmd = bash init_bug.sh
+compile_cmd = make test_triangle
+test_cmd = ./test_triangle
+
+[search]
+target_fitness = 0
+max_steps = 100
+possible_edits =
+    SrcmlStmtReplacement
+    SrcmlStmtInsertion
+    SrcmlStmtDeletion

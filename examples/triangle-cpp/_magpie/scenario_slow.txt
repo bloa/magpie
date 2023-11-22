@@ -1,0 +1,23 @@
+[magpie]
+local_original_copy = True
+
+[software]
+path = examples/triangle-cpp
+target_files =
+    triangle.cpp.xml
+fitness = time
+
+init_cmd = bash init_slow.sh
+setup_cmd = bash setup.sh
+compile_cmd = bash compile.sh
+test_cmd = ./build/test_triangle
+run_cmd = ./build/run_triangle
+run_timeout = 1
+
+[search]
+max_steps = 100
+max_time = 60
+possible_edits =
+    SrcmlStmtReplacement
+    SrcmlStmtInsertion
+    SrcmlStmtDeletion

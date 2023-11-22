@@ -1,0 +1,23 @@
+[magpie]
+import =
+    _magpie/my_algo.py
+    _magpie/my_edits.py
+
+[software]
+path = examples/magpie
+target_files =
+    magpie/**/*.py.xml
+fitness = bloat_chars
+
+init_cmd = bash init.sh
+test_cmd = pytest
+
+[search]
+algorithm = MyAlgo
+max_steps = 10000
+possible_edits =
+    PythonStmtDeletion
+    SrcmlStmtReplacement
+
+[search.ls]
+delete_prob = 0.1

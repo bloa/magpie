@@ -1,0 +1,13 @@
+--- triangle.cpp	2023-11-06 13:31:20.103267470 +0100
++++ triangle_bug.cpp	2023-11-06 13:36:22.718058571 +0100
+@@ -25,8 +25,8 @@
+   if(a + b <= c)
+     return INVALID;
+   if(a == b && b == c)
+-    return EQUILATERAL;
++    return ISOSCELES; // TODO: fixme
+   if(a == b || b == c)
+-    return ISOSCELES;
++    return EQUILATERAL; // TODO: fixme
+   return SCALENE;
+ }

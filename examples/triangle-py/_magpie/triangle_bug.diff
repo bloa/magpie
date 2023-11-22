@@ -1,0 +1,13 @@
+--- triangle.py	2023-10-31 17:11:44.071532212 +0100
++++ triangle_bug.py	2023-10-31 17:12:01.991618538 +0100
+@@ -25,8 +25,8 @@
+     if a + b <= c:
+         return TriangleType.INVALID
+     elif a == b and b == c:
+-        return TriangleType.EQUILATERAL
++        return TriangleType.ISOSCELES # TODO: fixme
+     elif a == b or b == c:
+-        return TriangleType.ISOSCELES
++        return TriangleType.EQUILATERAL # TODO: fixme
+     else:
+         return TriangleType.SCALENE

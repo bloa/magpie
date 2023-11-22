@@ -1,0 +1,33 @@
+[magpie]
+local_original_copy = True
+default_timeout = 30
+default_lengthout = 1e6
+
+[srcml]
+rename =
+    number: literal_number
+focus = operator_comp operator_arith number
+internodes = 
+process_pseudo_blocks = False
+process_literals = True
+process_operators = True
+
+[software]
+path = examples/minisat
+target_files =
+    core/Solver.cc.xml
+fitness = time
+
+init_cmd = bash init.sh
+setup_cmd = bash compile.sh
+compile_cmd = bash compile.sh
+test_cmd = bash test.sh
+run_cmd = bash run_fixed.sh
+
+[search]
+max_steps = 100
+possible_edits =
+    SrcmlComparisonOperatorSetting
+    SrcmlArithmeticOperatorSetting
+    SrcmlNumericSetting
+    SrcmlRelativeNumericSetting

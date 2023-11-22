@@ -1,0 +1,16 @@
+[software]
+path = examples/triangle-rb
+target_files =
+    triangle.rb
+fitness = repair
+
+init_cmd = bash init_bug.sh
+test_cmd = ruby test_triangle.rb
+
+[search]
+target_fitness = 0
+max_steps = 100
+possible_edits =
+    LineReplacement
+    LineInsertion
+    LineDeletion

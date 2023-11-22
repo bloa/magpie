@@ -1,0 +1,22 @@
+[srcml]
+focus = stmt block
+internodes = block
+
+[software]
+path = examples/triangle-py
+target_files =
+    triangle.py.xml
+fitness = time
+
+init_cmd = bash init_slow.sh
+test_cmd = pytest
+run_cmd = python run_triangle.py
+run_timeout = 1
+
+[search]
+max_steps = 100
+max_time = 60
+possible_edits =
+    SrcmlStmtDeletion
+    SrcmlStmtInsertion
+    SrcmlStmtReplacement

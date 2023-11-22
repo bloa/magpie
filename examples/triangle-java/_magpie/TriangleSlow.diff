@@ -1,0 +1,25 @@
+--- Triangle.java	2023-11-02 19:13:28.521451330 +0100
++++ TriangleSlow.java	2023-11-02 19:13:42.768186627 +0100
+@@ -5,6 +5,9 @@
+     }
+ 
+     public static TriangleType classifyTriangle(int a, int b, int c) {
++
++        delay();
++
+         // sort the sides so that a <= b <= c
+         if (a > b) {
+             int tmp = a;
+@@ -34,4 +37,12 @@
+             return TriangleType.SCALENE;
+         }
+     }
++
++    private static void delay() {
++        try {
++            Thread.sleep(50);
++        } catch (InterruptedException e) {
++            // do nothing
++        }
++    }
+ }

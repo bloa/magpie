@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unit xmlns="http://www.srcML.org/srcML/src" xmlns:cpp="http://www.srcML.org/srcML/cpp" revision="1.0.0" language="C++" filename="triangle_bug.cpp"><cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file>"triangle.hpp"</cpp:file></cpp:include>
+
+<function><type><name>int</name></type> <name>classify_triangle</name><parameter_list>(<parameter><decl><type><name>double</name></type> <name>a</name></decl></parameter>, <parameter><decl><type><name>double</name></type> <name>b</name></decl></parameter>, <parameter><decl><type><name>double</name></type> <name>c</name></decl></parameter>)</parameter_list> <block>{<block_content>
+  <decl_stmt><decl><type><name>double</name></type> <name>tmp</name></decl>;</decl_stmt>
+
+  <comment type="line">// sort the sides so that a &lt;= b &lt;= c</comment>
+  <if_stmt><if>if<condition>(<expr><name>a</name> <operator>&gt;</operator> <name>b</name></expr>)</condition> <block>{<block_content>
+    <expr_stmt><expr><name>tmp</name> <operator>=</operator> <name>a</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>a</name> <operator>=</operator> <name>b</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>b</name> <operator>=</operator> <name>tmp</name></expr>;</expr_stmt>
+  </block_content>}</block></if></if_stmt>
+
+  <if_stmt><if>if<condition>(<expr><name>a</name> <operator>&gt;</operator> <name>c</name></expr>)</condition> <block>{<block_content>
+    <expr_stmt><expr><name>tmp</name> <operator>=</operator> <name>a</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>a</name> <operator>=</operator> <name>c</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>c</name> <operator>=</operator> <name>tmp</name></expr>;</expr_stmt>
+  </block_content>}</block></if></if_stmt>
+
+  <if_stmt><if>if<condition>(<expr><name>b</name> <operator>&gt;</operator> <name>c</name></expr>)</condition> <block>{<block_content>
+    <expr_stmt><expr><name>tmp</name> <operator>=</operator> <name>b</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>b</name> <operator>=</operator> <name>c</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>c</name> <operator>=</operator> <name>tmp</name></expr>;</expr_stmt>
+  </block_content>}</block></if></if_stmt>
+
+  <if_stmt><if>if<condition>(<expr><name>a</name> <operator>+</operator> <name>b</name> <operator>&lt;=</operator> <name>c</name></expr>)</condition><block type="pseudo"><block_content>
+    <return>return <expr><name>INVALID</name></expr>;</return></block_content></block></if></if_stmt>
+  <if_stmt><if>if<condition>(<expr><name>a</name> <operator>==</operator> <name>b</name> <operator>&amp;&amp;</operator> <name>b</name> <operator>==</operator> <name>c</name></expr>)</condition><block type="pseudo"><block_content>
+    <return>return <expr><name>ISOSCELES</name></expr>;</return></block_content></block></if></if_stmt> <comment type="line">// TODO: fixme</comment>
+  <if_stmt><if>if<condition>(<expr><name>a</name> <operator>==</operator> <name>b</name> <operator>||</operator> <name>b</name> <operator>==</operator> <name>c</name></expr>)</condition><block type="pseudo"><block_content>
+    <return>return <expr><name>EQUILATERAL</name></expr>;</return></block_content></block></if></if_stmt> <comment type="line">// TODO: fixme</comment>
+  <return>return <expr><name>SCALENE</name></expr>;</return>
+</block_content>}</block></function>
+</unit>
