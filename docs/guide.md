@@ -95,7 +95,7 @@ Require specific outputs:
 
 We will use the following example:
 
-    ./magpie.py.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    ./magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
 
 Execution starts with a "warmup" step.
 
