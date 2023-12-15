@@ -1,6 +1,6 @@
 from .xml_model import XmlModel
-from .xml_edits import XmlNodeDeletion, XmlNodeReplacement, XmlNodeInsertion
-from .xml_edits import XmlTextSetting, XmlTextWrapping
+from .xml_edits import AbstractXmlNodeDeletion, AbstractXmlNodeReplacement, AbstractXmlNodeInsertion
+from .xml_edits import AbstractXmlTextSetting, AbstractXmlTextWrapping
 
 from .srcml_model import SrcmlModel
 from .srcml_edits import XmlLineDeletion, XmlLineReplacement, XmlLineInsertion

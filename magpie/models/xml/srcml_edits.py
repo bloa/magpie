@@ -1,44 +1,44 @@
-from .xml_edits import XmlNodeDeletion, XmlNodeReplacement, XmlNodeInsertion
-from .xml_edits import XmlTextSetting, XmlTextWrapping
+from .xml_edits import AbstractXmlNodeDeletion, AbstractXmlNodeReplacement, AbstractXmlNodeInsertion
+from .xml_edits import AbstractXmlTextSetting, AbstractXmlTextWrapping
 
-class XmlLineDeletion(XmlNodeDeletion):
+class XmlLineDeletion(AbstractXmlNodeDeletion):
     NODE_TAG = 'line'
 
-class XmlLineReplacement(XmlNodeReplacement):
+class XmlLineReplacement(AbstractXmlNodeReplacement):
     NODE_TAG = 'line'
 
-class XmlLineInsertion(XmlNodeInsertion):
+class XmlLineInsertion(AbstractXmlNodeInsertion):
     NODE_PARENT_TAG = 'unit'
     NODE_TAG = 'line'
 
-class SrcmlStmtDeletion(XmlNodeDeletion):
+class SrcmlStmtDeletion(AbstractXmlNodeDeletion):
     NODE_TAG = 'stmt'
 
-class SrcmlStmtReplacement(XmlNodeReplacement):
+class SrcmlStmtReplacement(AbstractXmlNodeReplacement):
     NODE_TAG = 'stmt'
 
-class SrcmlStmtInsertion(XmlNodeInsertion):
+class SrcmlStmtInsertion(AbstractXmlNodeInsertion):
     NODE_PARENT_TAG = 'block'
     NODE_TAG = 'stmt'
 
-class SrcmlConditionReplacement(XmlNodeReplacement):
+class SrcmlConditionReplacement(AbstractXmlNodeReplacement):
     NODE_TAG = 'condition'
 
-class SrcmlExprReplacement(XmlNodeReplacement):
+class SrcmlExprReplacement(AbstractXmlNodeReplacement):
     NODE_TAG = 'expr'
 
-class SrcmlComparisonOperatorSetting(XmlTextSetting):
+class SrcmlComparisonOperatorSetting(AbstractXmlTextSetting):
     NODE_TAG = 'operator_comp'
     CHOICES = ['==', '!=', '<', '<=', '>', '>=']
 
-class SrcmlArithmeticOperatorSetting(XmlTextSetting):
+class SrcmlArithmeticOperatorSetting(AbstractXmlTextSetting):
     NODE_TAG = 'operator_arith'
     CHOICES = ['+', '-', '*', '/', '%']
 
-class SrcmlNumericSetting(XmlTextSetting):
+class SrcmlNumericSetting(AbstractXmlTextSetting):
     NODE_TAG = 'number'
     CHOICES = ['-1', '0', '1']
 
-class SrcmlRelativeNumericSetting(XmlTextWrapping):
+class SrcmlRelativeNumericSetting(AbstractXmlTextWrapping):
     NODE_TAG = 'number'
     CHOICES = [('(', '+1)'), ('(', '-1)'), ('(', '/2)'), ('(', '*2)'), ('(', '*3/2)'), ('(', '*2/3)')]
