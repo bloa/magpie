@@ -11,6 +11,7 @@ class AbstractParamsModel(AbstractModel):
     CLI_BOOLEAN = 'show' # show ; hide ; prefix
     CLI_BOOLEAN_PREFIX_TRUE = ''
     CLI_BOOLEAN_PREFIX_FALSE = 'no-'
+    CLI_NONE = 'hide' # show ; hide
     SILENT_PREFIX = '@'
     SILENT_SUFFIX = '$'
 
@@ -24,6 +25,7 @@ class AbstractParamsModel(AbstractModel):
             'cli_boolean': self.CLI_BOOLEAN,
             'cli_boolean_prefix_true': self.CLI_BOOLEAN_PREFIX_TRUE,
             'cli_boolean_prefix_false': self.CLI_BOOLEAN_PREFIX_FALSE,
+            'cli_none': self.CLI_NONE,
             'silent_prefix': self.SILENT_PREFIX,
             'silent_suffix': self.SILENT_SUFFIX,
         }
@@ -67,6 +69,9 @@ class AbstractParamsModel(AbstractModel):
                 return ''
             elif self.config['cli_boolean'] == 'prefix':
                 return '{}{}{}'.format(self.config['cli_prefix'], self.config['cli_boolean_prefix_false'], cli_param)
+        elif str(value) == 'None':
+            if self.config['cli_none'] == 'hide':
+                return ''
         return '{}{}{}{}'.format(self.config['cli_prefix'], cli_param, self.config['cli_glue'], repr(value))
 
     def would_be_ignored(self, key, value):

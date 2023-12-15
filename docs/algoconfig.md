@@ -46,7 +46,7 @@ Comments can also be added after any other valid line of the parameter file.
 
 ## Magic constants
 
-There are eight magic constants that can be set.
+There are nine magic constants that can be set.
 
 - `TIMING="test run"`
 - `CLI_PREFIX="--"`
@@ -54,6 +54,7 @@ There are eight magic constants that can be set.
 - `CLI_BOOLEAN="show"`
 - `CLI_BOOLEAN_PREFIX_TRUE=""`
 - `CLI_BOOLEAN_PREFIX_FALSE="no-"`
+- `CLI_NONE="show"`
 - `SILENT_PREFIX="@"`
 - `SILENT_SUFFIX="$"`
 
@@ -63,9 +64,14 @@ The `CLI_PREFIX` string is used at the start of every parameter name, whilst `CL
 For example, MiniSAT expects parameters such as "`-gc-frac=0.2`".
 
 `CLI_BOOLEAN` accepts three values: `show`, `hide`, and `prefix`.  
-The value `show` means that Boolean are passed as any other value (e.g., "`-luby=True`").
+The value `show` means that Booleans are passed as any other values (e.g., "`-luby=True`").
 The value `hide` means that the parameter is only used when the value is true (i.e., "`-luby`" when true, and nothing when false).
 Finally, the value `prefix` change the names of Boolean parameters according to their values (e.g., to obtain "`-luby`" when true and "`-no-luby`" when false).
+
+`CLI_NONE` accepts two values: `show`, and `hide`.  
+Similarly to `CLI_BOOLEAN` it enable hiding parameters when the associated value is `None`.
+The value `show` means that the parameter is actually used (e.g., "--foo=None").
+Conversely, the value `hide` means that the parameter absent from the final command line.
 
 The `SILENT_PREFIX` string is used to hide parameters with matching prefix in the final command line.
 Similarly, the `SILENT_SUFFIX` is used to specify a suffix which will be hidden in the final command line.
