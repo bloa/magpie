@@ -48,6 +48,10 @@ class ConfigFileParamsModel(AbstractParamsModel):
         if m:
             self.config['cli_boolean_prefix_false'] = m.group(1)
             return
+        m = re.match(r"^CLI_NONE\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
+        if m:
+            self.config['cli_none'] = m.group(1)
+            return
         m = re.match(r"^SILENT_PREFIX\s*=\s*\"([^\"]*)\"(?:\s*#.*)?$", line)
         if m:
             self.config['silent_prefix'] = m.group(1)

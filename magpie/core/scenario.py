@@ -68,6 +68,7 @@ number: literal_number""",
         'cli_boolean': 'show', # show ; hide ; prefix
         'cli_boolean_prefix_true': '',
         'cli_boolean_prefix_false': 'no-',
+        'cli_none': 'hide', # show ; hide
         'silent_prefix': '@',
         'silent_suffix': '$',
     },
