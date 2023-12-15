@@ -40,12 +40,14 @@ class BasicProtocol:
             elif s[:5] == 'file:':
                 try:
                     with open(os.path.join(config['software']['path'], s[5:])) as bin_file:
-                        bins[-1].extend([line.rstrip() for line in bin_file])
+                        bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
                 except FileNotFoundError:
                     with open(s[5:]) as bin_file:
-                        bins[-1].extend([line.rstrip() for line in bin_file])
+                        bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
             else:
-                bins[-1].append(s)
+                s.strip()
+                if s and s[0] != '#':
+                    bins[-1].append(s)
         if len(bins) > 1 and not bins[-1]:
             bins.pop()
         tmp = sec['batch_shuffle'].lower()

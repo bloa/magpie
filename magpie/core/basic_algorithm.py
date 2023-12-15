@@ -34,6 +34,7 @@ class BasicAlgorithm(AbstractAlgorithm):
                         s -= 1
                     if s == 0:
                         break
+        batch = [b for b in batch if b] # discards empty bins
         self.software.batch = batch if any(batch) else [['']] # single empty instance when no batch
         # early exit before warmup
         if self.report['initial_fitness'] is None:

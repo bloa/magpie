@@ -301,40 +301,40 @@ class BasicSoftware(AbstractSoftware):
                 lengthout = self.run_lengthout or magpie.settings.default_lengthout
                 batch_timeout = self.batch_timeout
                 batch_lengthout = self.batch_lengthout
-                for b in self.batch:
-                    for inst in b:
-                        if inst in run_result.cache.keys():
-                            continue
-                        run_cmd = self.run_cmd.strip()
-                        if '{INST}' in self.run_cmd:
-                            run_cmd = run_cmd.replace('{INST}', inst)
-                        else:
-                            run_cmd = '{} {}'.format(run_cmd, inst)
-                        if '{PARAMS}' in self.run_cmd:
-                            run_cmd = run_cmd.replace('{PARAMS}', cli)
-                        else:
-                            run_cmd = '{} {}'.format(run_cmd, cli)
-                        exec_result = self.exec_cmd(shlex.split(run_cmd),
-                                                    timeout=timeout,
-                                                    lengthout=lengthout)
-                        run_result.status = exec_result.status
-                        run_result.last_exec = exec_result
-                        if run_result.status == 'SUCCESS':
-                            self.process_run_exec(run_result, exec_result)
-                        self.process_batch_single(run_result, inst)
-                        if run_result.status != 'SUCCESS':
-                            run_result.status = 'RUN_{}'.format(run_result.status)
+                insts = [inst for b in self.batch for inst in b]
+                for inst in insts:
+                    if inst in run_result.cache.keys():
+                        continue
+                    run_cmd = self.run_cmd.strip()
+                    if '{INST}' in self.run_cmd:
+                        run_cmd = run_cmd.replace('{INST}', inst)
+                    else:
+                        run_cmd = '{} {}'.format(run_cmd, inst)
+                    if '{PARAMS}' in self.run_cmd:
+                        run_cmd = run_cmd.replace('{PARAMS}', cli)
+                    else:
+                        run_cmd = '{} {}'.format(run_cmd, cli)
+                    exec_result = self.exec_cmd(shlex.split(run_cmd),
+                                                timeout=timeout,
+                                                lengthout=lengthout)
+                    run_result.status = exec_result.status
+                    run_result.last_exec = exec_result
+                    if run_result.status == 'SUCCESS':
+                        self.process_run_exec(run_result, exec_result)
+                    self.process_batch_single(run_result, inst)
+                    if run_result.status != 'SUCCESS':
+                        run_result.status = 'RUN_{}'.format(run_result.status)
+                        break
+                    elif batch_timeout:
+                        batch_timeout -= exec_result.runtime
+                        if batch_timeout < 0:
+                            run_result.status = 'BATCH_TIMEOUT'
                             break
-                        elif batch_timeout:
-                            batch_timeout -= exec_result.runtime
-                            if batch_timeout < 0:
-                                run_result.status = 'BATCH_TIMEOUT'
-                                break
-                        elif batch_lengthout:
-                            batch_lengthout -= exec_result.output_length
-                            if batch_lengthout < 0:
-                                run_result.status = 'BATCH_LENGTHOUT'
-                                break
+                    elif batch_lengthout:
+                        batch_lengthout -= exec_result.output_length
+                        if batch_lengthout < 0:
+                            run_result.status = 'BATCH_LENGTHOUT'
+                            break
 
         # final process
         self.process_batch_final(run_result)
