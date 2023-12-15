@@ -150,7 +150,7 @@ class ConfigFileParamsModel(AbstractParamsModel):
             return
 
         # conditional parameters (multiple values)
-        m = re.match(r"^\s*([^|]+)\s*\|\s*([^{]+?)\s* in \{(\S*)\}(?:\s*#.*)?$", line)
+        m = re.match(r"^\s*([^|]+)\s*\|\s*([^{]+?)\s* in \{([^}]*)\}(?:\s*#.*)?$", line)
         if m:
             tmp = [m.group(1).strip(), m.group(2).strip(), [s.strip() for s in m.group(2).strip().split(',')]]
             if tmp[0] not in self.contents['current'].keys():
