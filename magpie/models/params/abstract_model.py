@@ -31,7 +31,7 @@ class AbstractParamsModel(AbstractModel):
         }
 
     def dump(self):
-        return "\n".join(['{} := {}'.format(k, repr(v)) for k,v in self.contents['current'].items() if not self.would_be_ignored(k, v)])
+        return ''.join(['{} := {}\n'.format(k, repr(v)) for k,v in self.contents['current'].items() if not self.would_be_ignored(k, v)])
 
     def show_location(self, target_type, target_loc):
         if target_type != 'param':
