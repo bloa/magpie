@@ -555,19 +555,19 @@ class BasicSoftware(AbstractSoftware):
             self.logger.info('STATUS: {}'.format(run.last_exec.status))
             self.logger.info('RETURN_CODE: {}'.format(run.last_exec.return_code))
             self.logger.info('RUNTIME: {}'.format(run.last_exec.runtime))
+            self.logger.info('STDOUT: (see log file)')
             try:
                 s = run.last_exec.stdout.decode(magpie.settings.output_encoding)
-                self.logger.info('STDOUT: (see log file)')
                 self.logger.debug('STDOUT:\n{}'.format(s))
             except UnicodeDecodeError:
-                self.logger.info('STDOUT: (failed to decode to: {})\n{}'.format(magpie.settings.output_encoding, run.last_exec.stdout))
+                self.logger.debug('STDOUT: (failed to decode to: {})\n{}'.format(magpie.settings.output_encoding, run.last_exec.stdout))
+            self.logger.info('STDERR: (see log file)')
             try:
                 s = run.last_exec.stderr.decode(magpie.settings.output_encoding)
-                self.logger.info('STDERR: (see log file)')
                 self.logger.debug('STDERR:\n{}'.format(s))
             except UnicodeDecodeError:
                 s = magpie.settings.output_encoding
-                self.logger.info('STDERR: (failed to decode to: {})\n{}'.format(magpie.settings.output_encoding, run.last_exec.stderr))
+                self.logger.debug('STDERR: (failed to decode to: {})\n{}'.format(magpie.settings.output_encoding, run.last_exec.stderr))
             self.logger.info('!*'*40)
 
     def self_diagnostic(self, run):
