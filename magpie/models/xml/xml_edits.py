@@ -4,7 +4,7 @@ from magpie.core import Edit
 from .abstract_model import AbstractXmlModel
 
 
-class XmlNodeDeletion(Edit):
+class AbstractXmlNodeDeletion(Edit):
     NODE_TAG = ''
 
     @classmethod
@@ -19,7 +19,7 @@ class XmlNodeDeletion(Edit):
         return model.do_delete(self.target)
 
 
-class XmlNodeReplacement(Edit):
+class AbstractXmlNodeReplacement(Edit):
     NODE_TAG = ''
 
     @classmethod
@@ -36,7 +36,7 @@ class XmlNodeReplacement(Edit):
         return model.do_replace(ref_model, self.target, ingredient)
 
 
-class XmlNodeInsertion(Edit):
+class AbstractXmlNodeInsertion(Edit):
     NODE_PARENT_TAG = ''
     NODE_TAG = ''
 
@@ -54,7 +54,7 @@ class XmlNodeInsertion(Edit):
         return model.do_insert(ref_model, self.target, ingredient)
 
 
-class XmlTextSetting(Edit):
+class AbstractXmlTextSetting(Edit):
     NODE_TAG = ''
     CHOICES = ['']
 
@@ -72,7 +72,7 @@ class XmlTextSetting(Edit):
         return model.do_set_text(self.target, ingredient)
 
 
-class XmlTextWrapping(Edit):
+class AbstractXmlTextWrapping(Edit):
     NODE_TAG = ''
     CHOICES = [('(', ')')]
 
