@@ -10,7 +10,7 @@ For consistency we extract it here in `example/code`, beside the provided exampl
 Then setup the MiniSAT directory with files used by Magpie.
 
     patch -d examples/code -p 1 < examples/code/minisat_setup/minisat.patch
-    cp examples/code/minisat_setup/data examples/code/minisat
+    cp -r examples/code/minisat_setup/data examples/code/minisat
     cp examples/code/minisat_setup/*.sh examples/code/minisat
     cp examples/code/minisat_setup/Solver.cc.xml examples/code/minisat/core
     cp examples/code/minisat_setup/minisat*.params examples/code/minisat
