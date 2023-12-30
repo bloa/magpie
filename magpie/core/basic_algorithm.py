@@ -129,10 +129,7 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.report['initial_patch'] = patch
         warmup_values = []
         for i in range(max(self.config['warmup'] or 1, 1), 0, -1):
-            self.software.base_fitness = None
-            self.software.truth_table = {}
             run = self.evaluate_variant(variant, force=True)
-            l = 'INITIAL' if i == 1 else 'WARM'
             self.hook_warmup_evaluation('WARM', patch, run)
             if run.status != 'SUCCESS':
                 step = run.status.split('_')[0].lower()
@@ -166,8 +163,6 @@ class BasicAlgorithm(AbstractAlgorithm):
             else:
                 self.report['best_patch'] = patch
                 self.report['best_fitness'] = current_fitness
-        if self.software.base_fitness is None:
-            self.software.base_fitness = current_fitness
 
     def evaluate_variant(self, variant, force=False):
         cached_run = None
