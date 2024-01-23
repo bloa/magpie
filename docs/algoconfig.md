@@ -86,9 +86,11 @@ Magpie accept the following formats:
 
     NAME {VALUE, ...} [DEFAULT] # categorical
     NAME (MIN, MAX) [DEFAULT] # continuous
-    NAME e(MIN, MAX) [DEFAULT] # continuous (exponential distribution)
+    NAME e(MIN, MAX) [DEFAULT] # continuous (MIN + exponential distribution from 0 to MAX-MIN)
+    NAME e(MIN, MAX, LAMBDA) [DEFAULT] # same with lambda (1.0/desired mean) (default = 10/(MAX-MIN))
     NAME [MIN, MAX] [DEFAULT] # integer
-    NAME g[MIN, MAX] [DEFAULT] # integer (geometric distribution)
+    NAME g[MIN, MAX] [DEFAULT] # integer (MIN + geometric distribution from 0 to MAX-MIN)
+    NAME g[MIN, MAX, LAMBDA] [DEFAULT] # same with lambda (1.0/desired mean) (default = 10/(MAX-MIN))
 
 
 Categorical values are specified using curly braces and values separated with commas (e.g., see the "`luby`" parameter).

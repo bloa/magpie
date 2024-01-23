@@ -100,7 +100,7 @@ class UniformIntRealm(Realm):
             return random.randrange(self.start, self.stop, self.step)
 
 class ExponentialRealm(Realm):
-    def __init__(self, start, stop, lambd=1.0):
+    def __init__(self, start, stop, lambd=None):
         self.start = start
         self.stop = stop
         self.lambd = lambd
@@ -122,7 +122,7 @@ class ExponentialRealm(Realm):
 
     def random_positive_value(self, start, stop, lambd):
         if lambd is None:
-            lambd = 100.0/(stop - start)
+            lambd = 10.0/(stop - start)
         for _ in range(1000):
             x = random.expovariate(lambd)
             if x <= stop - start:
@@ -156,7 +156,7 @@ class GeometricRealm(Realm):
 
     def random_positive_value(self, start, stop, lambd):
         if lambd is None:
-            lambd = 100.0/(stop - start)
+            lambd = 10.0/(stop - start)
         for _ in range(1000):
             x = int(random.expovariate(lambd))
             if x <= stop - start:
