@@ -130,7 +130,9 @@ class ConfigFileParamsModel(AbstractParamsModel):
         if m:
             param = m.group(1)
             default = int(m.group(5).strip())
-            values = [int(x.strip()) for x in [m.group(2), m.group(3), m.group(3)]]
+            values = [int(m.group(2).strip()), int(m.group(3).strip()), float(m.group(4).strip())]
+            if values[2] == 0.0:
+                raise ValueError('Illegal lambda for {}: "{}"'.format(param, values[2]))
             if default > values[1] or default < values[0]:
                 raise ValueError('Illegal default value for {}: "{}"'.format(param, default))
             self.contents['current'][param] = default
