@@ -33,7 +33,9 @@ class BasicProtocol:
 
         bins = [[]]
         for s in sec['batch_instances'].splitlines():
-            if s == '___':
+            if s == '':
+                continue
+            elif s == '___':
                 if not bins[-1]:
                     raise ValueError('Invalid config file: empty bin in "{}"'.format(sec['search']['batch_all_samples']))
                 bins.append([])
