@@ -34,13 +34,13 @@ Optionally, run Magpie's unit tests:
 
 Try one of the following examples:
 
-    python3 magpie local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    python3 magpie local_search --scenario examples/triangle-cpp/_magpie/scenario_slow.txt
 <!-- -->
-    python3 magpie local_search --scenario examples/scenario/triangle-java_repair.txt
+    python3 magpie local_search --scenario examples/triangle-java/_magpie/scenario_bug.txt
 <!-- -->
-    python3 magpie show_patch --scenario examples/scenario/triangle-cpp_runtime.txt --patch "StmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
+    python3 magpie show_patch --scenario examples/triangle-cpp/_magpie/scenario_slow.txt --patch "SrcmlStmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
 <!-- -->
-    python3 magpie minify_patch --scenario examples/scenario/triangle-py_runtime.txt --patch "LineInsertion(('triangle.py', '_inter_line', 31), ('triangle.py', 'line', 7)) | LineInsertion(('triangle.py', '_inter_line', 33), ('triangle.py', 'line', 21)) | LineReplacement(('triangle.py', 'line', 9), ('triangle.py', 'line', 37)) | LineInsertion(('triangle.py', '_inter_line', 4), ('triangle.py', 'line', 7))"
+    python3 magpie minify_patch --scenario examples/triangle-py/_magpie/scenario_slow.txt --patch "SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 35), ('triangle.py.xml', 'stmt', 22)) | SrcmlStmtReplacement(('triangle.py.xml', 'stmt', 7), ('triangle.py.xml', 'stmt', 1)) | SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 24), ('triangle.py.xml', 'stmt', 6)) | SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 15), ('triangle.py.xml', 'stmt', 21)) | SrcmlStmtDeletion(('triangle.py.xml', 'stmt', 8))"
 
 
 ## Documentation
