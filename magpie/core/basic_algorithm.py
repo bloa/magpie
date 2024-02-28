@@ -1,6 +1,3 @@
-import itertools
-import random
-import os
 import time
 
 from magpie.core import AbstractAlgorithm, Patch, Variant
@@ -18,19 +15,20 @@ class BasicAlgorithm(AbstractAlgorithm):
         super().reset()
         self.stats['cache_hits'] = 0
         self.stats['cache_misses'] = 0
+        self.cache_reset()
 
     def hook_reset_batch(self):
         # resample instances
         s = self.config['batch_sample_size']
         # TODO: sample with replacement, with refill
         if sum(len(b) for b in self.config['batch_bins']) <= s:
-            batch = [[inst for inst in b] for b in self.config['batch_bins']]
+            batch = list(self.config['batch_bins'])
         else:
             batch = [[] for b in self.config['batch_bins']]
             while s > 0:
-                for i in range(len(batch)):
-                    if len(batch[i]) < len(self.config['batch_bins'][i]):
-                        batch[i].append(self.config['batch_bins'][i][len(batch[i])])
+                for i, b in enumerate(batch):
+                    if len(b) < len(self.config['batch_bins'][i]):
+                        b.append(self.config['batch_bins'][i][len(b)])
                         s -= 1
                     if s == 0:
                         break
@@ -47,7 +45,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.report['best_fitness'] = run.fitness
         self.hook_warmup_evaluation('INITIAL', patch, run)
         if run.status != 'SUCCESS':
-            raise RuntimeError('initial solution has failed')
+            raise RuntimeError('Initial solution has failed')
         # update best patch
         if self.report['best_patch'] and self.report['best_patch'].edits:
             variant = Variant(self.software, self.report['best_patch'])
@@ -75,10 +73,10 @@ class BasicAlgorithm(AbstractAlgorithm):
 
     def hook_start(self):
         if not self.config['possible_edits']:
-            raise RuntimeError('possible_edits list is empty')
+            raise RuntimeError('Possible_edits list is empty')
         # TODO: check that every possible edit can be created and simplify create_edit
         self.stats['wallclock_start'] = time.time() # discards warmup time
-        self.software.logger.info('==== START: {} ===='.format(self.__class__.__name__))
+        self.software.logger.info(f'==== START: {self.__class__.__name__} ====')
 
     def hook_main_loop(self):
         pass
@@ -100,16 +98,18 @@ class BasicAlgorithm(AbstractAlgorithm):
     def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
         if fitness is not None and baseline is not None:
             if isinstance(fitness, list):
-                s = '({}%)'.format('% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))]))
+                tmp = '% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))])
             else:
-                s = '({}%)'.format(round(100*fitness/baseline, 2))
+                tmp = round(100*fitness/baseline, 2)
+            s = f'({tmp}%)'
         else:
             s = ''
         if patch_size is not None:
-            s2 = '[{} edit(s)] '.format(patch_size)
+            s2 = f'[{patch_size} edit(s)] '
         else:
             s2 = ''
-        self.software.logger.info('{:<7} {:<20} {:>1}{:<24}{}'.format(counter, status, c, str(fitness) + ' ' + s + ' ' + s2, data))
+        tmp = f'{str(fitness)} {s} {s2}'
+        self.software.logger.info(f'{counter:<7} {status:<20} {c:>1}{tmp:<24}{data}')
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
@@ -128,7 +128,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         if self.report['initial_patch'] is None:
             self.report['initial_patch'] = patch
         warmup_values = []
-        for i in range(max(self.config['warmup'] or 1, 1), 0, -1):
+        for _ in range(max(self.config['warmup'] or 1, 1), 0, -1):
             run = self.evaluate_variant(variant, force=True)
             self.hook_warmup_evaluation('WARM', patch, run)
             if run.status != 'SUCCESS':
@@ -147,7 +147,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         elif self.config['warmup_strategy'] == 'median':
             current_fitness = sorted(warmup_values)[len(warmup_values)//2]
         else:
-            raise ValueError('unknown warmup strategy')
+            raise ValueError('Unknown warmup strategy')
         run.fitness = current_fitness
         self.cache_set(variant.diff, run)
         self.hook_warmup_evaluation('INITIAL', patch, run)
@@ -156,7 +156,8 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.report['best_fitness'] = current_fitness
             self.report['best_patch'] = patch
         else:
-            run = self.evaluate_patch(self.report['best_patch'], force=True)
+            variant = Variant(self.software, self.report['best_patch'])
+            run = self.evaluate_variant(variant, force=True)
             self.hook_warmup_evaluation('BEST', patch, run)
             if self.dominates(run.fitness, current_fitness):
                 self.report['best_fitness'] = run.fitness
@@ -187,7 +188,7 @@ class BasicAlgorithm(AbstractAlgorithm):
 
     def cache_set(self, diff, run):
         msize = self.config['cache_maxsize']
-        if msize > 0 and len(self.cache_hits) > msize:
+        if 0 < msize < len(self.cache_hits):
             keep = self.config['cache_keep']
             hits = sorted(self.cache.keys(), key=lambda k: 999 if len(k) == 0 else self.cache_hits[k])
             for k in hits[:int(msize*(1-keep))]:

@@ -1,5 +1,4 @@
 import re
-from xml.etree import ElementTree
 
 from . import XmlModel
 
@@ -68,7 +67,7 @@ class SrcmlModel(XmlModel):
         for child in element:
             SrcmlModel.process_literals(child)
         if element.tag == 'literal':
-            element.tag = 'literal_{}'.format(element.attrib.get('type'))
+            element.tag = f"literal_{element.attrib.get('type')}"
             del element.attrib['type']
 
     @staticmethod

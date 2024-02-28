@@ -24,7 +24,7 @@ class BasicSoftware(AbstractSoftware):
                 try:
                     k, v = rule.split(':')
                 except ValueError:
-                    raise ValueError('badly formated rule: "{}"'.format(rule))
+                    raise ValueError(f'Badly formated rule: "{rule}"')
                 self.model_rules.append((k.strip(), magpie.utils.model_from_string(v.strip())))
 
         # model config
@@ -34,10 +34,10 @@ class BasicSoftware(AbstractSoftware):
                 try:
                     k, v = rule.split(':')
                 except ValueError:
-                    raise ValueError('badly formated rule: "{}"'.format(rule))
+                    raise ValueError(f'Badly formated rule: "{rule}"')
                 v = v.strip()
                 if v[0]+v[-1] != '[]':
-                    raise ValueError('badly formated section name: "{}"'.format(rule))
+                    raise ValueError(f'Badly formated section name: "{rule}"')
                 self.model_config.append((k.strip(), config[v[1:-1]], v))
 
         # fitness type
@@ -45,7 +45,8 @@ class BasicSoftware(AbstractSoftware):
             raise ValueError('Invalid config file: "[software] fitness" must be defined')
         known_fitness = ['output', 'time', 'posix_time', 'perf_time', 'perf_instructions', 'repair', 'bloat_lines', 'bloat_words', 'bloat_chars']
         if config['software']['fitness'] not in known_fitness:
-            raise ValueError('Invalid config file: "[software] fitness" key must be {}'.format('/'.join(known_fitness)))
+            tmp = '/'.join(known_fitness)
+            raise ValueError(f'Invalid config file: "[software] fitness" key must be {tmp}')
         self.fitness_type = config['software']['fitness']
 
         # execution-related parameters
@@ -158,11 +159,13 @@ class BasicSoftware(AbstractSoftware):
         self.batch_fitness_strategy = config['software']['batch_fitness_strategy']
         known_strategies = ['sum', 'average', 'median']
         if self.batch_fitness_strategy not in known_strategies:
-            raise ValueError('Invalid config file: "[software] batch_fitness_strategy" key must be {}'.format('/'.join(known_strategies)))
+            tmp = '/'.join(known_strategies)
+            raise ValueError(f'Invalid config file: "[software] batch_fitness_strategy" key must be {tmp}')
         self.batch_bin_fitness_strategy = config['software']['batch_fitness_strategy']
         known_strategies = ['aggregate', 'sum', 'average', 'median', 'q10', 'q25', 'q75', 'q90']
         if self.batch_fitness_strategy not in known_strategies:
-            raise ValueError('Invalid config file: "[software] batch_bin_fitness_strategy" key must be {}'.format('/'.join(known_strategies)))
+            tmp = '/'.join(known_strategies)
+            raise ValueError(f'Invalid config file: "[software] batch_bin_fitness_strategy" key must be {tmp}')
         if 'batch_timeout' in config['software']:
             if config['software']['batch_timeout'].lower() in ['', 'none']:
                 self.batch_timeout = None
@@ -209,7 +212,6 @@ class BasicSoftware(AbstractSoftware):
             return cached_run
 
         # evaluate
-        cwd = os.getcwd()
         work_path = os.path.join(self.work_dir, self.basename)
         run_result = cached_run or RunResult(variant, 'UNKNOWN_ERROR')
 
@@ -231,7 +233,7 @@ class BasicSoftware(AbstractSoftware):
                     if '{PARAMS}' in self.setup_cmd:
                         setup_cmd = setup_cmd.replace('{PARAMS}', cli)
                     else:
-                        setup_cmd = '{} {}'.format(setup_cmd, cli)
+                        setup_cmd = f'{setup_cmd} {cli}'
                     timeout = self.setup_timeout or magpie.settings.default_timeout
                     lengthout = self.setup_lengthout or magpie.settings.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(setup_cmd),
@@ -242,7 +244,7 @@ class BasicSoftware(AbstractSoftware):
                     if run_result.status == 'SUCCESS':
                         self.process_setup_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
-                        run_result.status = 'SETUP_{}'.format(run_result.status)
+                        run_result.status = f'SETUP_{run_result.status}'
                         return run_result
 
                 # sync work directory
@@ -255,7 +257,7 @@ class BasicSoftware(AbstractSoftware):
                 if '{PARAMS}' in self.compile_cmd:
                     compile_cmd = compile_cmd.replace('{PARAMS}', cli)
                 else:
-                    compile_cmd = '{} {}'.format(compile_cmd, cli)
+                    compile_cmd = f'{compile_cmd} {cli}'
                 timeout = self.compile_timeout or magpie.settings.default_timeout
                 lengthout = self.compile_lengthout or magpie.settings.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(compile_cmd),
@@ -266,7 +268,7 @@ class BasicSoftware(AbstractSoftware):
                 if run_result.status == 'SUCCESS':
                     self.process_compile_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
-                    run_result.status = 'COMPILE_{}'.format(run_result.status)
+                    run_result.status = f'COMPILE_{run_result.status}'
                     return run_result
 
             # run "[software] test_cmd" if provided
@@ -276,7 +278,7 @@ class BasicSoftware(AbstractSoftware):
                 if '{PARAMS}' in self.test_cmd:
                     test_cmd = test_cmd.replace('{PARAMS}', cli)
                 else:
-                    test_cmd = '{} {}'.format(test_cmd, cli)
+                    test_cmd = f'{test_cmd} {cli}'
                 timeout = self.test_timeout or magpie.settings.default_timeout
                 lengthout = self.test_lengthout or magpie.settings.default_lengthout
                 exec_result = self.exec_cmd(shlex.split(test_cmd),
@@ -287,7 +289,7 @@ class BasicSoftware(AbstractSoftware):
                 if run_result.status == 'SUCCESS':
                     self.process_test_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
-                    run_result.status = 'TEST_{}'.format(run_result.status)
+                    run_result.status = f'TEST_{run_result.status}'
                     return run_result
 
             # when fitness is computed from test_cmd, run_cmd is irrelevant
@@ -309,11 +311,11 @@ class BasicSoftware(AbstractSoftware):
                     if '{INST}' in self.run_cmd:
                         run_cmd = run_cmd.replace('{INST}', inst)
                     else:
-                        run_cmd = '{} {}'.format(run_cmd, inst)
+                        run_cmd = f'{run_cmd} {inst}'
                     if '{PARAMS}' in self.run_cmd:
                         run_cmd = run_cmd.replace('{PARAMS}', cli)
                     else:
-                        run_cmd = '{} {}'.format(run_cmd, cli)
+                        run_cmd = f'{run_cmd} {cli}'
                     exec_result = self.exec_cmd(shlex.split(run_cmd),
                                                 timeout=timeout,
                                                 lengthout=lengthout)
@@ -323,14 +325,14 @@ class BasicSoftware(AbstractSoftware):
                         self.process_run_exec(run_result, exec_result)
                     self.process_batch_single(run_result, inst)
                     if run_result.status != 'SUCCESS':
-                        run_result.status = 'RUN_{}'.format(run_result.status)
+                        run_result.status = f'RUN_{run_result.status}'
                         break
-                    elif batch_timeout:
+                    if batch_timeout:
                         batch_timeout -= exec_result.runtime
                         if batch_timeout < 0:
                             run_result.status = 'BATCH_TIMEOUT'
                             break
-                    elif batch_lengthout:
+                    if batch_lengthout:
                         batch_lengthout -= exec_result.output_length
                         if batch_lengthout < 0:
                             run_result.status = 'BATCH_LENGTHOUT'
@@ -346,7 +348,7 @@ class BasicSoftware(AbstractSoftware):
             model = variant.models[target]
             if isinstance(model, magpie.models.params.AbstractParamsModel):
                 if step in model.config['timing']:
-                    cli = '{} {}'.format(cli, model.resolve_cli())
+                    cli = f'{cli} {model.resolve_cli()}'
         return cli
 
     def process_init_exec(self, run_result, exec_result):
@@ -471,7 +473,7 @@ class BasicSoftware(AbstractSoftware):
 
     def process_batch_single(self, run_result, inst):
         run_result.cache[inst] = (run_result.status, run_result.fitness)
-        self.logger.debug('EXEC> {} {} {}'.format(inst, run_result.status, run_result.fitness))
+        self.logger.debug(f'EXEC> {inst} {run_result.status} {run_result.fitness}')
 
     def process_batch_final(self, run_result):
         tmp = []
@@ -550,48 +552,48 @@ class BasicSoftware(AbstractSoftware):
         self.self_diagnostic(run)
         self.logger.info('!*'*40)
         if run.last_exec is not None:
-            self.logger.info('CWD: {}'.format(os.path.join(self.work_dir, self.basename)))
-            self.logger.info('CMD: {}'.format(run.last_exec.cmd))
-            self.logger.info('STATUS: {}'.format(run.last_exec.status))
-            self.logger.info('RETURN_CODE: {}'.format(run.last_exec.return_code))
-            self.logger.info('RUNTIME: {}'.format(run.last_exec.runtime))
+            self.logger.info(f'CWD: {os.path.join(self.work_dir, self.basename)}')
+            self.logger.info(f'CMD: {run.last_exec.cmd}')
+            self.logger.info(f'STATUS: {run.last_exec.status}')
+            self.logger.info(f'RETURN_CODE: {run.last_exec.return_code}')
+            self.logger.info(f'RUNTIME: {run.last_exec.runtime}')
+            encoding = magpie.settings.output_encoding
             self.logger.info('STDOUT: (see log file)')
             try:
-                s = run.last_exec.stdout.decode(magpie.settings.output_encoding)
-                self.logger.debug('STDOUT:\n{}'.format(s))
+                s = run.last_exec.stdout.decode(encoding)
+                self.logger.debug(f'STDOUT:\n{s}')
             except UnicodeDecodeError:
-                self.logger.debug('STDOUT: (failed to decode to: {})\n{}'.format(magpie.settings.output_encoding, run.last_exec.stdout))
+                self.logger.debug(f'STDOUT: (failed to decode to: {encoding})\n{run.last_exec.stdout}')
             self.logger.info('STDERR: (see log file)')
             try:
-                s = run.last_exec.stderr.decode(magpie.settings.output_encoding)
-                self.logger.debug('STDERR:\n{}'.format(s))
+                s = run.last_exec.stderr.decode(encoding)
+                self.logger.debug(f'STDERR:\n{s}')
             except UnicodeDecodeError:
-                s = magpie.settings.output_encoding
-                self.logger.debug('STDERR: (failed to decode to: {})\n{}'.format(magpie.settings.output_encoding, run.last_exec.stderr))
+                self.logger.debug(f'STDERR: (failed to decode to: {encoding})\n{run.last_exec.stderr}')
             self.logger.info('!*'*40)
 
     def self_diagnostic(self, run):
         for step in ['init', 'setup', 'compile', 'test', 'run']:
-            if run.status == '{}_CLI_ERROR'.format(step.upper()):
-                self.logger.info('Unable to run the "{}_cmd" command'.format(step))
+            if run.status == f'{step.upper()}_CLI_ERROR':
+                self.logger.info(f'Unable to run the "{step}_cmd" command')
                 self.logger.info('--> there might be a typo (try it manually)')
                 self.logger.info('--> your command might not be found (check your PATH)')
                 self.logger.info('--> it might not run from the correct directory (check CWD below)')
-            if run.status == '{}_CODE_ERROR'.format(step.upper()):
-                self.logger.info('The "{}_cmd" command failed with a nonzero exit code'.format(step))
+            if run.status == f'{step.upper()}_CODE_ERROR':
+                self.logger.info(f'The "{step}_cmd" command failed with a nonzero exit code')
                 self.logger.info('--> try to run it manually')
-            if run.status == '{}_PARSE_ERROR'.format(step.upper()):
-                self.logger.info('The "{}_cmd" STDOUT/STDERR was invalid'.format(step))
+            if run.status == f'{step.upper()}_PARSE_ERROR':
+                self.logger.info(f'The "{step}_cmd" STDOUT/STDERR was invalid')
                 self.logger.info('--> try to run it manually')
-            if run.status == '{}_TIMEOUT'.format(step.upper()):
-                self.logger.info('The "{}_cmd" command took too long to run'.format(step))
-                self.logger.info('--> consider increasing "{}_timeout"'.format(step))
-            if run.status == '{}_LENGTHOUT'.format(step.upper()):
-                self.logger.info('The "{}_cmd" command generated too much output'.format(step))
-                self.logger.info('--> consider increasing "{}_lengthout"'.format(step))
-        if run.status == 'BATCH_TIMEOUT'.format(step.upper()):
-                self.logger.info('Batch execution of "run_cmd" took too long to run'.format(step))
-                self.logger.info('--> consider increasing "batch_timeout"'.format(step))
-        if run.status == 'BATCH_LENGTHOUT'.format(step.upper()):
-                self.logger.info('Batch execution of "run_cmd" generated too much output'.format(step))
-                self.logger.info('--> consider increasing "batch_lengthout"'.format(step))
+            if run.status == f'{step.upper()}_TIMEOUT':
+                self.logger.info(f'The "{step}_cmd" command took too long to run')
+                self.logger.info(f'--> consider increasing "{step}_timeout"')
+            if run.status == f'{step.upper()}_LENGTHOUT':
+                self.logger.info(f'The "{step}_cmd" command generated too much output')
+                self.logger.info(f'--> consider increasing "{step}_lengthout"')
+        if run.status == 'BATCH_TIMEOUT':
+            self.logger.info('Batch execution of "run_cmd" took too long to run')
+            self.logger.info('--> consider increasing "batch_timeout"')
+        if run.status == 'BATCH_LENGTHOUT':
+            self.logger.info('Batch execution of "run_cmd" generated too much output')
+            self.logger.info('--> consider increasing "batch_lengthout"')

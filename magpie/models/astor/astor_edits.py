@@ -1,5 +1,3 @@
-import random
-
 from magpie.core import Edit
 from . import AstorModel
 

@@ -1,6 +1,5 @@
 import copy
 import re
-import os
 from xml.etree import ElementTree
 
 from .abstract_model import AbstractXmlModel
@@ -21,18 +20,18 @@ class XmlModel(AbstractXmlModel):
             if not self.config['internodes'] or root.tag in self.config['internodes']:
                 if len(root) > 0: # can't deal with <block>{}</block>
                     for i in range(len(root)+1):
-                        s = '{}><{}'.format(prefix, i) # "><" is safe because illegal
+                        s = f'{prefix}><{i}' # "><" is safe because illegal
                         try:
-                            accu['_inter_{}'.format(root.tag)].append(s)
+                            accu[f'_inter_{root.tag}'].append(s)
                         except KeyError:
-                            accu['_inter_{}'.format(root.tag)] = [s]
-            tags = dict()
+                            accu[f'_inter_{root.tag}'] = [s]
+            tags = {}
             for child in root:
                 if child.tag in tags:
                     tags[child.tag] += 1
                 else:
                     tags[child.tag] = 1
-                s = '{}/{}[{}]'.format(prefix, child.tag, tags[child.tag])
+                s = f'{prefix}/{child.tag}[{tags[child.tag]}]'
                 try:
                     accu[child.tag].append(s)
                 except KeyError:
@@ -67,19 +66,13 @@ class XmlModel(AbstractXmlModel):
                         spc = self.find_indent(child_xpath)
                         child.tail = f'\n{spc}(INSERTION POINT){child.tail or ""}'
                         break
-            out = '# {}: {}\n{}{}'.format(
-                target_loc,
-                fakepath,
-                sp,
-                self.tree_to_string(parent))
+            tmp = self.tree_to_string(parent)
+            out = f'# {target_loc}: {fakepath}\n{sp}{tmp}'
         else:
             xpath = self.locations[target_type][target_loc]
             sp = self.find_indent(xpath)
-            out = '# {}: {}\n{}{}'.format(
-                target_loc,
-                xpath,
-                sp,
-                self.tree_to_string(self.contents.find(xpath), keep_tail=False))
+            tmp = self.tree_to_string(self.contents.find(xpath), keep_tail=False)
+            out = f'# {target_loc}: {xpath}\n{sp}{tmp}'
         return out
 
     @staticmethod
@@ -111,22 +104,21 @@ class XmlModel(AbstractXmlModel):
             if match is None:
                 raise LookupError()
             return (match.group(1), match.group(2), int(match.group(3)), None)
-        else:
-            if xpath[:len(prefix)+1] == prefix+'/':
-                pattern = re.compile(r'^/([^\[]+)(?:\[([^\]]+)\])?(?:/(.*))?$')
-                match = re.match(pattern, xpath[len(prefix):])
-                if match is None:
-                    raise LookupError()
-                return (prefix, match.group(1), int(match.group(2)), match.group(3))
-            else:
-                return (None, None, None, None)
+        if xpath[:len(prefix)+1] == prefix+'/':
+            pattern = re.compile(r'^/([^\[]+)(?:\[([^\]]+)\])?(?:/(.*))?$')
+            match = re.match(pattern, xpath[len(prefix):])
+            if match is None:
+                raise LookupError()
+            return (prefix, match.group(1), int(match.group(2)), match.group(3))
+        return (None, None, None, None)
 
     def do_replace(self, ref_model, target_dest, target_orig):
         # get elements
         d_f, d_t, d_i = target_dest # file name, tag, xpath index
         o_f, o_t, o_i = target_orig # file name, tag, xpath index
-        if d_f != self.filename: raise ValueError()
-        if o_f != ref_model.filename: raise ValueError()
+        if (d_f != self.filename or
+            o_f != ref_model.filename):
+            raise ValueError()
         target = self.contents.find(self.locations[d_t][d_i])
         ingredient = ref_model.contents.find(ref_model.locations[o_t][o_i])
         if target is None or ingredient is None:
@@ -159,25 +151,25 @@ class XmlModel(AbstractXmlModel):
                 if i < d_i:
                     if h != head:
                         continue
-                    elif t == ingredient.tag:
+                    if t == ingredient.tag:
                         itag += 1
                 elif i == d_i:
-                    self.locations[d_t][i] = '{}/{}[{}]'.format(h, ingredient.tag, itag)
+                    self.locations[d_t][i] = f'{h}/{ingredient.tag}[{itag}]'
                 elif h != head:
                     break
                 elif t == tag:
                     if p == pos:
                         new_pos = 'deleted'
                     elif s:
-                        new_pos = '{}/{}[{}]/{}'.format(h, t, p-1, s)
+                        new_pos = f'{h}/{t}[{p-1}]/{s}'
                     else:
-                        new_pos = '{}/{}[{}]'.format(h, t, p-1)
+                        new_pos = f'{h}/{t}[{p-1}]'
                     self.locations[d_t][i] = new_pos
                 elif t == ingredient.tag:
                     if s:
-                        new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
+                        new_pos = f'{h}/{t}[{p+1}]/{s}'
                     else:
-                        new_pos = '{}/{}[{}]'.format(h, t, p+1)
+                        new_pos = f'{h}/{t}[{p+1}]'
                     self.locations[o_t][i] = new_pos
         xpath = self.locations[d_t][d_i]
         for i, xpath_inter in enumerate(self.locations[d_t]):
@@ -189,8 +181,9 @@ class XmlModel(AbstractXmlModel):
         # get elements
         d_f, d_t, d_i = target_dest # file name, tag, xpath index
         o_f, o_t, o_i = target_orig # file name, tag, xpath index
-        if d_f != self.filename: raise ValueError()
-        if o_f != ref_model.filename: raise ValueError()
+        if (d_f != self.filename or
+            o_f != ref_model.filename):
+            raise ValueError()
         parent_xpath, insert_index = self.locations[d_t][d_i].split('><')
         insert_index = int(insert_index)
         parent = self.contents.find(parent_xpath)
@@ -233,26 +226,27 @@ class XmlModel(AbstractXmlModel):
             if h != parent_xpath or t != ingredient.tag or p < insert_index:
                 continue
             if s:
-                new_pos = '{}/{}[{}]/{}'.format(h, t, p+1, s)
+                new_pos = f'{h}/{t}[{p+1}]/{s}'
             else:
-                new_pos = '{}/{}[{}]'.format(h, t, p+1)
+                new_pos = f'{h}/{t}[{p+1}]'
             self.locations[o_t][i] = new_pos
         for i, xpath_inter in enumerate(self.locations[d_t]):
             xpath, index = xpath_inter.split('><')
             index = int(index)
             if xpath != parent_xpath or index < insert_index:
                 continue
-            self.locations[d_t][i] = '{}><{}'.format(xpath, index+1)
+            self.locations[d_t][i] = f'{xpath}><{index+1}'
         return True
 
     def do_delete(self, target):
         # get elements
         d_f, d_t, d_i = target # file name, tag, xpath index
-        if d_f != self.filename: raise ValueError()
+        if d_f != self.filename:
+            raise ValueError()
         target = self.contents.find(self.locations[d_t][d_i])
         if target is None:
             return False
-        if len(target) == 0 and target.text == None: # (probably) already deleted
+        if len(target) == 0 and target.text is None: # (probably) already deleted
             return False
 
         # mutate
@@ -265,7 +259,8 @@ class XmlModel(AbstractXmlModel):
 
     def do_set_text(self, target, value):
         d_f, d_t, d_i = target # file name, tag, xpath index
-        if d_f != self.filename: raise ValueError()
+        if d_f != self.filename:
+            raise ValueError()
         target = self.contents.find(self.locations[d_t][d_i])
         if target is None or target.text == value:
             return False
@@ -274,7 +269,8 @@ class XmlModel(AbstractXmlModel):
 
     def do_wrap_text(self, target, prefix, suffix):
         d_f, d_t, d_i = target # file name, tag, xpath index
-        if d_f != self.filename: raise ValueError()
+        if d_f != self.filename:
+            raise ValueError()
         target = self.contents.find(self.locations[d_t][d_i])
         if target is None:
             return False
@@ -383,8 +379,6 @@ class XmlModel(AbstractXmlModel):
             m = re.match(r'^(.*)\/[^\[]+\[(\d+)\]$', xpath)
             target = root.find(xpath)
             parent = root.find(m.groups()[0])
-            if target is None:
-                breakpoint()
             assert target is not None
             if parent is root:
                 return ''

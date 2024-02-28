@@ -1,12 +1,10 @@
-import pathlib
-
 from .abstract_model import AbstractLineModel
 
 
 class LineModel(AbstractLineModel):
     def init_contents(self):
         with open(self.filename, 'r') as target_file:
-             lines = list(map(str.rstrip, target_file.readlines()))
+            lines = list(map(str.rstrip, target_file.readlines()))
 
         n = len(lines)
         self.contents = lines
@@ -21,38 +19,38 @@ class LineModel(AbstractLineModel):
     def show_location(self, target_type, target_loc):
         out = '(unsupported target_type)'
         if target_type == 'line':
-            out = '{}:{}'.format(target_loc, self.contents[self.locations[target_type][target_loc]])
+            out = f'{target_loc}:{self.contents[self.locations[target_type][target_loc]]}'
         elif target_type == '_inter_line':
             if target_loc == 0:
                 out = '0=before initial line'
             else:
-                out = '{}=after:{}'.format(target_loc, self.contents[self.locations[target_type][target_loc-1]])
+                out = f'{target_loc}=after:{self.contents[self.locations[target_type][target_loc-1]]}'
         return out
 
     def do_replace(self, ref_model, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, "line", line index
         o_f, o_t, o_i = target_orig # file name, "line", line index
-        if d_f != self.filename: raise ValueError()
-        if o_f != ref_model.filename: raise ValueError()
-        if d_t != 'line': raise ValueError()
-        if o_t != 'line': raise ValueError()
+        if (d_f != self.filename or
+            o_f != ref_model.filename or
+            d_t != 'line' or
+            o_t != 'line'):
+            raise ValueError()
         old_line = self.contents[self.locations[d_t][d_i]]
         new_line = ref_model.contents[ref_model.locations[o_t][o_i]]
-        if new_line is None:
+        if (new_line is None or
+            new_line == old_line):
             return False
-        elif new_line == old_line:
-            return False
-        else:
-            self.contents[self.locations[d_t][d_i]] = new_line
-            return True
+        self.contents[self.locations[d_t][d_i]] = new_line
+        return True
 
     def do_insert(self, ref_model, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, "_inter_line", interline index
         o_f, o_t, o_i = target_orig # file name, "line", line index
-        if d_f != self.filename: raise ValueError()
-        if o_f != ref_model.filename: raise ValueError()
-        if d_t != '_inter_line': raise ValueError()
-        if o_t != 'line': raise ValueError()
+        if (d_f != self.filename or
+            o_f != ref_model.filename or
+            d_t != '_inter_line' or
+            o_t != 'line'):
+            raise ValueError()
         new_line = ref_model.contents[ref_model.locations[o_t][o_i]]
         self.contents.insert(self.locations[d_t][d_i], new_line)
         # fix locations
@@ -64,11 +62,11 @@ class LineModel(AbstractLineModel):
 
     def do_delete(self, target):
         d_f, d_t, d_i = target # file name, "line", interline index
-        if d_f != self.filename: raise ValueError()
-        if d_t != 'line': raise ValueError()
+        if (d_f != self.filename or
+            d_t != 'line'):
+            raise ValueError()
         old_line = self.contents[self.locations[d_t][d_i]]
         if old_line is None:
             return False
-        else:
-            self.contents[self.locations[d_t][d_i]] = None
-            return True
+        self.contents[self.locations[d_t][d_i]] = None
+        return True

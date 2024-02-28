@@ -31,12 +31,12 @@ if __name__ == "__main__":
     for filename in software.target_files:
         if args.filename is not None and args.filename != filename:
             continue
-        print('==== {} ===='.format(filename))
+        print(f'==== {filename} ====')
         model = software.noop_variant.models[filename]
         for tag in model.locations.keys():
             if args.tag is not None and args.tag != tag:
                 continue
-            print('---- {} ----'.format(tag))
+            print(f'---- {tag} ----')
             for loc in model.locations_names[tag]:
                 print(model.show_location(tag, loc))
             print()

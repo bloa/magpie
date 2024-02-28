@@ -24,7 +24,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.comments:
-        regexp_line = r'^(\s*)(.*?)(\s*(?:(?:{}).*)?)$'.format('|'.join(args.comments.split(' ')))
+        tmp = '|'.join(args.comments.split(' '))
+        regexp_line = rf'^(\s*)(.*?)(\s*(?:(?:{tmp}).*)?)$'
     else:
         regexp_line = r'^(\s*)(.*?)(\s*)$'
     if args.multi_line_comments:
@@ -35,8 +36,8 @@ if __name__ == "__main__":
     ignore_list = args.ignore.split(' ')
 
     with open(args.file) as f:
-        print("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>")
-        print("<unit xmlns=\"magpie\" filename=\"{}\">".format(args.file))
+        print('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>')
+        print(f'<unit xmlns="magpie" filename="{args.file}">')
         for line in f.readlines():
             m = re.match(regexp_line, line.rstrip('\n'))
             a, b, c = m.groups()
@@ -47,7 +48,7 @@ if __name__ == "__main__":
             if (ml_comments and in_ml_comment) or (b in ignore_list) or not (b or args.empty_lines):
                 print(a, b, c, sep='')
             else:
-                print("{}<line>{}</line>{}".format(a, b, c))
+                print('{a}<line>{b}</line>{c}')
             if ml_comments and in_ml_comment and b.endswith(ml_comments[1]):
                 in_ml_comment = False
-        print("</unit>")
+        print('</unit>')

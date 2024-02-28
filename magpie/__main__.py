@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import pathlib
 import runpy
 import sys
@@ -23,13 +22,13 @@ def get_valid_target(argv):
             return f'magpie.{target.parent.name}.{path.stem}'
     return None
 
-if __name__ == "__main__":
-    target = get_valid_target(sys.argv)
-    if not target:
+if __name__ == '__main__':
+    valid_target = get_valid_target(sys.argv)
+    if not valid_target:
         usage()
-        exit(1)
+        sys.exit(1)
 
     # replace current process
     sys.argv = sys.argv[1:]
     sys.path.append(str(root.resolve()))
-    runpy.run_module(target, run_name='__main__', alter_sys=True)
+    runpy.run_module(valid_target, run_name='__main__', alter_sys=True)

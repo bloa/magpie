@@ -78,7 +78,7 @@ def setup(config):
             try:
                 k, v = rule.split(':')
             except ValueError:
-                raise ValueError('badly formated rule: "{}"'.format(rule))
+                raise ValueError(f'Badly formated rule: "{rule}"')
             h[k] = set(v.split())
     magpie.models.xml.SrcmlModel.TAG_RENAME = h
     magpie.models.xml.SrcmlModel.TAG_FOCUS = set(sec['focus'].split())
@@ -87,7 +87,7 @@ def setup(config):
     sec = config['params']
     tmp = sec['timing'].split()
     if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
-        raise ValueError('illegal timing value: {}'.format(val))
+        raise ValueError(f'Illegal timing value: "{val}"')
     magpie.models.params.AbstractParamsModel.TIMING = tmp
     magpie.models.params.AbstractParamsModel.CLI_PREFIX = sec['cli_prefix']
     magpie.models.params.AbstractParamsModel.CLI_GLUE = sec['cli_glue']
@@ -97,7 +97,7 @@ def setup(config):
     magpie.models.params.AbstractParamsModel.SILENT_PREFIX = sec['silent_prefix']
     magpie.models.params.AbstractParamsModel.SILENT_SUFFIX = sec['silent_suffix']
 
-def _setup_xml_model(model, config_section, section):
+def _setup_xml_model(model, config_section, section_name):
     for k in [
             'process_pseudo_blocks',
             'process_literals',
@@ -109,7 +109,7 @@ def _setup_xml_model(model, config_section, section):
         elif val.lower() in ['false', 'f', '0']:
             model.config[k] = False
         else:
-            raise ValueError('Invalid config file: "{} {}" should be Boolean'.format(section_name, k))
+            raise ValueError(f'Invalid config file: "{section_name} {k}" should be Boolean')
     if (k := 'internodes') in config_section:
         model.config[k] = set(config_section[k].split())
     if 'rename' in config_section:
@@ -119,17 +119,17 @@ def _setup_xml_model(model, config_section, section):
                 try:
                     k, v = rule.split(':')
                 except ValueError:
-                    raise ValueError('badly formated rule: "{}"'.format(rule))
+                    raise ValueError(f'Badly formated rule: "{rule}"')
                 h[k] = set(v.split())
         model.config['tag_rename'] = h
     if 'focus' in config_section:
         model.config['tag_focus'] = set(config_section['focus'].split())
 
-def _setup_params_model(model, config_section, section):
+def _setup_params_model(model, config_section, section_name):
     if (k := 'timing') in config_section:
         tmp = config_section[k].split()
         if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
-            raise ValueError('illegal timing value: {}'.format(val))
+            raise ValueError(f'Illegal timing value: "{val}"')
         model.config[k] = tmp
     for k in [
             'cli_prefix',

@@ -1,6 +1,4 @@
 import copy
-import random
-import time
 
 from magpie.core import Patch, Variant
 from .local_search import LocalSearch
@@ -21,7 +19,7 @@ class ValidSearch(LocalSearch):
         self.report['best_fitness'] = None
         self.report['best_patch'] = self.debug_patch
 
-    def hook_evaluation(self, variant, run):
+    def hook_evaluation(self, variant, run, accept=False, best=False):
         # accept
         accept = best = False
         if run.status == 'SUCCESS':
@@ -47,8 +45,8 @@ class ValidSearch(LocalSearch):
                 cleaned = tmp
         s1, s2 = len(cleaned.patch.edits), len(variant.patch.edits)
         if s1 < s2:
-            self.software.logger.info('cleaned size is %d (was %d)', s1, s2)
-            self.software.logger.info('clean patch: {}'.format(str(cleaned.patch)))
+            self.software.logger.info(f'cleaned size is {s1} (was {s2})')
+            self.software.logger.info(f'clean patch: {cleaned.patch}')
         return cleaned
 
 
@@ -114,7 +112,7 @@ class ValidMinify(ValidSearch):
         if self.config['do_rebuild']:
             # ranking
             self.software.logger.info('-- ranking --')
-            ranking = list()
+            ranking = []
             for edit in variant.patch.edits:
                 patch = Patch([edit])
                 tmp = Variant(self.software, patch)
