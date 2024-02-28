@@ -13,7 +13,7 @@ def read_file_or_stdin(filename):
 def unparse_xml(root, filename=""):
     unparser = XmlUnparser()
     output = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-    output += "<unit filename=\"{}\">\n".format(filename)
+    output += f"<unit filename=\"{filename}\">\n"
     output += unparser.visit(root)
     output += "\n</unit>\n"
     return output
@@ -33,9 +33,9 @@ class XmlUnparser(ast._Unparser):
             while index < len(buffer) and not buffer[index].lstrip():
                 self.write_raw(buffer[index])
                 index += 1
-            self.write_raw('<{}>'.format(tag))
+            self.write_raw(f'<{tag}>')
             self.write_raw(*buffer[index:])
-            self.write_raw('</{}>'.format(tag))
+            self.write_raw(f'</{tag}>')
 
     def write(self, *text):
         """Add new source parts, sanitize for XML"""

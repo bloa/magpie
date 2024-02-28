@@ -1,16 +1,15 @@
-import os
-import copy
-
-
 class Patch:
-    def __init__(self, edits=[]):
-        self.edits = [edit for edit in edits]
+    def __init__(self, edits=None):
+        self.edits = list(edits or [])
 
     def __str__(self):
         return ' | '.join(map(str, self.edits))
 
     def __eq__(self, other):
-        return isinstance(other, Patch) and self.edits == other.edits
+        try:
+            return self.edits == other.edits
+        except AttributeError:
+            return False
 
     def __hash__(self):
         return hash(str(self))

@@ -1,7 +1,6 @@
 import copy
 import math
 import random
-import time
 
 from magpie.core import Patch, BasicAlgorithm, Variant
 
@@ -22,7 +21,9 @@ class GeneticProgramming(BasicAlgorithm):
         self.stats['gen'] = 0
 
     def aux_log_counter(self):
-        return '{}-{}'.format(self.stats['gen'], self.stats['steps']%self.config['pop_size']+1)
+        gen = self.stats['gen']
+        step = self.stats['steps']%self.config['pop_size']+1
+        return f'{gen}-{step}'
 
     def run(self):
         try:
@@ -38,7 +39,7 @@ class GeneticProgramming(BasicAlgorithm):
             self.hook_start()
 
             # initial pop
-            pop = dict()
+            pop = {}
             local_best = None
             local_best_fitness = None
             while len(pop) < self.config['pop_size']:
@@ -66,7 +67,7 @@ class GeneticProgramming(BasicAlgorithm):
             while not self.stopping_condition():
                 self.stats['gen'] += 1
                 self.hook_main_loop()
-                offsprings = list()
+                offsprings = []
                 parents = self.select(pop)
                 # elitism
                 copy_parents = copy.deepcopy(parents)
@@ -242,4 +243,3 @@ class GeneticProgrammingUniformInter(GeneticProgramming):
             elif sol4.edits:
                 c.edits.append(random.choice(sol4.edits))
         return c
-

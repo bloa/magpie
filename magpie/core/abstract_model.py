@@ -1,5 +1,4 @@
 import abc
-import os
 import random
 
 import magpie
@@ -17,7 +16,7 @@ class AbstractModel(abc.ABC):
         self.cached_dump = None
 
     @abc.abstractmethod
-    def init_contents(self, file_path):
+    def init_contents(self):
         pass
 
     @abc.abstractmethod
@@ -36,11 +35,10 @@ class AbstractModel(abc.ABC):
         if dump == self.cached_dump:
             if self.trust_local:
                 return
-            else:
-                with open(self.renamed_filename, 'r') as tmp_file:
-                    if tmp_file.read() == dump:
-                        return
-                self.trust_local = True
+            with open(self.renamed_filename, 'r') as tmp_file:
+                if tmp_file.read() == dump:
+                    return
+            self.trust_local = True
         # write only if file _really_ changed
         with open(self.renamed_filename, 'w') as tmp_file:
             tmp_file.write(dump)
@@ -56,7 +54,5 @@ class AbstractModel(abc.ABC):
                     return (self.filename, target_type, loc)
                 r -= w
             raise RuntimeError()
-        else:
-            loc = random.choice(self.locations_names[target_type])
-            return (self.filename, target_type, loc)
-
+        loc = random.choice(self.locations_names[target_type])
+        return (self.filename, target_type, loc)

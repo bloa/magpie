@@ -27,16 +27,15 @@ class BasicProtocol:
                     self.search.config['possible_edits'].append(klass)
                     break
             else:
-                raise ValueError('Invalid config file: unknown edit type "{}" in "[software] possible_edits"'.format(edit))
+                raise ValueError(f'Invalid config file: unknown edit type "{edit}" in "[software] possible_edits"')
         if self.search.config['possible_edits'] == []:
             raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
 
         bins = [[]]
         for s in sec['batch_instances'].splitlines():
             if s == '___':
-                if not bins[-1]:
-                    raise ValueError('Invalid config file: empty bin in "{}"'.format(sec['search']['batch_all_samples']))
-                bins.append([])
+                if bins[-1]:
+                    bins.append([])
             elif s[:5] == 'file:':
                 try:
                     with open(os.path.join(config['software']['path'], s[5:])) as bin_file:
@@ -108,14 +107,14 @@ class BasicProtocol:
                 elif tmp in ['false', 'f', '0']:
                     self.search.config[key] = False
                 else:
-                    raise ValueError('[search.minify] {} should be Boolean'.format(key))
+                    raise ValueError(f'[search.minify] {key} should be Boolean')
             self.search.config['round_robin_limit'] = int(sec['round_robin_limit'])
 
         # log config just in case
         with io.StringIO() as ss:
             config.write(ss)
             ss.seek(0)
-            self.software.logger.debug('==== CONFIG ====\n{}'.format(ss.read()))
+            self.software.logger.debug(f'==== CONFIG ====\n{ss.read()}')
 
     def run(self):
         if self.software is None:
@@ -124,7 +123,7 @@ class BasicProtocol:
             raise AssertionError('Search not specified')
 
         # init final result dict
-        result = {'stop': None, 'best_patch': []}
+        result = {'stop': None, 'best_patch': None}
 
         # setup software
         self.search.software = self.software
@@ -138,21 +137,24 @@ class BasicProtocol:
 
         # print the report
         logger.info('==== REPORT ====')
-        logger.info('Termination: {}'.format(result['stop']))
+        tmp = result['stop']
+        logger.info(f'Termination: {tmp}')
         for handler in logger.handlers:
             if handler.__class__.__name__ == 'FileHandler':
-                logger.info('Log file: {}'.format(handler.baseFilename))
+                logger.info(f'Log file: {handler.baseFilename}')
         if result['best_patch'] and result['best_patch'].edits:
             base_path = os.path.join(magpie.settings.log_dir, self.software.run_label)
-            logger.info('Patch file: {}'.format('{}.patch'.format(base_path)))
-            logger.info('Diff file: {}'.format('{}.diff'.format(base_path)))
-            logger.info('Best fitness: {}'.format(result['best_fitness']))
-            logger.info('Best patch: {}'.format(result['best_patch']))
-            logger.info('Diff:\n{}'.format(result['diff']))
+            patch_file = f'{base_path}.patch'
+            diff_file = f'{base_path}.diff'
+            logger.info(f'Patch file: {patch_file}')
+            logger.info(f'Diff file: {diff_file}')
+            logger.info(f"Best fitness: {result['best_fitness']}")
+            logger.info(f"Best patch: {result['best_patch']}")
+            logger.info(f"Diff:\n{result['diff']}")
             # for convenience, save best patch and diff to separate files
-            with open('{}.patch'.format(base_path), 'w') as f:
+            with open(patch_file, 'w') as f:
                 f.write(str(result['best_patch'])+"\n")
-            with open('{}.diff'.format(base_path), 'w') as f:
+            with open(diff_file, 'w') as f:
                 f.write(result['diff'])
 
         # cleanup temporary software copies

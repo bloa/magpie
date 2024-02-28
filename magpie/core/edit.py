@@ -1,9 +1,17 @@
+import abc
+
 class Edit:
     def __init__(self, target, *args):
         self.target = target
         self.data = list(args)
 
-    def apply(self, software, new_contents, new_locations):
+    @classmethod
+    @abc.abstractmethod
+    def auto_create(cls, ref):
+        pass
+
+    @abc.abstractmethod
+    def apply(self, ref, variant):
         pass
 
     def __eq__(self, other):
@@ -17,8 +25,7 @@ class Edit:
         return hash(str(self))
 
     def __str__(self):
-        return '{}({}{})'.format(
-            self.__class__.__name__,
-            repr(self.target),
-            ''.join([', {}'.format(repr(d)) for d in self.data])
-        )
+        if self.data:
+            tmp = ', '.join([repr(d) for d in self.data])
+            return f'{self.__class__.__name__}({repr(self.target)}, {tmp})'
+        return f'{self.__class__.__name__}({repr(self.target)})'

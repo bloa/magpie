@@ -1,8 +1,6 @@
 import copy
-import random
-import time
 
-from magpie.core import Patch, Variant
+from magpie.core import Variant
 from .validation import ValidSearch
 
 
@@ -30,10 +28,10 @@ class AblationAnalysis(ValidSearch):
 
         # ranking
         rebuild = copy.deepcopy(variant.patch)
-        removed = list()
+        removed = []
         while rebuild.edits:
-            ranking = list()
-            for k in range(len(rebuild.edits)):
+            ranking = []
+            for k, _ in enumerate(rebuild.edits):
                 patch = copy.deepcopy(rebuild)
                 del patch.edits[k]
                 tmp = Variant(self.software, patch)

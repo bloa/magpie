@@ -1,12 +1,9 @@
 import abc
 import contextlib
-import copy
-import difflib
 import errno
 import logging
 import os
 import pathlib
-import random
 import select
 import shutil
 import signal
@@ -40,9 +37,9 @@ class AbstractSoftware(abc.ABC):
         except FileExistsError:
             pass
         while True:
-            self.run_label = '{}_{}'.format(self.basename, self.timestamp)
+            self.run_label = f'{self.basename}_{self.timestamp}'
             new_work_dir = os.path.join(os.path.abspath(magpie.settings.work_dir), self.run_label)
-            lock_file = '{}.lock'.format(new_work_dir)
+            lock_file = f'{new_work_dir}.lock'
             try:
                 fd = os.open(lock_file, os.O_CREAT | os.O_EXCL)
                 os.close(fd)
@@ -70,7 +67,7 @@ class AbstractSoftware(abc.ABC):
             pathlib.Path(magpie.settings.log_dir).mkdir(parents=True)
         except FileExistsError:
             pass
-        file_handler = logging.FileHandler(os.path.join(magpie.settings.log_dir, "{}.log".format(self.run_label)), delay=True)
+        file_handler = logging.FileHandler(os.path.join(magpie.settings.log_dir, f'{self.run_label}.log'), delay=True)
         file_handler.setFormatter(logging.Formatter('%(asctime)s\t[%(levelname)s]\t%(message)s'))
         file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(file_handler)
@@ -93,7 +90,7 @@ class AbstractSoftware(abc.ABC):
                 new_path = os.path.join(self.work_dir, magpie.settings.local_original_name)
                 if self.path != new_path:
                     self.path = shutil.copytree(self.path, new_path)
-        lock_file = '{}.lock'.format(new_work_dir)
+        lock_file = f'{new_work_dir}.lock'
         os.remove(lock_file)
 
     def reset_contents(self):
@@ -168,48 +165,48 @@ class AbstractSoftware(abc.ABC):
         env['MAGPIE_BASENAME'] = self.basename
         env['MAGPIE_TIMESTAMP'] = self.timestamp
         try:
-            sprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env, shell=shell)
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env, start_new_session=True) as sprocess:
+                if lengthout > 0:
+                    stdout_size = 0
+                    stderr_size = 0
+                    while sprocess.poll() is None:
+                        end = time.time()
+                        if end-start > timeout:
+                            os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                            _, _ = sprocess.communicate()
+                            return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
+                        a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
+                        if sprocess.stdout in a:
+                            for _ in range(1024):
+                                if not select.select([sprocess.stdout], [], [], 0)[0]:
+                                    break
+                                stdout += sprocess.stdout.read(1)
+                                stdout_size += 1
+                        if sprocess.stderr in a:
+                            for _ in range(1024):
+                                if not select.select([sprocess.stderr], [], [], 0)[0]:
+                                    break
+                                stderr += sprocess.stderr.read(1)
+                                stderr_size += 1
+                        if stdout_size+stderr_size >= lengthout:
+                            os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                            _, _ = sprocess.communicate()
+                            return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
+                    end = time.time()
+                    stdout += sprocess.stdout.read()
+                    stderr += sprocess.stderr.read()
+                else:
+                    try:
+                        stdout, stderr = sprocess.communicate(timeout=timeout)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                        stdout, stderr = sprocess.communicate()
+                        end = time.time()
+                        return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
+                    end = time.time()
+                return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
         except FileNotFoundError:
             return ExecResult(cmd, 'CLI_ERROR', -1, b"", b"", 0, 0)
-        if lengthout > 0:
-            stdout_size = 0
-            stderr_size = 0
-            while sprocess.poll() is None:
-                end = time.time()
-                if end-start > timeout:
-                    os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                    _, _ = sprocess.communicate()
-                    return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
-                a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
-                if sprocess.stdout in a:
-                    for _ in range(1024):
-                        if not len(select.select([sprocess.stdout], [], [], 0)[0]):
-                            break
-                        stdout += sprocess.stdout.read(1)
-                        stdout_size += 1
-                if sprocess.stderr in a:
-                    for _ in range(1024):
-                        if not len(select.select([sprocess.stderr], [], [], 0)[0]):
-                            break
-                        stderr += sprocess.stderr.read(1)
-                        stderr_size += 1
-                if stdout_size+stderr_size >= lengthout:
-                    os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                    _, _ = sprocess.communicate()
-                    return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
-            end = time.time()
-            stdout += sprocess.stdout.read()
-            stderr += sprocess.stderr.read()
-        else:
-            try:
-                stdout, stderr = sprocess.communicate(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                stdout, stderr = sprocess.communicate()
-                end = time.time()
-                return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
-            end = time.time()
-        return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
 
     def clean_work_dir(self):
         try:

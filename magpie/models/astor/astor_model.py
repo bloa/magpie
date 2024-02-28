@@ -27,8 +27,9 @@ class AstorModel(AbstractModel):
     def do_replace(self, ref_model, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, tag, path index
         o_f, o_t, o_i = target_orig # file name, tag, path index
-        if d_f != self.filename: raise ValueError()
-        if o_f != ref_model.filename: raise ValueError()
+        if (d_f != self.filename or
+            o_f != ref_model.filename):
+            raise ValueError()
         dst_root = self.contents
         dst_pos = self.locations[d_t][d_i]
         ingr_root = ref_model.contents
@@ -46,8 +47,9 @@ class AstorModel(AbstractModel):
     def do_insert(self, ref_model, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, tag, path index
         o_f, o_t, o_i = target_orig # file name, tag, path index
-        if d_f != self.filename: raise ValueError()
-        if o_f != ref_model.filename: raise ValueError()
+        if (d_f != self.filename or
+            o_f != ref_model.filename):
+            raise ValueError()
         dst_root = self.contents
         dst_pos = self.locations[d_t][d_i]
         ingr_root = ref_model.contents
@@ -73,6 +75,8 @@ class AstorModel(AbstractModel):
 
     def do_delete(self, target):
         d_f, d_t, d_i = target # file name, tag, path index
+        if d_f != self.filename:
+            raise ValueError()
         dst_root = self.contents
         dst_pos = self.locations[d_t][d_i]
         try:

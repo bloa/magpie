@@ -17,7 +17,7 @@ class Realm(ABC):
                 if callable(realm[0]):
                     x = cls.random_value_from_realm(realm[1])
                     return realm[0](x)
-            raise RuntimeError('invalid param realm')
+            raise RuntimeError(f'Invalid param realm "{repr(realm)}"')
         return realm # single value?
 
     @abstractmethod
@@ -44,6 +44,7 @@ class Realm(ABC):
     def geometric(cls, *args, **kwargs):
         return GeometricRealm(*args, **kwargs)
 
+    @classmethod
     def lambd(cls, *args, **kwargs):
         return LambdaRealm(*args, **kwargs)
 
@@ -60,7 +61,7 @@ class CategoricalRealm(Realm):
         self.data = data
 
     def __str__(self):
-        return 'CategoricalRealm({})'.format(self.data)
+        return f'CategoricalRealm({self.data})'
 
     def random_value(self):
         return random.choice(self.data)
@@ -73,14 +74,13 @@ class UniformRealm(Realm):
 
     def __str__(self):
         if self.step is None:
-            return 'UniformRealm({}, {})'.format(self.start, self.stop)
-        return 'UniformRealm({}, {}, {})'.format(self.start, self.stop, self.step)
+            return f'UniformRealm({self.start}, {self.stop})'
+        return f'UniformRealm({self.start}, {self.stop}, {self.step})'
 
     def random_value(self):
         if self.step is None:
             return random.uniform(self.start, self.stop)
-        else:
-            return round(self.start + self.step*random.randrange((self.stop-self.start)/self.step), 10)
+        return round(self.start + self.step*random.randrange((self.stop-self.start)/self.step), 10)
 
 class UniformIntRealm(Realm):
     def __init__(self, start, stop, step=None):
@@ -90,14 +90,13 @@ class UniformIntRealm(Realm):
 
     def __str__(self):
         if self.step is None:
-            return 'UniformIntRealm({}, {})'.format(self.start, self.stop)
-        return 'UniformIntRealm({}, {}, {})'.format(self.start, self.stop, self.step)
+            return f'UniformIntRealm({self.start}, {self.stop})'
+        return f'UniformIntRealm({self.start}, {self.stop}, {self.step})'
 
     def random_value(self):
         if self.step is None:
             return random.randint(self.start, self.stop)
-        else:
-            return random.randrange(self.start, self.stop, self.step)
+        return random.randrange(self.start, self.stop, self.step)
 
 class ExponentialRealm(Realm):
     def __init__(self, start, stop, lambd=None):
@@ -107,18 +106,17 @@ class ExponentialRealm(Realm):
 
     def __str__(self):
         if self.lambd is None:
-            return 'ExponentialRealm({}, {})'.format(self.start, self.stop)
-        return 'ExponentialRealm({}, {}, {})'.format(self.start, self.stop, self.lambd)
+            return f'ExponentialRealm({self.start}, {self.stop})'
+        return f'ExponentialRealm({self.start}, {self.stop}, {self.lambd})'
 
     def random_value(self):
         if self.start >= 0:
             return self.random_positive_value(self.start, self.stop, self.lambd)
-        elif self.stop <= 0:
+        if self.stop <= 0:
             return self.random_negative_value(self.start, self.stop, self.lambd)
-        elif random.randrange(2) == 0:
+        if random.randrange(2) == 0:
             return self.random_positive_value(0, self.stop, self.lambd)
-        else:
-            return self.random_negative_value(self.start, 0, self.lambd)
+        return self.random_negative_value(self.start, 0, self.lambd)
 
     def random_positive_value(self, start, stop, lambd):
         if lambd is None:
@@ -127,8 +125,8 @@ class ExponentialRealm(Realm):
             x = random.expovariate(lambd)
             if x <= stop - start:
                 return start + x
-        else: # give up?! and return some uniform value instead
-            return random.uniform(start, stop)
+        # give up?! and return some uniform value instead
+        return random.uniform(start, stop)
 
     def random_negative_value(self, start, stop, lambd):
         return -self.random_positive_value(-stop, -start, None if lambd is None else -lambd)
@@ -141,18 +139,17 @@ class GeometricRealm(Realm):
 
     def __str__(self):
         if self.lambd is None:
-            return 'GeometricRealm({}, {})'.format(self.start, self.stop)
-        return 'GeometricRealm({}, {}, {})'.format(self.start, self.stop, self.lambd)
+            return f'GeometricRealm({self.start}, {self.stop})'
+        return f'GeometricRealm({self.start}, {self.stop}, {self.lambd})'
 
     def random_value(self):
         if self.start >= 0:
             return self.random_positive_value(self.start, self.stop, self.lambd)
-        elif self.stop <= 0:
+        if self.stop <= 0:
             return self.random_negative_value(self.start, self.stop, self.lambd)
-        elif random.randrange(2) == 0:
+        if random.randrange(2) == 0:
             return self.random_positive_value(0, self.stop, self.lambd)
-        else:
-            return self.random_negative_value(self.start, 0, self.lambd)
+        return self.random_negative_value(self.start, 0, self.lambd)
 
     def random_positive_value(self, start, stop, lambd):
         if lambd is None:
@@ -161,8 +158,8 @@ class GeometricRealm(Realm):
             x = int(random.expovariate(lambd))
             if x <= stop - start:
                 return start + x
-        else: # give up?! and return some uniform value instead
-            return random.uniform(start, stop)
+        # give up?! and return some uniform value instead
+        return random.uniform(start, stop)
 
     def random_negative_value(self, start, stop, lambd):
         return -self.random_positive_value(-stop, -start, None if lambd is None else -lambd)
@@ -174,7 +171,7 @@ class LambdaRealm(Realm):
         self.realm = realm
 
     def __str__(self):
-        return 'LambdaRealm(<unsupported>, {})'.format(self.realm)
+        return f'LambdaRealm(<unsupported>, {self.realm})'
 
     def random_value(self):
         x = Realm.random_value(self.realm)

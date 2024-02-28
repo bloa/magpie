@@ -13,5 +13,5 @@ class AbstractLineModel(AbstractModel):
         pass
 
     @abc.abstractmethod
-    def do_delete(self, ref_model, target):
+    def do_delete(self, target):
         pass

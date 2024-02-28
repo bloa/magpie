@@ -3,7 +3,8 @@ import copy
 import difflib
 import random
 
-import magpie
+import magpie.settings
+import magpie.models
 from .setup import _setup_xml_model, _setup_params_model
 
 
@@ -27,7 +28,7 @@ class Variant:
         tmp = [model for model in self.models.values() if isinstance(model, klass)]
         if tmp:
             return random.choice(tmp)
-        raise RuntimeError('No compatible target file for model {}'.format(klass.__name__))
+        raise RuntimeError(f'No compatible target file for model "{klass.__name__}"')
 
     def random_targets(self, klass, *args):
         klass = self.random_model(klass).__class__
@@ -42,7 +43,7 @@ class Variant:
                 model = klass(target_file)
                 break
         else:
-            raise RuntimeError('Unknown model for target file {}'.format(target_file))
+            raise RuntimeError(f'Unknown model for target file "{target_file}"')
         for (pattern, config_section, section_name) in software.model_config:
             if any([target_file == pattern,
                     pattern == '*',
@@ -67,7 +68,7 @@ class Variant:
         elif method == 'context':
             diff_method = difflib.context_diff
         else:
-            raise ValueError('Unknown diff method: `{}`'.format(method))
+            raise ValueError(f'Unknown diff method: "{method}"')
         diffs = []
         for filename in self.models.keys():
             renamed = other.models[filename].renamed_filename

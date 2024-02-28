@@ -1,6 +1,6 @@
+import abc
 import copy
 import random
-import time
 
 from magpie.core import Patch, BasicAlgorithm, Variant
 
@@ -43,6 +43,10 @@ class LocalSearch(BasicAlgorithm):
         finally:
             # the end
             self.hook_end()
+
+    @abc.abstractmethod
+    def explore(self, current_patch, current_fitness):
+        pass
 
     def mutate(self, patch):
         n = len(patch.edits)
@@ -240,7 +244,8 @@ class BestImprovement(LocalSearch):
                 break
 
         # compare
-        run = self.evaluate_patch(patch)
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(current_fitness, run.fitness):
@@ -296,7 +301,8 @@ class WorstImprovement(LocalSearch):
                 break
 
         # compare
-        run = self.evaluate_patch(patch)
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(current_fitness, run.fitness):
@@ -351,7 +357,8 @@ class TabuSearch(BestImprovement):
                 break
 
         # compare
-        run = self.evaluate_patch(patch)
+        variant = Variant(self.software, patch)
+        run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(self.local_best_fitness, run.fitness):

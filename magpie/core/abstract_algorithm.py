@@ -1,14 +1,13 @@
 import abc
-import itertools
 import random
-import os
 import time
 
-import magpie
+import magpie.settings
 
 
 class AbstractAlgorithm(abc.ABC):
     def __init__(self):
+        self.software = None
         self.setup()
 
     def setup(self):
@@ -31,7 +30,6 @@ class AbstractAlgorithm(abc.ABC):
         self.report['best_fitness'] = None
         self.report['best_patch'] = None
         self.report['stop'] = None
-        self.cache_reset()
 
     @abc.abstractmethod
     def run(self):
@@ -41,10 +39,10 @@ class AbstractAlgorithm(abc.ABC):
         ref = variant or self.software.noop_variant
         klass = random.choice(self.config['possible_edits'])
         tries = magpie.settings.edit_retries
-        while (edit := klass.auto_create(variant)) is None:
+        while (edit := klass.auto_create(ref)) is None:
             tries -= 1
             if tries == 0:
-                raise RuntimeError('unable to create an edit of class {}'.format(klass.__name__))
+                raise RuntimeError(f'Unable to create an edit of class {klass.__name__}')
         return edit
 
     def dominates(self, fit1, fit2):
@@ -59,8 +57,7 @@ class AbstractAlgorithm(abc.ABC):
                 if x > y:
                     return False
             return False
-        else:
-            return fit1 < fit2
+        return fit1 < fit2
 
     def stopping_condition(self):
         if self.report['stop'] is not None:
