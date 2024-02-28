@@ -5,71 +5,56 @@ from . import AstorModel
 
 
 class AstorStmtReplacement(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_replace(software.contents, software.locations,
-                                new_contents, new_locations,
-                                self.target, self.data[0])
-
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(AstorModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file])
-        assert software.models[target_file] == software.models[ingr_file]
-        return cls(software.random_target(target_file, 'stmt'),
-                   software.random_target(ingr_file, 'stmt'))
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AstorModel, 'stmt', 'stmt')
+        if not (target and ingredient):
+            return None
+        return cls(target, ingredient)
+
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        return model.do_replace(ref_model, self.target, ingredient)
 
 class AstorStmtInsertion(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_insert(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target, self.data[0])
-
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None):
-        if target_file is None:
-            target_file = software.random_file(AstorModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file])
-        assert software.models[target_file] == software.models[ingr_file]
-        return cls(software.random_target(target_file, '_inter_block'),
-                   software.random_target(ingr_file, 'stmt'))
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AstorModel, '_inter_block', 'stmt')
+        if not (target and ingredient):
+            return None
+        return cls(target, ingredient)
+
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        return model.do_insert(ref_model, self.target, ingredient)
 
 class AstorStmtDeletion(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        return model.do_delete(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target)
-
     @classmethod
-    def create(cls, software, target_file=None):
-        if target_file is None:
-            target_file = software.random_file(AstorModel)
-        return cls(software.random_target(target_file, 'stmt'))
+    def auto_create(cls, ref):
+        target = ref.random_model(AstorModel).random_target('stmt')
+        if not target:
+            return None
+        return cls(target)
+
+    def apply(self, ref, variant):
+        model = variant.models[self.target[0]]
+        return model.do_delete(self.target)
 
 class AstorStmtMoving(Edit):
-    def apply(self, software, new_contents, new_locations):
-        model = software.models[self.target[0]]
-        model.do_insert(software.contents, software.locations,
-                        new_contents, new_locations,
-                        self.target, self.data[0])
-        return model.do_delete(software.contents, software.locations,
-                               new_contents, new_locations,
-                               self.target)
-
     @classmethod
-    def create(cls, software, target_file=None, ingr_file=None, direction=None):
-        if target_file is None:
-            target_file = software.random_file(AstorModel)
-        if ingr_file is None:
-            ingr_file = software.random_file(model=software.models[target_file])
-        assert software.models[target_file] == software.models[ingr_file]
-        if direction is None:
-            direction = random.choice(['before', 'after'])
-        return cls(software.random_target(target_file, 'stmt'),
-                   software.random_target(ingr_file, 'stmt'),
-                   direction)
+    def auto_create(cls, ref):
+        target, ingredient = ref.random_targets(AstorModel, 'stmt', 'stmt')
+        if not (target and ingredient):
+            return None
+        return cls(target, ingredient)
+
+    def apply(self, ref, variant):
+        ingredient = self.data[0]
+        ref_model = ref.models[ingredient[0]]
+        model = variant.models[self.target[0]]
+        model.do_insert(ref_model, self.target, ingredient)
+        return model.do_delete(ref_model, self.target)
