@@ -24,6 +24,7 @@ class AbstractAlgorithm(abc.ABC):
         self.stats = {}
         self.stats['budget'] = 0
         self.stats['steps'] = 0
+        self.stats['wallclock_start'] = time.time() # dummy
         self.report = {}
         self.report['initial_patch'] = None
         self.report['initial_fitness'] = None
