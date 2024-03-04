@@ -1,7 +1,7 @@
 import abc
 import random
 
-import magpie
+import magpie.settings
 
 class AbstractModel(abc.ABC):
     def __init__(self, filename):
@@ -56,3 +56,6 @@ class AbstractModel(abc.ABC):
             raise RuntimeError()
         loc = random.choice(self.locations_names[target_type])
         return (self.filename, target_type, loc)
+
+    def update_cli(self, variant, cli, step):
+        pass

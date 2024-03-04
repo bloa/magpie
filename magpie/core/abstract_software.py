@@ -10,9 +10,10 @@ import signal
 import subprocess
 import time
 
-import magpie
+import magpie.settings
 from .execresult import ExecResult
 from .variant import Variant
+
 
 class AbstractSoftware(abc.ABC):
     def __init__(self, path, reset=True):

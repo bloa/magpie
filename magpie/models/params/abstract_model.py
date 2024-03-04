@@ -1,31 +1,43 @@
-from magpie.core import AbstractModel
+from magpie.core import BasicModel
 from .realms import Realm
 
-class AbstractParamsModel(AbstractModel):
-    TIMING = ['run']
-    CLI_PREFIX = "--"
-    CLI_GLUE = "="
-    CLI_BOOLEAN = 'show' # show ; hide ; prefix
-    CLI_BOOLEAN_PREFIX_TRUE = ''
-    CLI_BOOLEAN_PREFIX_FALSE = 'no-'
-    CLI_NONE = 'hide' # show ; hide
-    SILENT_PREFIX = '@'
-    SILENT_SUFFIX = '$'
-
+class AbstractParamsModel(BasicModel):
     def __init__(self, filename):
         super().__init__(filename)
         self.indirect_locations = False
         self.config = {
-            'timing': self.TIMING,
-            'cli_prefix': self.CLI_PREFIX,
-            'cli_glue': self.CLI_GLUE,
-            'cli_boolean': self.CLI_BOOLEAN,
-            'cli_boolean_prefix_true': self.CLI_BOOLEAN_PREFIX_TRUE,
-            'cli_boolean_prefix_false': self.CLI_BOOLEAN_PREFIX_FALSE,
-            'cli_none': self.CLI_NONE,
-            'silent_prefix': self.SILENT_PREFIX,
-            'silent_suffix': self.SILENT_SUFFIX,
+            'timing': ['run'], # setup / compile / test / run
+            'cli_prefix': '--',
+            'cli_glue': '=',
+            'cli_boolean': 'show', # show ; hide ; prefix
+            'cli_boolean_prefix_true': '',
+            'cli_boolean_prefix_false': 'no-',
+            'cli_none': 'hide', # show ; hide
+            'silent_prefix': '@',
+            'silent_suffix': '$',
         }
+
+    def setup_scenario(self, config, section_name):
+        super().setup_scenario(config, section_name)
+        for name in ['params', section_name]:
+            config_section = config[section_name]
+            if (k := 'timing') in config_section:
+                tmp = config_section[k].split()
+                if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
+                    raise ValueError(f'Illegal timing value: [{section_name}] "{val}"')
+                self.config[k] = tmp
+            for k in [
+                    'cli_prefix',
+                    'cli_glue',
+                    'cli_boolean',
+                    'cli_boolean_prefix_true',
+                    'cli_boolean_prefix_false',
+                    'cli_none',
+                    'silent_prefix',
+                    'silent_suffix',
+            ]:
+                if k in config_section:
+                    self.config[k] = config_section[k]
 
     def dump(self):
         return ''.join([f'{k} := {repr(v)}\n' for k,v in self.contents['current'].items() if not self.would_be_ignored(k, v)])
@@ -40,6 +52,10 @@ class AbstractParamsModel(AbstractModel):
     def random_value(self, key):
         realm = self.contents['space'][key]
         return Realm.random_value_from_realm(realm)
+
+    def update_cli(self, variant, cli, step):
+        if step in self.config['timing']:
+            return f'{cli} {self.resolve_cli()}'
 
     def resolve_cli(self):
         all_params = self.contents['current']

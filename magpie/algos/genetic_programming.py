@@ -2,10 +2,10 @@ import copy
 import math
 import random
 
-from magpie.core import Patch, BasicAlgorithm, Variant
+import magpie.core
+import magpie.utils
 
-
-class GeneticProgramming(BasicAlgorithm):
+class GeneticProgramming(magpie.core.BasicAlgorithm):
     def setup(self):
         super().setup()
         self.name = 'Genetic Programming'
@@ -19,6 +19,23 @@ class GeneticProgramming(BasicAlgorithm):
     def reset(self):
         super().reset()
         self.stats['gen'] = 0
+
+    def setup_scenario(self, config):
+        super().setup_scenario(config)
+        sec = config['search.gp']
+        self.config['pop_size'] = int(sec['pop_size'])
+        self.config['delete_prob'] = float(sec['delete_prob'])
+        self.config['offspring_elitism'] = float(sec['offspring_elitism'])
+        self.config['offspring_crossover'] = float(sec['offspring_crossover'])
+        self.config['offspring_mutation'] = float(sec['offspring_mutation'])
+        self.config['uniform_rate'] = float(sec['uniform_rate'])
+        tmp = sec['batch_reset'].lower()
+        if tmp in ['true', 't', '1']:
+            self.config['batch_reset'] = True
+        elif tmp in ['false', 'f', '0']:
+            self.config['batch_reset'] = False
+        else:
+            raise ValueError('[search.gp] batch_reset should be Boolean')
 
     def aux_log_counter(self):
         gen = self.stats['gen']
@@ -43,11 +60,11 @@ class GeneticProgramming(BasicAlgorithm):
             local_best = None
             local_best_fitness = None
             while len(pop) < self.config['pop_size']:
-                sol = Patch()
+                sol = magpie.core.Patch()
                 self.mutate(sol)
                 if sol in pop:
                     continue
-                variant = Variant(self.software, sol)
+                variant = magpie.core.Variant(self.software, sol)
                 run = self.evaluate_variant(variant)
                 accept = best = False
                 if run.status == 'SUCCESS':
@@ -92,7 +109,7 @@ class GeneticProgramming(BasicAlgorithm):
                     offsprings.append(parent)
                 # regrow
                 while len(offsprings) < self.config['pop_size']:
-                    sol = Patch()
+                    sol = magpie.core.Patch()
                     self.mutate(sol)
                     if sol in pop:
                         continue
@@ -104,7 +121,7 @@ class GeneticProgramming(BasicAlgorithm):
                 for sol in offsprings:
                     if self.stopping_condition():
                         break
-                    variant = Variant(self.software, sol)
+                    variant = magpie.core.Variant(self.software, sol)
                     run = self.evaluate_variant(variant)
                     accept = best = False
                     if run.status == 'SUCCESS':
@@ -155,6 +172,7 @@ class GeneticProgramming(BasicAlgorithm):
                 random.shuffle(a)
             self.hook_reset_batch()
 
+
 class GeneticProgrammingConcat(GeneticProgramming):
     def setup(self):
         super().setup()
@@ -166,13 +184,16 @@ class GeneticProgrammingConcat(GeneticProgramming):
             c.edits.append(edit)
         return c
 
+magpie.utils.known_algos.append(GeneticProgrammingConcat)
+
+
 class GeneticProgramming1Point(GeneticProgramming):
     def setup(self):
         super().setup()
         self.name = 'Genetic Programming (1-point)'
 
     def crossover(self, sol1, sol2):
-        c = Patch()
+        c = magpie.core.Patch()
         k1 = random.randint(0, len(sol1.edits))
         k2 = random.randint(0, len(sol2.edits))
         for edit in sol1.edits[:k1]:
@@ -181,13 +202,16 @@ class GeneticProgramming1Point(GeneticProgramming):
             c.edits.append(edit)
         return c
 
+magpie.utils.known_algos.append(GeneticProgramming1Point)
+
+
 class GeneticProgramming2Point(GeneticProgramming):
     def setup(self):
         super().setup()
         self.name = 'Genetic Programming (2-point)'
 
     def crossover(self, sol1, sol2):
-        c = Patch()
+        c = magpie.core.Patch()
         k1 = random.randint(0, len(sol1.edits))
         k2 = random.randint(0, len(sol1.edits))
         k3 = random.randint(0, len(sol2.edits))
@@ -200,6 +224,9 @@ class GeneticProgramming2Point(GeneticProgramming):
             c.edits.append(edit)
         return c
 
+magpie.utils.known_algos.append(GeneticProgramming2Point)
+
+
 class GeneticProgrammingUniformConcat(GeneticProgramming):
     def setup(self):
         super().setup()
@@ -207,7 +234,7 @@ class GeneticProgrammingUniformConcat(GeneticProgramming):
         self.config['uniform_rate'] = 0.5
 
     def crossover(self, sol1, sol2):
-        c = Patch()
+        c = magpie.core.Patch()
         for edit in sol1.edits:
             if random.random() > self.config['uniform_rate']:
                 c.edits.append(edit)
@@ -222,6 +249,9 @@ class GeneticProgrammingUniformConcat(GeneticProgramming):
                 c.edits.append(random.choice(sol4.edits))
         return c
 
+magpie.utils.known_algos.append(GeneticProgrammingUniformConcat)
+
+
 class GeneticProgrammingUniformInter(GeneticProgramming):
     def setup(self):
         super().setup()
@@ -229,7 +259,7 @@ class GeneticProgrammingUniformInter(GeneticProgramming):
         self.config['uniform_rate'] = 0.5
 
     def crossover(self, sol1, sol2):
-        c = Patch()
+        c = magpie.core.Patch()
         l1 = [(i/len(sol1.edits), 0) for i in sorted(random.sample(range(len(sol1.edits)), math.ceil(len(sol1.edits)*self.config['uniform_rate'])))]
         l2 = [(i/len(sol2.edits), 1) for i in sorted(random.sample(range(len(sol2.edits)), math.ceil(len(sol2.edits)*self.config['uniform_rate'])))]
         for (x, k) in sorted(l1+l2):
@@ -243,3 +273,5 @@ class GeneticProgrammingUniformInter(GeneticProgramming):
             elif sol4.edits:
                 c.edits.append(random.choice(sol4.edits))
         return c
+
+magpie.utils.known_algos.append(GeneticProgrammingUniformInter)

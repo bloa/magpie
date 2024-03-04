@@ -1,6 +1,7 @@
 import random
 
 from magpie.core import Edit
+
 from .abstract_model import AbstractXmlModel
 
 

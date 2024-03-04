@@ -3,9 +3,8 @@ import copy
 import difflib
 import random
 
+import magpie.utils
 import magpie.settings
-import magpie.models
-from .setup import _setup_xml_model, _setup_params_model
 
 
 class Variant:
@@ -40,19 +39,16 @@ class Variant:
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                model = klass(target_file)
+                model = magpie.utils.model_from_string(klass)(target_file)
                 break
         else:
             raise RuntimeError(f'Unknown model for target file "{target_file}"')
-        for (pattern, config_section, section_name) in software.model_config:
+        for (pattern, section_name) in software.model_config:
             if any([target_file == pattern,
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                if isinstance(model, magpie.models.xml.XmlModel):
-                    _setup_xml_model(model, config_section, section_name)
-                elif isinstance(model, magpie.models.params.AbstractParamsModel):
-                    _setup_params_model(model, config_section, section_name)
+                model.setup_scenario(software.config, section_name)
                 break
         model.init_contents()
         if model.indirect_locations:

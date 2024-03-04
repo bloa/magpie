@@ -1,5 +1,7 @@
 import re
 
+import magpie.utils
+
 from .abstract_model import AbstractParamsModel
 from .realms import Realm
 
@@ -179,3 +181,5 @@ class ConfigFileParamsModel(AbstractParamsModel):
 
     def would_be_valid(self, key, value):
         return super().would_be_valid(key, str(value))
+
+magpie.utils.known_models += [ConfigFileParamsModel]

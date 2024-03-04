@@ -8,18 +8,3 @@ from .srcml_edits import SrcmlStmtDeletion, SrcmlStmtReplacement, SrcmlStmtInser
 from .srcml_edits import SrcmlExprReplacement
 from .srcml_edits import SrcmlComparisonOperatorSetting, SrcmlArithmeticOperatorSetting
 from .srcml_edits import SrcmlNumericSetting, SrcmlRelativeNumericSetting
-
-# "final" models only
-known_models = [
-    XmlModel,
-    SrcmlModel,
-]
-
-# "final" edits only
-known_edits = [
-    XmlLineDeletion, XmlLineReplacement, XmlLineInsertion,
-    SrcmlStmtDeletion, SrcmlStmtReplacement, SrcmlStmtInsertion,
-    SrcmlExprReplacement,
-    SrcmlComparisonOperatorSetting, SrcmlArithmeticOperatorSetting,
-    SrcmlNumericSetting, SrcmlRelativeNumericSetting,
-]

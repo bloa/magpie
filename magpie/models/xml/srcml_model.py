@@ -1,29 +1,54 @@
 import re
 
-from . import XmlModel
+import magpie.utils
+
+from .xml_model import XmlModel
+
 
 class SrcmlModel(XmlModel):
-    INTERNODES = {'block'}
-    TAG_RENAME = {
-        'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},
-        'number': {'literal_number'}
-    }
-    TAG_FOCUS = {'block', 'stmt', 'operator_comp', 'operator_arith', 'number'}
-    PROCESS_PSEUDO_BLOCKS = True
-    PROCESS_LITERALS = True
-    PROCESS_OPERATORS = True
-
     def __init__(self, filename):
         super().__init__(filename)
         self.renamed_filename = filename.split('.xml')[0]
         self.config = {
-            'internodes': self.INTERNODES,
-            'tag_rename': self.TAG_RENAME,
-            'tag_focus': self.TAG_FOCUS,
-            'process_pseudo_blocks': self.PROCESS_PSEUDO_BLOCKS,
-            'process_literals': self.PROCESS_LITERALS,
-            'process_operators': self.PROCESS_OPERATORS,
+            'internodes': {'block'},
+            'tag_rename': {
+                'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},
+                'number': {'literal_number'}
+            },
+            'tag_focus': {'block', 'stmt', 'operator_comp', 'operator_arith', 'number'},
+            'process_pseudo_blocks': True,
+            'process_literals': True,
+            'process_operators': True,
         }
+
+    def setup_scenario(self, config, section_name):
+        super().setup_scenario(config, section_name)
+        for name in ['srcml', section_name]:
+            config_section = config[name]
+            for k in [
+                    'process_pseudo_blocks',
+                    'process_literals',
+                    'process_operators',
+            ]:
+                val = config_section[k]
+                if val.lower() in ['true', 't', '1']:
+                    self.config[k] = True
+                elif val.lower() in ['false', 'f', '0']:
+                    self.config[k] = False
+                else:
+                    raise ValueError(f'Invalid config file: "{section_name} {k}" should be Boolean')
+            if 'rename' in config_section:
+                h = {}
+                for rule in config_section['rename'].split("\n"):
+                    if rule.strip(): # discard potential initial empty line
+                        try:
+                            k, v = rule.split(':')
+                        except ValueError:
+                            raise ValueError(f'Badly formated rule: "{rule}"')
+                        h[k] = set(v.split())
+                self.config['tag_rename'] = h
+            if 'focus' in config_section:
+                self.config['tag_focus'] = set(config_section['focus'].split())
 
     def process_tree(self, tree):
         if self.config['process_pseudo_blocks']:
@@ -82,3 +107,5 @@ class SrcmlModel(XmlModel):
                 element.tag = 'operator_arith'
             else:
                 element.tag = 'operator_misc'
+
+magpie.utils.known_models.append(SrcmlModel)

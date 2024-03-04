@@ -1,6 +1,12 @@
+import os
+import random
 import time
 
-from magpie.core import AbstractAlgorithm, Patch, Variant
+import magpie.utils
+
+from .abstract_algorithm import AbstractAlgorithm
+from .patch import Patch
+from .variant import Variant
 
 
 class BasicAlgorithm(AbstractAlgorithm):
@@ -16,6 +22,62 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stats['cache_hits'] = 0
         self.stats['cache_misses'] = 0
         self.cache_reset()
+
+    def setup_scenario(self, config):
+        sec = config['search']
+        self.config['warmup'] = int(sec['warmup'])
+        self.config['warmup_strategy'] = sec['warmup_strategy']
+        self.stop['steps'] = int(val) if (val := sec['max_steps']) else None
+        self.stop['wall'] = int(val) if (val := sec['max_time']) else None
+        self.stop['fitness'] = int(val) if (val := sec['target_fitness']) else None
+        self.config['cache_maxsize'] = int(val) if (val := sec['cache_maxsize']) else 0
+        self.config['cache_keep'] = float(sec['cache_keep'])
+
+        self.config['possible_edits'] = []
+        for edit in sec['possible_edits'].split():
+            try:
+                klass = magpie.utils.edit_from_string(edit)
+                self.config['possible_edits'].append(klass)
+            except RuntimeError as exc:
+                raise ValueError(f'Invalid config file: unknown edit type "{edit}" in "[software] possible_edits"') from exc
+        if self.config['possible_edits'] == []:
+            raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
+
+        bins = [[]]
+        for s in sec['batch_instances'].splitlines():
+            if s == '___':
+                if bins[-1]:
+                    bins.append([])
+            elif s[:5] == 'file:':
+                try:
+                    with open(os.path.join(config['software']['path'], s[5:])) as bin_file:
+                        bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
+                except FileNotFoundError:
+                    with open(s[5:]) as bin_file:
+                        bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
+            else:
+                s.strip()
+                if s and s[0] != '#':
+                    bins[-1].append(s)
+        if len(bins) > 1 and not bins[-1]:
+            bins.pop()
+        tmp = sec['batch_shuffle'].lower()
+        if tmp in ['true', 't', '1']:
+            for a in bins:
+                random.shuffle(a)
+        elif tmp in ['false', 'f', '0']:
+            pass
+        else:
+            raise ValueError('[search] batch_shuffle should be Boolean')
+        tmp = sec['batch_bin_shuffle'].lower()
+        if tmp in ['true', 't', '1']:
+            random.shuffle(bins)
+        elif tmp in ['false', 'f', '0']:
+            pass
+        else:
+            raise ValueError('[search] batch_bin_shuffle should be Boolean')
+        self.config['batch_bins'] = bins
+        self.config['batch_sample_size'] = int(sec['batch_sample_size'])
 
     def hook_reset_batch(self):
         # resample instances

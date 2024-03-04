@@ -1,5 +1,7 @@
+import magpie.utils
 from magpie.core import Edit
-from . import AbstractLineModel
+
+from .abstract_model import AbstractLineModel
 
 
 class LineDeletion(Edit):
@@ -14,6 +16,7 @@ class LineDeletion(Edit):
         model = variant.models[self.target[0]]
         return model.do_delete(self.target)
 
+magpie.utils.known_edits.append(LineDeletion)
 
 class LineReplacement(Edit):
     @classmethod
@@ -29,6 +32,7 @@ class LineReplacement(Edit):
         model = variant.models[self.target[0]]
         return model.do_replace(ref_model, self.target, ingredient)
 
+magpie.utils.known_edits.append(LineReplacement)
 
 class LineInsertion(Edit):
     @classmethod
@@ -43,3 +47,5 @@ class LineInsertion(Edit):
         ref_model = ref.models[ingredient[0]]
         model = variant.models[self.target[0]]
         return model.do_insert(ref_model, self.target, ingredient)
+
+magpie.utils.known_edits.append(LineInsertion)
