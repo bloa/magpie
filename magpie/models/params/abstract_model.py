@@ -17,8 +17,8 @@ class AbstractParamsModel(BasicModel):
             'silent_suffix': '$',
         }
 
-    def setup_scenario(self, config, section_name):
-        super().setup_scenario(config, section_name)
+    def setup(self, config, section_name):
+        super().setup(config, section_name)
         for name in ['params', section_name]:
             config_section = config[section_name]
             if (k := 'timing') in config_section:

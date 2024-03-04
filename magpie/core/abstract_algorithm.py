@@ -8,9 +8,6 @@ import magpie.settings
 class AbstractAlgorithm(abc.ABC):
     def __init__(self):
         self.software = None
-        self.setup()
-
-    def setup(self):
         self.config = {}
         self.config['possible_edits'] = []
         self.stop = {}

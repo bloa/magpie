@@ -21,8 +21,8 @@ class SrcmlModel(XmlModel):
             'process_operators': True,
         }
 
-    def setup_scenario(self, config, section_name):
-        super().setup_scenario(config, section_name)
+    def setup(self, config, section_name):
+        super().setup(config, section_name)
         for name in ['srcml', section_name]:
             config_section = config[name]
             for k in [

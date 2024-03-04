@@ -6,8 +6,8 @@ import magpie.core
 import magpie.utils
 
 class GeneticProgramming(magpie.core.BasicAlgorithm):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Genetic Programming'
         self.config['pop_size'] = 10
         self.config['delete_prob'] = 0.5
@@ -20,8 +20,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
         super().reset()
         self.stats['gen'] = 0
 
-    def setup_scenario(self, config):
-        super().setup_scenario(config)
+    def setup(self, config):
+        super().setup(config)
         sec = config['search.gp']
         self.config['pop_size'] = int(sec['pop_size'])
         self.config['delete_prob'] = float(sec['delete_prob'])
@@ -174,8 +174,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
 
 
 class GeneticProgrammingConcat(GeneticProgramming):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Genetic Programming (Concat)'
 
     def crossover(self, sol1, sol2):
@@ -188,8 +188,8 @@ magpie.utils.known_algos.append(GeneticProgrammingConcat)
 
 
 class GeneticProgramming1Point(GeneticProgramming):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Genetic Programming (1-point)'
 
     def crossover(self, sol1, sol2):
@@ -206,8 +206,8 @@ magpie.utils.known_algos.append(GeneticProgramming1Point)
 
 
 class GeneticProgramming2Point(GeneticProgramming):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Genetic Programming (2-point)'
 
     def crossover(self, sol1, sol2):
@@ -228,8 +228,8 @@ magpie.utils.known_algos.append(GeneticProgramming2Point)
 
 
 class GeneticProgrammingUniformConcat(GeneticProgramming):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Genetic Programming (uniform+concatenation)'
         self.config['uniform_rate'] = 0.5
 
@@ -253,8 +253,8 @@ magpie.utils.known_algos.append(GeneticProgrammingUniformConcat)
 
 
 class GeneticProgrammingUniformInter(GeneticProgramming):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Genetic Programming (uniform+interleaved)'
         self.config['uniform_rate'] = 0.5
 
