@@ -28,7 +28,7 @@ if __name__ == "__main__":
     if config['search']['algorithm']:
         algo = magpie.utils.algo_from_string(config['search']['algorithm'])
         if not issubclass(algo, magpie.algos.LocalSearch):
-            raise RuntimeError(f'Invalid local search algorithm "{args.algo}"')
+            raise RuntimeError(f'Invalid local search algorithm "{algo.__name__}"')
     else:
         config['search']['algorithm'] = 'FirstImprovement'
         algo = magpie.algos.FirstImprovement
