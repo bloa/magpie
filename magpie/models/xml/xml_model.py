@@ -2,6 +2,8 @@ import copy
 import re
 from xml.etree import ElementTree
 
+import magpie.utils
+
 from .abstract_model import AbstractXmlModel
 
 class XmlModel(AbstractXmlModel):
@@ -10,6 +12,12 @@ class XmlModel(AbstractXmlModel):
         self.config = {
             'internodes': [],
         }
+
+    def setup_scenario(self, config, section_name):
+        super().setup_scenario(config, section_name)
+        config_section = config[section_name]
+        if (k := 'internodes') in config_section:
+            self.config[k] = set(config_section[k].split())
 
     def init_contents(self):
         with open(self.filename) as target_file:
@@ -410,3 +418,5 @@ class XmlModel(AbstractXmlModel):
             target.tail = target.tail.replace(f'\n{ind_i}', f'\n{ind_t}')
         for child in target:
             self.replace_indent(child, ind_t, ind_i, False)
+
+magpie.utils.known_models.append(XmlModel)

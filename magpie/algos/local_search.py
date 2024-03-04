@@ -2,10 +2,11 @@ import abc
 import copy
 import random
 
-from magpie.core import Patch, BasicAlgorithm, Variant
+import magpie.core
+import magpie.utils
 
 
-class LocalSearch(BasicAlgorithm):
+class LocalSearch(magpie.core.BasicAlgorithm):
     def setup(self):
         super().setup()
         self.name = 'Local Search'
@@ -16,6 +17,13 @@ class LocalSearch(BasicAlgorithm):
     def reset(self):
         super().reset()
         self.stats['neighbours'] = 0
+
+    def setup_scenario(self, config):
+        super().setup_scenario(config)
+        sec = config['search.ls']
+        self.config['delete_prob'] = float(sec['delete_prob'])
+        self.config['max_neighbours'] = int(val) if (val := sec['max_neighbours']) else None
+        self.config['when_trapped'] = sec['when_trapped']
 
     def run(self):
         try:
@@ -79,6 +87,8 @@ class DummySearch(LocalSearch):
         self.report['stop'] = 'dummy end'
         return current_patch, current_fitness
 
+magpie.utils.known_algos.append(DummySearch)
+
 
 class DebugSearch(LocalSearch):
     def setup(self):
@@ -89,10 +99,10 @@ class DebugSearch(LocalSearch):
         debug_patch = self.report['debug_patch']
         for edit in debug_patch.edits:
             # move
-            patch = Patch([edit])
+            patch = magpie.core.Patch([edit])
 
             # compare
-            variant = Variant(self.software, patch)
+            variant = magpie.core.Variant(self.software, patch)
             run = self.evaluate_variant(variant)
             accept = best = False
             if run.status == 'SUCCESS':
@@ -111,6 +121,8 @@ class DebugSearch(LocalSearch):
         self.report['stop'] = 'debug end'
         return current_patch, current_fitness
 
+magpie.utils.known_algos.append(DebugSearch)
+
 
 class RandomSearch(LocalSearch):
     def setup(self):
@@ -119,11 +131,11 @@ class RandomSearch(LocalSearch):
 
     def explore(self, current_patch, current_fitness):
         # move
-        patch = Patch()
+        patch = magpie.core.Patch()
         self.mutate(patch)
 
         # compare
-        variant = Variant(self.software, patch)
+        variant = magpie.core.Variant(self.software, patch)
         run = self.evaluate_variant(variant)
         best = False
         if run.status == 'SUCCESS':
@@ -139,6 +151,8 @@ class RandomSearch(LocalSearch):
         self.stats['steps'] += 1
         return patch, run.fitness
 
+magpie.utils.known_algos.append(RandomSearch)
+
 
 class RandomWalk(LocalSearch):
     def setup(self):
@@ -146,13 +160,18 @@ class RandomWalk(LocalSearch):
         self.name = 'Random Walk'
         self.config['accept_fail'] = False
 
+    def setup_scenario(self, config):
+        super().setup_scenario(config)
+        sec = config['search.ls']
+        self.config['accept_fail'] = sec['accept_fail']
+
     def explore(self, current_patch, current_fitness):
         # move
         patch = copy.deepcopy(current_patch)
         self.mutate(patch)
 
         # compare
-        variant = Variant(self.software, patch)
+        variant = magpie.core.Variant(self.software, patch)
         run = self.evaluate_variant(variant)
         accept = self.config['accept_fail']
         best = False
@@ -179,6 +198,8 @@ class RandomWalk(LocalSearch):
         self.stats['steps'] += 1
         return current_patch, current_fitness
 
+magpie.utils.known_algos.append(RandomWalk)
+
 
 class FirstImprovement(LocalSearch):
     def setup(self):
@@ -195,7 +216,7 @@ class FirstImprovement(LocalSearch):
                 break
 
         # compare
-        variant = Variant(self.software, patch)
+        variant = magpie.core.Variant(self.software, patch)
         run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
@@ -225,6 +246,8 @@ class FirstImprovement(LocalSearch):
         self.stats['steps'] += 1
         return current_patch, current_fitness
 
+magpie.utils.known_algos.append(FirstImprovement)
+
 
 class BestImprovement(LocalSearch):
     def setup(self):
@@ -244,7 +267,7 @@ class BestImprovement(LocalSearch):
                 break
 
         # compare
-        variant = Variant(self.software, patch)
+        variant = magpie.core.Variant(self.software, patch)
         run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
@@ -282,6 +305,8 @@ class BestImprovement(LocalSearch):
         self.stats['steps'] += 1
         return current_patch, current_fitness
 
+magpie.utils.known_algos.append(BestImprovement)
+
 
 class WorstImprovement(LocalSearch):
     def setup(self):
@@ -301,7 +326,7 @@ class WorstImprovement(LocalSearch):
                 break
 
         # compare
-        variant = Variant(self.software, patch)
+        variant = magpie.core.Variant(self.software, patch)
         run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
@@ -339,14 +364,21 @@ class WorstImprovement(LocalSearch):
         self.stats['steps'] += 1
         return current_patch, current_fitness
 
+magpie.utils.known_algos.append(WorstImprovement)
+
 
 class TabuSearch(BestImprovement):
     def setup(self):
         super().setup()
         self.name = 'Tabu Search'
         self.config['tabu_length'] = 10
-        self.tabu_list = [Patch()] # queues are not iterable
+        self.tabu_list = [magpie.core.Patch()] # queues are not iterable
         self.local_tabu = set()
+
+    def setup_scenario(self, config):
+        super().setup_scenario(config)
+        sec = config['search.ls']
+        self.config['tabu_length'] = sec['tabu_length']
 
     def explore(self, current_patch, current_fitness):
         # move
@@ -357,7 +389,7 @@ class TabuSearch(BestImprovement):
                 break
 
         # compare
-        variant = Variant(self.software, patch)
+        variant = magpie.core.Variant(self.software, patch)
         run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
@@ -396,3 +428,5 @@ class TabuSearch(BestImprovement):
         # next
         self.stats['steps'] += 1
         return current_patch, current_fitness
+
+magpie.utils.known_algos.append(TabuSearch)

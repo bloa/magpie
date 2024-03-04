@@ -1,5 +1,6 @@
-from .abstract_model import AbstractLineModel
+import magpie.utils
 
+from .abstract_model import AbstractLineModel
 
 class LineModel(AbstractLineModel):
     def init_contents(self):
@@ -70,3 +71,5 @@ class LineModel(AbstractLineModel):
             return False
         self.contents[self.locations[d_t][d_i]] = None
         return True
+
+magpie.utils.known_models.append(LineModel)

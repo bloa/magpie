@@ -1,8 +1,10 @@
-from magpie.core import Edit
-from . import AbstractParamsModel
+import magpie.core
+import magpie.utils
+
+from .abstract_model import AbstractParamsModel
 
 
-class ParamSetting(Edit):
+class ParamSetting(magpie.core.Edit):
     @classmethod
     def auto_create(cls, ref):
         model = ref.random_model(AbstractParamsModel)
@@ -15,3 +17,5 @@ class ParamSetting(Edit):
     def apply(self, ref, variant):
         model = variant.models[self.target[0]]
         return model.do_set(self.target, self.data[0])
+
+magpie.utils.known_edits += [ParamSetting]

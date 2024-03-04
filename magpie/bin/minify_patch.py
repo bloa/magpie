@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = magpie.utils.patch_from_string(args.patch)
+    patch = magpie.core.Patch.from_string(args.patch)
 
     # setup
     config['search']['algorithm'] = 'ValidMinify'
@@ -35,7 +35,6 @@ if __name__ == "__main__":
     protocol.search = magpie.utils.algo_from_string(config['search']['algorithm'])()
     protocol.search.debug_patch = patch
     protocol.software = magpie.utils.software_from_string(config['software']['software'])(config)
-    protocol.setup(config)
 
     # run experiments
-    protocol.run()
+    protocol.run(config)

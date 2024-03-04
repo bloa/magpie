@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if args.patch.endswith('.patch'):
         with open(args.patch) as f:
             args.patch = f.read().strip()
-    patch = magpie.utils.patch_from_string(args.patch)
+    patch = magpie.core.Patch.from_string(args.patch)
 
     # setup
     magpie.core.setup(config)

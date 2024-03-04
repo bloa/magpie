@@ -1,10 +1,11 @@
 import ast
 import copy
 
-from magpie.core import AbstractModel
+import magpie.core
+import magpie.utils
 
 
-class AstorModel(AbstractModel):
+class AstorModel(magpie.core.BasicModel):
     def init_contents(self):
         with open(self.filename) as f:
             self.contents = ast.parse(f.read()+'\n')
@@ -102,3 +103,5 @@ class AstorModel(AbstractModel):
             block, index = pos[i]
             node = node.__dict__[block][index]
         return (node.__dict__[pos[-1][0]], pos[-1][1])
+
+magpie.utils.known_models.append(AstorModel)

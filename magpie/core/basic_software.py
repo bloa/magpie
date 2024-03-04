@@ -3,12 +3,16 @@ import os
 import re
 import shlex
 
-import magpie
-from magpie.core import AbstractSoftware
-from magpie.core import RunResult
+import magpie.settings
+import magpie.utils.known
+
+from .abstract_software import AbstractSoftware
+from .runresult import RunResult
 
 class BasicSoftware(AbstractSoftware):
     def __init__(self, config):
+        self.config = config
+
         # AbstractSoftware *requires* a path, a list of target files, and a list of possible edits
         if not (val := config['software']['path']):
             raise ValueError('Invalid config file: "[software] path" must be defined')
@@ -25,7 +29,7 @@ class BasicSoftware(AbstractSoftware):
                     k, v = rule.split(':')
                 except ValueError:
                     raise ValueError(f'Badly formated rule: "{rule}"')
-                self.model_rules.append((k.strip(), magpie.utils.model_from_string(v.strip())))
+                self.model_rules.append((k.strip(), v.strip()))
 
         # model config
         self.model_config = []
@@ -38,7 +42,7 @@ class BasicSoftware(AbstractSoftware):
                 v = v.strip()
                 if v[0]+v[-1] != '[]':
                     raise ValueError(f'Badly formated section name: "{rule}"')
-                self.model_config.append((k.strip(), config[v[1:-1]], v))
+                self.model_config.append((k.strip(), v[1:-1]))
 
         # fitness type
         if 'fitness' not in config['software']:
@@ -346,9 +350,7 @@ class BasicSoftware(AbstractSoftware):
         cli = ''
         for target in self.target_files:
             model = variant.models[target]
-            if isinstance(model, magpie.models.params.AbstractParamsModel):
-                if step in model.config['timing']:
-                    cli = f'{cli} {model.resolve_cli()}'
+            model.update_cli(variant, cli, step)
         return cli
 
     def process_init_exec(self, run_result, exec_result):
@@ -597,3 +599,5 @@ class BasicSoftware(AbstractSoftware):
         if run.status == 'BATCH_LENGTHOUT':
             self.logger.info('Batch execution of "run_cmd" generated too much output')
             self.logger.info('--> consider increasing "batch_lengthout"')
+
+magpie.utils.known_software.append(BasicSoftware)

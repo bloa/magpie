@@ -3,12 +3,3 @@ from .local_search import FirstImprovement, BestImprovement, WorstImprovement, T
 from .genetic_programming import GeneticProgramming, GeneticProgrammingConcat, GeneticProgramming1Point, GeneticProgramming2Point, GeneticProgrammingUniformConcat, GeneticProgrammingUniformInter
 from .validation import ValidSearch, ValidSingle, ValidTest, ValidMinify
 from .ablation import AblationAnalysis
-
-# "final" algos only
-known_algos = [
-    DummySearch, RandomSearch, RandomWalk, DebugSearch,
-    FirstImprovement, BestImprovement, WorstImprovement, TabuSearch,
-    GeneticProgrammingConcat, GeneticProgramming1Point, GeneticProgramming2Point, GeneticProgrammingUniformConcat, GeneticProgrammingUniformInter,
-    ValidSingle, ValidTest, ValidMinify,
-    AblationAnalysis,
-]

@@ -1,8 +1,7 @@
 import magpie
-from magpie.models.xml import SrcmlStmtDeletion
 
 
-class PythonStmtDeletion(SrcmlStmtDeletion):
+class PythonStmtDeletion(magpie.models.xml.SrcmlStmtDeletion):
     def apply(self, ref, variant):
         model = variant.models[self.target[0]]
         return all([
@@ -10,4 +9,4 @@ class PythonStmtDeletion(SrcmlStmtDeletion):
             model.do_set_text(self.target, 'pass'),
         ])
 
-magpie.models.known_edits += [PythonStmtDeletion]
+magpie.utils.known_edits += [PythonStmtDeletion]
