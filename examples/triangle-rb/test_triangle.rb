@@ -2,7 +2,7 @@ require 'minitest/autorun'
 
 require_relative 'triangle'
 
-class TestTriangle < MiniTest::Unit::TestCase
+class TestTriangle < Minitest::Test
   data = {
     invalid: [
       [1, 2, 9], [1, 9, 2], [2, 1, 9], [2, 9, 1], [9, 1, 2], [9, 2, 1],
