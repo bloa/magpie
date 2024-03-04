@@ -7,8 +7,8 @@ import magpie.utils
 
 
 class LocalSearch(magpie.core.BasicAlgorithm):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Local Search'
         self.config['delete_prob'] = 0.5
         self.config['max_neighbours'] = None
@@ -18,8 +18,8 @@ class LocalSearch(magpie.core.BasicAlgorithm):
         super().reset()
         self.stats['neighbours'] = 0
 
-    def setup_scenario(self, config):
-        super().setup_scenario(config)
+    def setup(self, config):
+        super().setup(config)
         sec = config['search.ls']
         self.config['delete_prob'] = float(sec['delete_prob'])
         self.config['max_neighbours'] = int(val) if (val := sec['max_neighbours']) else None
@@ -79,8 +79,8 @@ class LocalSearch(magpie.core.BasicAlgorithm):
 
 
 class DummySearch(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Dummy Search'
 
     def explore(self, current_patch, current_fitness):
@@ -91,8 +91,8 @@ magpie.utils.known_algos.append(DummySearch)
 
 
 class DebugSearch(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Debug Search'
 
     def explore(self, current_patch, current_fitness):
@@ -125,8 +125,8 @@ magpie.utils.known_algos.append(DebugSearch)
 
 
 class RandomSearch(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Random Search'
 
     def explore(self, current_patch, current_fitness):
@@ -155,13 +155,13 @@ magpie.utils.known_algos.append(RandomSearch)
 
 
 class RandomWalk(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Random Walk'
         self.config['accept_fail'] = False
 
-    def setup_scenario(self, config):
-        super().setup_scenario(config)
+    def setup(self, config):
+        super().setup(config)
         sec = config['search.ls']
         self.config['accept_fail'] = sec['accept_fail']
 
@@ -202,8 +202,8 @@ magpie.utils.known_algos.append(RandomWalk)
 
 
 class FirstImprovement(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'First Improvement'
         self.local_tabu = set()
 
@@ -250,8 +250,8 @@ magpie.utils.known_algos.append(FirstImprovement)
 
 
 class BestImprovement(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Best Improvement'
         self.config['max_neighbours'] = 20
         self.local_best_patch = None
@@ -309,8 +309,8 @@ magpie.utils.known_algos.append(BestImprovement)
 
 
 class WorstImprovement(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Worst Improvement'
         self.config['max_neighbours'] = 20
         self.local_worst_patch = None
@@ -368,15 +368,15 @@ magpie.utils.known_algos.append(WorstImprovement)
 
 
 class TabuSearch(BestImprovement):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Tabu Search'
         self.config['tabu_length'] = 10
         self.tabu_list = [magpie.core.Patch()] # queues are not iterable
         self.local_tabu = set()
 
-    def setup_scenario(self, config):
-        super().setup_scenario(config)
+    def setup(self, config):
+        super().setup(config)
         sec = config['search.ls']
         self.config['tabu_length'] = sec['tabu_length']
 

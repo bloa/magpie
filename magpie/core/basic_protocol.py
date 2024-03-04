@@ -16,7 +16,7 @@ class BasicProtocol:
             raise AssertionError('Search not specified')
 
         # setup search
-        self.search.setup_scenario(config)
+        self.search.setup(config)
 
         # log config just in case
         with io.StringIO() as ss:

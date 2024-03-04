@@ -48,7 +48,7 @@ class Variant:
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                model.setup_scenario(software.config, section_name)
+                model.setup(software.config, section_name)
                 break
         model.init_contents()
         if model.indirect_locations:

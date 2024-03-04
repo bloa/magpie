@@ -10,8 +10,8 @@ from .variant import Variant
 
 
 class BasicAlgorithm(AbstractAlgorithm):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.config['warmup'] = 3
         self.config['warmup_strategy'] = 'last'
         self.config['cache_maxsize'] = 40
@@ -23,7 +23,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stats['cache_misses'] = 0
         self.cache_reset()
 
-    def setup_scenario(self, config):
+    def setup(self, config):
         sec = config['search']
         self.config['warmup'] = int(sec['warmup'])
         self.config['warmup_strategy'] = sec['warmup_strategy']

@@ -13,8 +13,8 @@ class XmlModel(AbstractXmlModel):
             'internodes': [],
         }
 
-    def setup_scenario(self, config, section_name):
-        super().setup_scenario(config, section_name)
+    def setup(self, config, section_name):
+        super().setup(config, section_name)
         config_section = config[section_name]
         if (k := 'internodes') in config_section:
             self.config[k] = set(config_section[k].split())

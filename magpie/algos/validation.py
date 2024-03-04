@@ -7,8 +7,8 @@ from .local_search import LocalSearch
 
 
 class ValidSearch(LocalSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.debug_patch = None
 
     def hook_warmup(self):
@@ -53,8 +53,8 @@ class ValidSearch(LocalSearch):
 
 
 class ValidSingle(ValidSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Validation Single'
 
     def explore(self, current_patch, current_fitness):
@@ -72,8 +72,8 @@ magpie.utils.known_algos.append(ValidSingle)
 
 
 class ValidTest(ValidSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Validation Full'
 
     def explore(self, current_patch, current_fitness):
@@ -89,16 +89,16 @@ magpie.utils.known_algos.append(ValidTest)
 
 
 class ValidMinify(ValidSearch):
-    def setup(self):
-        super().setup()
+    def __init__(self):
+        super().__init__()
         self.name = 'Minify Patch'
         self.config['do_cleanup'] = True
         self.config['do_rebuild'] = True
         self.config['do_simplify'] = True
         self.config['round_robin_limit'] = -1
 
-    def setup_scenario(self, config):
-        super().setup_scenario(config)
+    def setup(self, config):
+        super().setup(config)
         sec = config['search.minify']
         for key in [
                 'do_cleanup',
