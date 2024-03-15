@@ -60,4 +60,4 @@ class AbstractModel(abc.ABC):
         return (self.filename, target_type, loc)
 
     def update_cli(self, variant, cli, step):
-        pass
+        return cli

@@ -363,7 +363,7 @@ class BasicSoftware(AbstractSoftware):
         cli = ''
         for target in self.target_files:
             model = variant.models[target]
-            model.update_cli(variant, cli, step)
+            cli = model.update_cli(variant, cli, step)
         return cli
 
     def process_init_exec(self, run_result, exec_result):
