@@ -62,9 +62,9 @@ number: literal_number""",
 
     # [params]
     'params': {
-        'timing': "test run",
-        'cli_prefix': "--",
-        'cli_glue': "=",
+        'timing': 'test run',
+        'cli_prefix': '--',
+        'cli_glue': '=',
         'cli_boolean': 'show', # show ; hide ; prefix
         'cli_boolean_prefix_true': '',
         'cli_boolean_prefix_false': 'no-',

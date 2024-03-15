@@ -1,5 +1,5 @@
 import contextlib
-import os
+import pathlib
 import re
 import shlex
 
@@ -7,7 +7,9 @@ import magpie.settings
 import magpie.utils.known
 
 from .abstract_software import AbstractSoftware
+from .errors import ScenarioError
 from .runresult import RunResult
+
 
 class BasicSoftware(AbstractSoftware):
     def __init__(self, config):
@@ -15,42 +17,49 @@ class BasicSoftware(AbstractSoftware):
 
         # AbstractSoftware *requires* a path, a list of target files, and a list of possible edits
         if not (val := config['software']['path']):
-            raise ValueError('Invalid config file: "[software] path" must be defined')
+            msg = 'Invalid config file: "[software] path" must be defined'
+            raise ScenarioError(msg)
         super().__init__(val, reset=False)
         if not (val := config['software']['target_files']):
-            raise ValueError('Invalid config file: "[software] target_files" must defined')
+            msg = 'Invalid config file: "[software] target_files" must defined'
+            raise ScenarioError(msg)
         self.target_files = val.split()
 
         # model rules
         self.model_rules = []
-        for rule in config['software']['model_rules'].split("\n"):
-            if rule: # discard potential initial empty line
-                try:
+        try:
+            for rule in config['software']['model_rules'].split('\n'):
+                if rule: # discard potential initial empty line
                     k, v = rule.split(':')
-                except ValueError:
-                    raise ValueError(f'Badly formated rule: "{rule}"')
-                self.model_rules.append((k.strip(), v.strip()))
+                    self.model_rules.append((k.strip(), v.strip()))
+        except ValueError as e:
+            msg = f'Badly formated rule: "{rule}"'
+            raise ScenarioError(msg) from e
 
         # model config
         self.model_config = []
-        for rule in config['software']['model_config'].split("\n"):
-            if rule: # discard potential initial empty line
-                try:
+        try:
+            for rule in config['software']['model_config'].split('\n'):
+                if rule: # discard potential initial empty line
                     k, v = rule.split(':')
-                except ValueError:
-                    raise ValueError(f'Badly formated rule: "{rule}"')
-                v = v.strip()
-                if v[0]+v[-1] != '[]':
-                    raise ValueError(f'Badly formated section name: "{rule}"')
-                self.model_config.append((k.strip(), v[1:-1]))
+                    v = v.strip()
+                    if v[0]+v[-1] != '[]':
+                        msg = f'Badly formated section name: "{rule}"'
+                        raise ScenarioError(msg)
+                    self.model_config.append((k.strip(), v[1:-1]))
+        except ValueError as e:
+            msg = f'Badly formated rule: "{rule}"'
+            raise ScenarioError(msg) from e
 
         # fitness type
         if 'fitness' not in config['software']:
-            raise ValueError('Invalid config file: "[software] fitness" must be defined')
+            msg = 'Invalid config file: "[software] fitness" must be defined'
+            raise ScenarioError(msg)
         known_fitness = ['output', 'time', 'posix_time', 'perf_time', 'perf_instructions', 'repair', 'bloat_lines', 'bloat_words', 'bloat_chars']
         if config['software']['fitness'] not in known_fitness:
             tmp = '/'.join(known_fitness)
-            raise ValueError(f'Invalid config file: "[software] fitness" key must be {tmp}')
+            msg = f'Invalid config file: "[software] fitness" key must be {tmp}'
+            raise ScenarioError(msg)
         self.fitness_type = config['software']['fitness']
 
         # execution-related parameters
@@ -164,12 +173,14 @@ class BasicSoftware(AbstractSoftware):
         known_strategies = ['sum', 'average', 'median']
         if self.batch_fitness_strategy not in known_strategies:
             tmp = '/'.join(known_strategies)
-            raise ValueError(f'Invalid config file: "[software] batch_fitness_strategy" key must be {tmp}')
+            msg = f'Invalid config file: "[software] batch_fitness_strategy" key must be {tmp}'
+            raise ScenarioError(msg)
         self.batch_bin_fitness_strategy = config['software']['batch_fitness_strategy']
         known_strategies = ['aggregate', 'sum', 'average', 'median', 'q10', 'q25', 'q75', 'q90']
         if self.batch_fitness_strategy not in known_strategies:
             tmp = '/'.join(known_strategies)
-            raise ValueError(f'Invalid config file: "[software] batch_bin_fitness_strategy" key must be {tmp}')
+            msg = f'Invalid config file: "[software] batch_bin_fitness_strategy" key must be {tmp}'
+            raise ScenarioError(msg)
         if 'batch_timeout' in config['software']:
             if config['software']['batch_timeout'].lower() in ['', 'none']:
                 self.batch_timeout = None
@@ -204,19 +215,20 @@ class BasicSoftware(AbstractSoftware):
                         run_result.status = f'INIT_{run_result.status}'
                         run_result.last_exec = exec_result
                         self.diagnose_error(run_result)
-                        raise RuntimeError('(cmd_init) failed to init target software')
+                        msg = '(cmd_init) failed to init target software'
+                        raise RuntimeError(msg)
         super().reset_contents()
 
     def evaluate_variant(self, variant, cached_run=None):
         # check batch sync
-        if cached_run is None or not set(inst for b in self.batch for inst in b).issubset(cached_run.cache.keys()):
+        if cached_run is None or not {inst for b in self.batch for inst in b}.issubset(cached_run.cache.keys()):
             self.write_variant(variant)
         else:
             self.process_batch_final(cached_run)
             return cached_run
 
         # evaluate
-        work_path = os.path.join(self.work_dir, self.basename)
+        work_path = self.work_dir / self.basename
         run_result = cached_run or RunResult(variant, 'UNKNOWN_ERROR')
 
         with contextlib.chdir(work_path):
@@ -227,7 +239,8 @@ class BasicSoftware(AbstractSoftware):
                 # make sure this is the unmodified software
                 for filename in self.target_files:
                     model = variant.models[filename]
-                    assert model.dump() == model.cached_dump
+                    if model.dump() != model.cached_dump:
+                        raise AssertionError
 
                 # run "[software] setup_cmd" if provided
                 if self.setup_cmd:
@@ -309,7 +322,7 @@ class BasicSoftware(AbstractSoftware):
                 batch_lengthout = self.batch_lengthout
                 insts = [inst for b in self.batch for inst in b]
                 for inst in insts:
-                    if inst in run_result.cache.keys():
+                    if inst in run_result.cache:
                         continue
                     run_cmd = self.run_cmd.strip()
                     if '{INST}' in self.run_cmd:
@@ -381,16 +394,13 @@ class BasicSoftware(AbstractSoftware):
                 total_matches = re.findall(total_regexp, stdout, re.MULTILINE)
                 n_fail = 0
                 n_total = 0
-                for m in fail_matches:
-                    try:
+                try:
+                    for m in fail_matches:
                         n_fail += float(m)
-                    except ValueError:
-                        run_result.status = 'PARSE_ERROR'
-                for m in total_matches:
-                    try:
+                    for m in total_matches:
                         n_total += float(m)
-                    except ValueError:
-                        run_result.status = 'PARSE_ERROR'
+                except ValueError:
+                    run_result.status = 'PARSE_ERROR'
                 if n_total > 0:
                     run_result.fitness = round(100*n_fail/n_total, 2)
                     break
@@ -407,7 +417,7 @@ class BasicSoftware(AbstractSoftware):
             run_result.fitness = 0
             for filename in self.target_files:
                 renamed = run_result.variant.models[filename].renamed_filename
-                with open(renamed) as target:
+                with pathlib.Path(renamed).open('r') as target:
                     if self.fitness_type == 'bloat_lines':
                         run_result.fitness += len(target.readlines())
                     elif self.fitness_type == 'bloat_words':
@@ -425,12 +435,9 @@ class BasicSoftware(AbstractSoftware):
         if self.fitness_type == 'output':
             stdout = exec_result.stdout.decode(magpie.settings.output_encoding)
             m = re.search('MAGPIE_FITNESS: (.*)', stdout)
-            if m:
-                try:
-                    run_result.fitness = float(m.group(1))
-                except ValueError:
-                    run_result.status = 'PARSE_ERROR'
-            else:
+            try:
+                run_result.fitness = float(m.group(1))
+            except (AttributeError, ValueError):
                 run_result.status = 'PARSE_ERROR'
 
         # if "[software] fitness" is "time", we just use time as seen by the main Python process
@@ -441,41 +448,32 @@ class BasicSoftware(AbstractSoftware):
         elif self.fitness_type == 'posix_time':
             stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
             m = re.search('real (.*)', stderr)
-            if m:
-                try:
-                    run_result.fitness = float(m.group(1))
-                except ValueError:
-                    run_result.status = 'PARSE_ERROR'
-            else:
+            try:
+                run_result.fitness = float(m.group(1))
+            except (AttributeError, ValueError):
                 run_result.status = 'PARSE_ERROR'
 
         # if "[software] fitness" is "perf_time", we assume a perf-like output on STDERR
         elif self.fitness_type == 'perf_time':
             stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
             m = re.search('(.*) seconds time elapsed', stderr)
-            if m:
-                try:
-                    run_result.fitness = round(float(m.group(1)), 4)
-                except ValueError:
-                    run_result.status = 'PARSE_ERROR'
-            else:
+            try:
+                run_result.fitness = round(float(m.group(1)), 4)
+            except (AttributeError, ValueError):
                 run_result.status = 'PARSE_ERROR'
 
         # if "[software] fitness" is "perf_instructions", we assume a perf-like output on STDERR
         elif self.fitness_type == 'perf_instructions':
             stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
             m = re.search('(.*) instructions', stderr)
-            if m:
-                try:
-                    run_result.fitness = int(m.group(1).replace(',', ''))
-                except ValueError:
-                    run_result.status = 'PARSE_ERROR'
-            else:
+            try:
+                run_result.fitness = int(m.group(1).replace(',', ''))
+            except (AttributeError, ValueError):
                 run_result.status = 'PARSE_ERROR'
 
     def process_batch_single(self, run_result, inst):
         run_result.cache[inst] = (run_result.status, run_result.fitness)
-        self.logger.debug(f'EXEC> {inst} {run_result.status} {run_result.fitness}')
+        self.logger.debug('EXEC> %s %s %s', inst, run_result.status, run_result.fitness)
 
     def process_batch_final(self, run_result):
         tmp = []
@@ -554,45 +552,45 @@ class BasicSoftware(AbstractSoftware):
         self.self_diagnostic(run)
         self.logger.info('!*'*40)
         if run.last_exec is not None:
-            self.logger.info(f'CWD: {os.path.join(self.work_dir, self.basename)}')
-            self.logger.info(f'CMD: {run.last_exec.cmd}')
-            self.logger.info(f'STATUS: {run.last_exec.status}')
-            self.logger.info(f'RETURN_CODE: {run.last_exec.return_code}')
-            self.logger.info(f'RUNTIME: {run.last_exec.runtime}')
+            self.logger.info('CWD: %s', pathlib.Path(self.work_dir) / self.basename)
+            self.logger.info('CMD: %s', run.last_exec.cmd)
+            self.logger.info('STATUS: %s', run.last_exec.status)
+            self.logger.info('RETURN_CODE: %d', run.last_exec.return_code)
+            self.logger.info('RUNTIME: %s', run.last_exec.runtime)
             encoding = magpie.settings.output_encoding
             self.logger.info('STDOUT: (see log file)')
             try:
                 s = run.last_exec.stdout.decode(encoding)
-                self.logger.debug(f'STDOUT:\n{s}')
+                self.logger.debug('STDOUT:\n%s', s)
             except UnicodeDecodeError:
-                self.logger.debug(f'STDOUT: (failed to decode to: {encoding})\n{run.last_exec.stdout}')
+                self.logger.debug('STDOUT: (failed to decode to: %s)\n%s', encoding, run.last_exec.stdout)
             self.logger.info('STDERR: (see log file)')
             try:
                 s = run.last_exec.stderr.decode(encoding)
-                self.logger.debug(f'STDERR:\n{s}')
+                self.logger.debug('STDERR:\n%s', s)
             except UnicodeDecodeError:
-                self.logger.debug(f'STDERR: (failed to decode to: {encoding})\n{run.last_exec.stderr}')
+                self.logger.debug('STDERR: (failed to decode to: %s)\n%s', encoding, run.last_exec.stderr)
             self.logger.info('!*'*40)
 
     def self_diagnostic(self, run):
         for step in ['init', 'setup', 'compile', 'test', 'run']:
             if run.status == f'{step.upper()}_CLI_ERROR':
-                self.logger.info(f'Unable to run the "{step}_cmd" command')
+                self.logger.info('Unable to run the "%s_cmd" command', step)
                 self.logger.info('--> there might be a typo (try it manually)')
                 self.logger.info('--> your command might not be found (check your PATH)')
                 self.logger.info('--> it might not run from the correct directory (check CWD below)')
             if run.status == f'{step.upper()}_CODE_ERROR':
-                self.logger.info(f'The "{step}_cmd" command failed with a nonzero exit code')
+                self.logger.info('The "%s_cmd" command failed with a nonzero exit code', step)
                 self.logger.info('--> try to run it manually')
             if run.status == f'{step.upper()}_PARSE_ERROR':
-                self.logger.info(f'The "{step}_cmd" STDOUT/STDERR was invalid')
+                self.logger.info('The "%s_cmd" STDOUT/STDERR was invalid', step)
                 self.logger.info('--> try to run it manually')
             if run.status == f'{step.upper()}_TIMEOUT':
-                self.logger.info(f'The "{step}_cmd" command took too long to run')
-                self.logger.info(f'--> consider increasing "{step}_timeout"')
+                self.logger.info('The "%s_cmd" command took too long to run', step)
+                self.logger.info('--> consider increasing "%s_timeout"', step)
             if run.status == f'{step.upper()}_LENGTHOUT':
-                self.logger.info(f'The "{step}_cmd" command generated too much output')
-                self.logger.info(f'--> consider increasing "{step}_lengthout"')
+                self.logger.info('The "%s_cmd" command generated too much output', step)
+                self.logger.info('--> consider increasing "%s_lengthout"', step)
         if run.status == 'BATCH_TIMEOUT':
             self.logger.info('Batch execution of "run_cmd" took too long to run')
             self.logger.info('--> consider increasing "batch_timeout"')

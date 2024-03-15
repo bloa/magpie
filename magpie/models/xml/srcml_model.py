@@ -13,7 +13,7 @@ class SrcmlModel(XmlModel):
             'internodes': {'block'},
             'tag_rename': {
                 'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},
-                'number': {'literal_number'}
+                'number': {'literal_number'},
             },
             'tag_focus': {'block', 'stmt', 'operator_comp', 'operator_arith', 'number'},
             'process_pseudo_blocks': True,
@@ -23,7 +23,7 @@ class SrcmlModel(XmlModel):
 
     def setup(self, config, section_name):
         super().setup(config, section_name)
-        for name in ['srcml', section_name]:
+        for name in tuple({'srcml', section_name}):
             config_section = config[name]
             for k in [
                     'process_pseudo_blocks',
@@ -36,16 +36,18 @@ class SrcmlModel(XmlModel):
                 elif val.lower() in ['false', 'f', '0']:
                     self.config[k] = False
                 else:
-                    raise ValueError(f'Invalid config file: "{section_name} {k}" should be Boolean')
+                    msg = f'Invalid config file: "{name} {k}" should be Boolean'
+                    raise magpie.core.ScenarioError(msg)
             if 'rename' in config_section:
                 h = {}
-                for rule in config_section['rename'].split("\n"):
-                    if rule.strip(): # discard potential initial empty line
-                        try:
+                try:
+                    for rule in config_section['rename'].split('\n'):
+                        if rule.strip(): # discard potential initial empty line
                             k, v = rule.split(':')
-                        except ValueError:
-                            raise ValueError(f'Badly formated rule: "{rule}"')
-                        h[k] = set(v.split())
+                            h[k] = set(v.split())
+                except ValueError as e:
+                    msg = f'Badly formated rule: "{rule}"'
+                    raise magpie.core.ScenarioError(msg) from e
                 self.config['tag_rename'] = h
             if 'focus' in config_section:
                 self.config['tag_focus'] = set(config_section['focus'].split())
@@ -67,7 +69,7 @@ class SrcmlModel(XmlModel):
     def guess_spacing(text):
         if text is None:
             return ''
-        m = [''] + re.findall(r"\n(\s*)", text, re.MULTILINE)
+        m = ['', *re.findall(r'\n(\s*)', text, re.MULTILINE)]
         return m[-1]
 
     @staticmethod

@@ -4,12 +4,11 @@ import pathlib
 
 import magpie
 
-
 # ================================================================================
 # Main function
 # ================================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie local search')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--algo', type=str)
@@ -28,7 +27,8 @@ if __name__ == "__main__":
     if config['search']['algorithm']:
         algo = magpie.utils.algo_from_string(config['search']['algorithm'])
         if not issubclass(algo, magpie.algos.LocalSearch):
-            raise RuntimeError(f'Invalid local search algorithm "{algo.__name__}"')
+            msg = f'Invalid local search algorithm "{algo.__name__}"'
+            raise RuntimeError(msg)
     else:
         config['search']['algorithm'] = 'FirstImprovement'
         algo = magpie.algos.FirstImprovement

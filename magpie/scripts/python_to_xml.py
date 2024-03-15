@@ -2,13 +2,13 @@ import argparse
 import ast
 from ast import *
 from contextlib import contextmanager, nullcontext
+import sys
 
 def read_file_or_stdin(filename):
     if filename == 'stdin':
         return sys.stdin.read()
-    else:
-        with open(filename) as f:
-            return f.read()
+    with open(filename) as f:
+        return f.read()
 
 def unparse_xml(root, filename=""):
     unparser = XmlUnparser()

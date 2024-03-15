@@ -1,7 +1,7 @@
 import pytest
 
-from magpie.core import ExecResult, RunResult, BasicSoftware
-from magpie.core import default_scenario
+from magpie.core import BasicSoftware, ExecResult, RunResult, default_scenario
+
 
 class StubSoftware(BasicSoftware):
     def __init__(self):
@@ -18,16 +18,16 @@ class StubSoftware(BasicSoftware):
         self.contents = {}
         self.locations = {}
 
-@pytest.fixture
+@pytest.fixture()
 def my_software():
     return StubSoftware()
 
-@pytest.fixture
+@pytest.fixture()
 def my_runresult(my_software):
     return RunResult(my_software, 'SUCCESS')
 
 
-@pytest.mark.parametrize('return_code,status', [
+@pytest.mark.parametrize(('return_code', 'status'), [
     # SUCCESS on 0
     (0, 'SUCCESS'),
     # CODE_ERROR on everything else
@@ -42,7 +42,7 @@ def test_process_init(my_software, my_runresult, return_code, status):
     assert my_runresult.status == status, my_runresult
 
 
-@pytest.mark.parametrize('return_code,status', [
+@pytest.mark.parametrize(('return_code', 'status'), [
     # SUCCESS on 0
     (0, 'SUCCESS'),
     # CODE_ERROR on everything else
@@ -57,7 +57,7 @@ def test_process_setup(my_software, my_runresult, return_code, status):
     assert my_runresult.status == status, my_runresult
 
 
-@pytest.mark.parametrize('return_code,status', [
+@pytest.mark.parametrize(('return_code', 'status'), [
     # SUCCESS on 0
     (0, 'SUCCESS'),
     # CODE_ERROR on everything else
@@ -72,7 +72,7 @@ def test_process_compile(my_software, my_runresult, return_code, status):
     assert my_runresult.status == status, my_runresult
 
 
-@pytest.mark.parametrize('return_code,status', [
+@pytest.mark.parametrize(('return_code', 'status'), [
     # SUCCESS on 0
     (0, 'SUCCESS'),
     # CODE_ERROR on everything else
@@ -88,7 +88,7 @@ def test_process_test_not_repair(my_software, my_runresult, return_code, status)
     assert my_runresult.status == status, my_runresult
 
 
-@pytest.mark.parametrize('stdout,status,fitness', [
+@pytest.mark.parametrize(('stdout', 'status', 'fitness'), [
     # SUCCESS when both failed/passed on stdout
     (b'collected 3 items\n 3 failed ; 0 passed', 'SUCCESS', 100.0),
     (b'collected 3 items\n 2 failed ; 1 passed', 'SUCCESS', 66.67),
@@ -111,7 +111,7 @@ def test_process_test_repair(my_software, my_runresult, stdout, status, fitness)
     assert my_runresult.fitness == fitness
 
 
-@pytest.mark.parametrize('return_code,status', [
+@pytest.mark.parametrize(('return_code', 'status'), [
     # SUCCESS on 0
     (0, 'SUCCESS'),
     # CODE_ERROR on everything else
@@ -126,7 +126,7 @@ def test_process_run(my_software, my_runresult, return_code, status):
     assert my_runresult.status == status, my_runresult
 
 
-@pytest.mark.parametrize('stdout,status,fitness', [
+@pytest.mark.parametrize(('stdout', 'status', 'fitness'), [
     # SUCCESS on 0
     (b'MAGPIE_FITNESS: 1', 'SUCCESS', 1),
     (b'MAGPIE_FITNESS: -1', 'SUCCESS', -1),
@@ -146,7 +146,7 @@ def test_process_run_output(my_software, my_runresult, stdout, status, fitness):
     assert my_runresult.fitness == fitness
 
 
-@pytest.mark.parametrize('stderr,status,fitness', [
+@pytest.mark.parametrize(('stderr', 'status', 'fitness'), [
     # SUCCESS on POSIX output
     (b'real 1.01\nuser 0.00\nsys 0.00', 'SUCCESS', 1.01),
     # PARSE_ERROR on everything else
@@ -160,7 +160,7 @@ def test_process_run_posixtime(my_software, my_runresult, stderr, status, fitnes
     assert my_runresult.fitness == fitness
 
 
-@pytest.mark.parametrize('stderr,status,fitness', [
+@pytest.mark.parametrize(('stderr', 'status', 'fitness'), [
     # SUCCESS on PERF output
     (b'       1.001619582 seconds time elapsed', 'SUCCESS', 1.0016),
     # PARSE_ERROR on everything else
@@ -174,7 +174,7 @@ def test_process_run_perftime(my_software, my_runresult, stderr, status, fitness
     assert my_runresult.fitness == fitness
 
 
-@pytest.mark.parametrize('stderr,status,fitness', [
+@pytest.mark.parametrize(('stderr', 'status', 'fitness'), [
     # SUCCESS on PERF output
     (b'           190,479      instructions:u            #    0.49  insn per cycle         ', 'SUCCESS', 190479),
     # PARSE_ERROR on everything else

@@ -2,6 +2,7 @@ import argparse
 import pathlib
 import re
 
+
 def sanitize_xml(s):
     out = s
     out = re.sub('&', '&amp;', out)
@@ -14,7 +15,7 @@ def sanitize_xml(s):
 # Main function
 # ================================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie line to XML formatter')
     parser.add_argument('--file', type=pathlib.Path)
     parser.add_argument('--empty-lines', action=argparse.BooleanOptionalAction, default=False)
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     in_ml_comment = False
     ignore_list = args.ignore.split(' ')
 
-    with open(args.file) as f:
+    with args.file.open('r') as f:
         print('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>')
         print(f'<unit xmlns="magpie" filename="{args.file}">')
         for line in f.readlines():
@@ -48,7 +49,7 @@ if __name__ == "__main__":
             if (ml_comments and in_ml_comment) or (b in ignore_list) or not (b or args.empty_lines):
                 print(a, b, c, sep='')
             else:
-                print('{a}<line>{b}</line>{c}')
+                print(f'{a}<line>{b}</line>{c}')
             if ml_comments and in_ml_comment and b.endswith(ml_comments[1]):
                 in_ml_comment = False
         print('</unit>')

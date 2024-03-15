@@ -1,7 +1,13 @@
 import magpie.utils
 
-from .xml_edits import AbstractXmlNodeDeletion, AbstractXmlNodeReplacement, AbstractXmlNodeInsertion
-from .xml_edits import AbstractXmlTextSetting, AbstractXmlTextWrapping
+from .xml_edits import (
+    AbstractXmlNodeDeletion,
+    AbstractXmlNodeInsertion,
+    AbstractXmlNodeReplacement,
+    AbstractXmlTextSetting,
+    AbstractXmlTextWrapping,
+)
+
 
 class XmlLineDeletion(AbstractXmlNodeDeletion):
     NODE_TAG = 'line'

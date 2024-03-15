@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-
 import pathlib
 import runpy
 import sys
 
 root = pathlib.Path(__file__).parent.parent
-all_valid_targets = sum([sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'scripts']], [])
+all_valid_targets = [path for paths in [sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'scripts']] for path in paths]
 
 def usage():
     print('usage: python3 magpie ((magpie/){bin,scripts}/)TARGET(.py) [ARGS]...')

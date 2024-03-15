@@ -1,6 +1,5 @@
 import pathlib
 
-
 magpie_root = pathlib.Path(__file__).parent.parent
 
 log_dir = '_magpie_logs'

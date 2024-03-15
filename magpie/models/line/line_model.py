@@ -1,17 +1,20 @@
+import pathlib
+
 import magpie.utils
 
 from .abstract_model import AbstractLineModel
 
+
 class LineModel(AbstractLineModel):
     def init_contents(self):
-        with open(self.filename, 'r') as target_file:
+        with pathlib.Path(self.filename).open('r') as target_file:
             lines = list(map(str.rstrip, target_file.readlines()))
 
         n = len(lines)
         self.contents = lines
         self.locations = {
             'line': list(range(n)),
-            '_inter_line': list(range(n+1))
+            '_inter_line': list(range(n+1)),
         }
 
     def dump(self):
@@ -35,7 +38,7 @@ class LineModel(AbstractLineModel):
             o_f != ref_model.filename or
             d_t != 'line' or
             o_t != 'line'):
-            raise ValueError()
+            raise ValueError
         old_line = self.contents[self.locations[d_t][d_i]]
         new_line = ref_model.contents[ref_model.locations[o_t][o_i]]
         if (new_line is None or
@@ -51,7 +54,7 @@ class LineModel(AbstractLineModel):
             o_f != ref_model.filename or
             d_t != '_inter_line' or
             o_t != 'line'):
-            raise ValueError()
+            raise ValueError
         new_line = ref_model.contents[ref_model.locations[o_t][o_i]]
         self.contents.insert(self.locations[d_t][d_i], new_line)
         # fix locations
@@ -65,7 +68,7 @@ class LineModel(AbstractLineModel):
         d_f, d_t, d_i = target # file name, "line", interline index
         if (d_f != self.filename or
             d_t != 'line'):
-            raise ValueError()
+            raise ValueError
         old_line = self.contents[self.locations[d_t][d_i]]
         if old_line is None:
             return False

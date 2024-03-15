@@ -1,8 +1,11 @@
 import importlib
-import os
+import pathlib
 import random
 
 import magpie.settings
+
+from .errors import ScenarioError
+
 
 def pre_setup(config):
     # [magpie]
@@ -10,7 +13,7 @@ def pre_setup(config):
     if val := sec['import']:
         for module in val.split():
             try:
-                s = os.path.join(config['software']['path'], module)
+                s = pathlib.Path(config['software']['path']) /  module
                 importlib.import_module(s.rstrip('.py').lstrip('./').replace('/', '.'))
             except ModuleNotFoundError:
                 importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
@@ -33,7 +36,8 @@ def setup(config):
     elif tmp in ['false', 'f', '0']:
         magpie.settings.local_original_copy = False
     else:
-        raise ValueError('[magpie] local_original_copy should be Boolean')
+        msg = '[magpie] local_original_copy should be Boolean'
+        raise ScenarioError(msg)
     magpie.settings.local_original_copy = sec['local_original_name']
     magpie.settings.output_encoding = sec['output_encoding']
     magpie.settings.edit_retries = int(sec['edit_retries'])
@@ -46,4 +50,5 @@ def setup(config):
     elif val in ['false', 'f', '0']:
         magpie.settings.trust_local_filesystem = False
     else:
-        raise ValueError('[magpie] trust_local_filesystem should be Boolean')
+        msg = '[magpie] trust_local_filesystem should be Boolean'
+        raise ScenarioError(msg)

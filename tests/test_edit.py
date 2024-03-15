@@ -1,5 +1,6 @@
 from magpie.core import Edit
 
+
 def test_str_no_data():
     e = Edit('target_file')
     assert str(e) == "Edit('target_file')"

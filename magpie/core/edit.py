@@ -1,5 +1,6 @@
 import abc
 
+
 class Edit:
     def __init__(self, target, *args):
         self.target = target
@@ -27,5 +28,5 @@ class Edit:
     def __str__(self):
         if self.data:
             tmp = ', '.join([repr(d) for d in self.data])
-            return f'{self.__class__.__name__}({repr(self.target)}, {tmp})'
-        return f'{self.__class__.__name__}({repr(self.target)})'
+            return f'{self.__class__.__name__}({self.target!r}, {tmp})'
+        return f'{self.__class__.__name__}({self.target!r})'

@@ -40,7 +40,8 @@ class AbstractAlgorithm(abc.ABC):
         while (edit := klass.auto_create(ref)) is None:
             tries -= 1
             if tries == 0:
-                raise RuntimeError(f'Unable to create an edit of class {klass.__name__}')
+                msg = f'Unable to create an edit of class {klass.__name__}'
+                raise RuntimeError(msg)
         return edit
 
     def dominates(self, fit1, fit2):

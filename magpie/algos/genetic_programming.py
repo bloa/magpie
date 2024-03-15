@@ -5,6 +5,7 @@ import random
 import magpie.core
 import magpie.utils
 
+
 class GeneticProgramming(magpie.core.BasicAlgorithm):
     def __init__(self):
         super().__init__()
@@ -35,7 +36,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
         elif tmp in ['false', 'f', '0']:
             self.config['batch_reset'] = False
         else:
-            raise ValueError('[search.gp] batch_reset should be Boolean')
+            msg = '[search.gp] batch_reset should be Boolean'
+            raise magpie.core.ScenarioError(msg)
 
     def aux_log_counter(self):
         gen = self.stats['gen']
@@ -57,7 +59,6 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
 
             # initial pop
             pop = {}
-            local_best = None
             local_best_fitness = None
             while len(pop) < self.config['pop_size']:
                 sol = magpie.core.Patch()
@@ -70,7 +71,6 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                 if run.status == 'SUCCESS':
                     if self.dominates(run.fitness, local_best_fitness):
                         local_best_fitness = run.fitness
-                        local_best = sol
                         accept = True
                         if self.dominates(run.fitness, self.report['best_fitness']):
                             self.report['best_fitness'] = run.fitness
@@ -116,7 +116,6 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                     offsprings.append(sol)
                 # replace
                 pop.clear()
-                local_best = None
                 local_best_fitness = None
                 for sol in offsprings:
                     if self.stopping_condition():
@@ -127,7 +126,6 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                     if run.status == 'SUCCESS':
                         if self.dominates(run.fitness, local_best_fitness):
                             local_best_fitness = run.fitness
-                            local_best = sol
                             accept = True
                             if self.dominates(run.fitness, self.report['best_fitness']):
                                 self.report['best_fitness'] = run.fitness
@@ -157,14 +155,11 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
         return c
 
     def filter(self, pop):
-        tmp = {sol for sol in pop if pop[sol].status == 'SUCCESS'}
-        return tmp
+        return {sol for sol in pop if pop[sol].status == 'SUCCESS'}
 
     def select(self, pop):
         """ returns possible parents ordered by fitness """
-        tmp = self.filter(pop)
-        tmp = sorted(tmp, key=lambda sol: pop[sol].fitness)
-        return tmp
+        return sorted(self.filter(pop), key=lambda sol: pop[sol].fitness)
 
     def hook_main_loop(self):
         if self.config['batch_reset']:

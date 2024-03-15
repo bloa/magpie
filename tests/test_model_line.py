@@ -1,23 +1,25 @@
 import contextlib
 import copy
-import os
+import pathlib
+
 import pytest
 
 from magpie.models.line import LineModel
+
 from .util import assert_diff
 
 
-@pytest.fixture
+@pytest.fixture()
 def line_model():
     model = LineModel('triangle.py')
-    with contextlib.chdir(os.path.join('tests', 'examples')):
+    with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model
 
-@pytest.fixture
+@pytest.fixture()
 def file_contents():
-    path = os.path.join('tests', 'examples', 'triangle.py')
-    with open(path, 'r') as myfile:
+    path = pathlib.Path('tests') / 'examples' / 'triangle.py'
+    with path.open('r') as myfile:
         return myfile.read()
 
 def test_interlines(line_model):

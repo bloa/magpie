@@ -1,10 +1,11 @@
-import os
+import pathlib
 import random
 import time
 
 import magpie.utils
 
 from .abstract_algorithm import AbstractAlgorithm
+from .errors import ScenarioError
 from .patch import Patch
 from .variant import Variant
 
@@ -34,14 +35,15 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.config['cache_keep'] = float(sec['cache_keep'])
 
         self.config['possible_edits'] = []
-        for edit in sec['possible_edits'].split():
-            try:
-                klass = magpie.utils.edit_from_string(edit)
-                self.config['possible_edits'].append(klass)
-            except RuntimeError as exc:
-                raise ValueError(f'Invalid config file: unknown edit type "{edit}" in "[software] possible_edits"') from exc
+        try:
+            for edit in sec['possible_edits'].split():
+                self.config['possible_edits'].append(magpie.utils.edit_from_string(edit))
+        except RuntimeError:
+            msg = f'Invalid config file: unknown edit type "{edit}" in "[software] possible_edits"'
+            raise ScenarioError(msg)
         if self.config['possible_edits'] == []:
-            raise ValueError('Invalid config file: "[search] possible_edits" must be non-empty!')
+            msg = 'Invalid config file: "[search] possible_edits" must be non-empty!'
+            raise ScenarioError(msg)
 
         bins = [[]]
         for s in sec['batch_instances'].splitlines():
@@ -50,10 +52,10 @@ class BasicAlgorithm(AbstractAlgorithm):
                     bins.append([])
             elif s[:5] == 'file:':
                 try:
-                    with open(os.path.join(config['software']['path'], s[5:])) as bin_file:
+                    with (pathlib.Path(config['software']['path']) / s[5:]).open('r') as bin_file:
                         bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
                 except FileNotFoundError:
-                    with open(s[5:]) as bin_file:
+                    with pathlib.Path(s[5:]).open('r') as bin_file:
                         bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
             else:
                 s.strip()
@@ -68,14 +70,16 @@ class BasicAlgorithm(AbstractAlgorithm):
         elif tmp in ['false', 'f', '0']:
             pass
         else:
-            raise ValueError('[search] batch_shuffle should be Boolean')
+            msg = '[search] batch_shuffle should be Boolean'
+            raise ScenarioError(msg)
         tmp = sec['batch_bin_shuffle'].lower()
         if tmp in ['true', 't', '1']:
             random.shuffle(bins)
         elif tmp in ['false', 'f', '0']:
             pass
         else:
-            raise ValueError('[search] batch_bin_shuffle should be Boolean')
+            msg = '[search] batch_bin_shuffle should be Boolean'
+            raise ScenarioError(msg)
         self.config['batch_bins'] = bins
         self.config['batch_sample_size'] = int(sec['batch_sample_size'])
 
@@ -107,7 +111,8 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.report['best_fitness'] = run.fitness
         self.hook_warmup_evaluation('INITIAL', patch, run)
         if run.status != 'SUCCESS':
-            raise RuntimeError('Initial solution has failed')
+            msg = 'Initial solution has failed'
+            raise RuntimeError(msg)
         # update best patch
         if self.report['best_patch'] and self.report['best_patch'].edits:
             variant = Variant(self.software, self.report['best_patch'])
@@ -135,10 +140,11 @@ class BasicAlgorithm(AbstractAlgorithm):
 
     def hook_start(self):
         if not self.config['possible_edits']:
-            raise RuntimeError('Possible_edits list is empty')
+            msg = 'Possible_edits list is empty'
+            raise RuntimeError(msg)
         # TODO: check that every possible edit can be created and simplify create_edit
         self.stats['wallclock_start'] = time.time() # discards warmup time
-        self.software.logger.info(f'==== START: {self.__class__.__name__} ====')
+        self.software.logger.info('==== START: %s ====', self.__class__.__name__)
 
     def hook_main_loop(self):
         pass
@@ -170,8 +176,9 @@ class BasicAlgorithm(AbstractAlgorithm):
             s2 = f'[{patch_size} edit(s)] '
         else:
             s2 = ''
-        tmp = f'{str(fitness)} {s} {s2}'
-        self.software.logger.info(f'{counter:<7} {status:<20} {c:>1}{tmp:<24}{data}')
+        tmp = f'{fitness!s} {s} {s2}'
+        msg = f'{counter:<7} {status:<20} {c:>1}{tmp:<24}{data}'
+        self.software.logger.info(msg)
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
@@ -209,7 +216,8 @@ class BasicAlgorithm(AbstractAlgorithm):
         elif self.config['warmup_strategy'] == 'median':
             current_fitness = sorted(warmup_values)[len(warmup_values)//2]
         else:
-            raise ValueError('Unknown warmup strategy')
+            msg = 'Unknown warmup strategy'
+            raise ValueError(msg)
         run.fitness = current_fitness
         self.cache_set(variant.diff, run)
         self.hook_warmup_evaluation('INITIAL', patch, run)
@@ -240,13 +248,14 @@ class BasicAlgorithm(AbstractAlgorithm):
     def cache_get(self, diff):
         try:
             run = self.cache[diff]
+        except KeyError:
+            self.stats['cache_misses'] += 1
+            return None
+        else:
             self.stats['cache_hits'] += 1
             if self.config['cache_maxsize'] > 0:
                 self.cache_hits[diff] += 1
             return run
-        except KeyError:
-            self.stats['cache_misses'] += 1
-            return None
 
     def cache_set(self, diff, run):
         msize = self.config['cache_maxsize']
@@ -255,8 +264,8 @@ class BasicAlgorithm(AbstractAlgorithm):
             hits = sorted(self.cache.keys(), key=lambda k: 999 if len(k) == 0 else self.cache_hits[k])
             for k in hits[:int(msize*(1-keep))]:
                 del self.cache[k]
-            self.cache_hits = { p: 0 for p in self.cache.keys()}
-        if not diff in self.cache:
+            self.cache_hits = dict.fromkeys(self.cache, 0)
+        if diff not in self.cache:
             self.cache_hits[diff] = 0
         self.cache[diff] = run
 
