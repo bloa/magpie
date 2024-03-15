@@ -59,6 +59,8 @@ class AbstractParamsModel(magpie.core.BasicModel):
     def update_cli(self, variant, cli, step):
         if step in self.config['timing']:
             return f'{cli} {self.resolve_cli()}'
+        else:
+            return cli
 
     def resolve_cli(self):
         all_params = self.contents['current']
