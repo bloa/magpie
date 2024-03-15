@@ -14,7 +14,7 @@ class ValidSearch(LocalSearch):
     def hook_warmup(self):
         super().hook_warmup()
         if self.debug_patch is None:
-            raise ValueError()
+            raise RuntimeError
 
     def hook_start(self):
         super().hook_start()
@@ -43,12 +43,12 @@ class ValidSearch(LocalSearch):
             del patch.edits[k]
             tmp = magpie.core.Variant(self.software, patch)
             if tmp.diff == variant.diff:
-                self.software.logger.info(f'removed {cleaned.patch.edits[k]}')
+                self.software.logger.info('removed %s', cleaned.patch.edits[k])
                 cleaned = tmp
         s1, s2 = len(cleaned.patch.edits), len(variant.patch.edits)
         if s1 < s2:
-            self.software.logger.info(f'cleaned size is {s1} (was {s2})')
-            self.software.logger.info(f'clean patch: {cleaned.patch}')
+            self.software.logger.info('cleaned size is %d (was %d)', s1, s2)
+            self.software.logger.info('clean patch: %s', cleaned.patch)
         return cleaned
 
 
@@ -111,7 +111,8 @@ class ValidMinify(ValidSearch):
             elif tmp in ['false', 'f', '0']:
                 self.config[key] = False
             else:
-                raise ValueError(f'[search.minify] {key} should be Boolean')
+                msg = f'[search.minify] {key} should be Boolean'
+                raise magpie.core.ScenarioError(msg)
         self.config['round_robin_limit'] = int(sec['round_robin_limit'])
 
     def explore(self, current_patch, current_fitness):
@@ -149,7 +150,7 @@ class ValidMinify(ValidSearch):
                 self.software.logger.info('-- rebuild --')
                 rebuild = magpie.core.Patch([ranking[0][0]])
                 rebuild_fitness = ranking[0][1]
-                for (edit,fit) in ranking[1:]:
+                for (edit, _) in ranking[1:]:
                     patch = copy.deepcopy(rebuild)
                     patch.edits.append(edit)
                     tmp = magpie.core.Variant(self.software, patch)

@@ -1,7 +1,9 @@
-from magpie.core import BasicModel
+import magpie.core
+
 from .realms import Realm
 
-class AbstractParamsModel(BasicModel):
+
+class AbstractParamsModel(magpie.core.BasicModel):
     def __init__(self, filename):
         super().__init__(filename)
         self.indirect_locations = False
@@ -19,12 +21,13 @@ class AbstractParamsModel(BasicModel):
 
     def setup(self, config, section_name):
         super().setup(config, section_name)
-        for name in ['params', section_name]:
-            config_section = config[section_name]
+        for name in tuple({'params', section_name}):
+            config_section = config[name]
             if (k := 'timing') in config_section:
                 tmp = config_section[k].split()
                 if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
-                    raise ValueError(f'Illegal timing value: [{section_name}] "{val}"')
+                    msg = f'Illegal timing value: [{name}] "{val}"'
+                    raise magpie.core.ScenarioError(msg)
                 self.config[k] = tmp
             for k in [
                     'cli_prefix',
@@ -40,7 +43,7 @@ class AbstractParamsModel(BasicModel):
                     self.config[k] = config_section[k]
 
     def dump(self):
-        return ''.join([f'{k} := {repr(v)}\n' for k,v in self.contents['current'].items() if not self.would_be_ignored(k, v)])
+        return ''.join([f'{k} := {v!r}\n' for k,v in self.contents['current'].items() if not self.would_be_ignored(k, v)])
 
     def show_location(self, target_type, target_loc):
         if target_type != 'param':
@@ -86,7 +89,7 @@ class AbstractParamsModel(BasicModel):
             if self.config['cli_none'] == 'hide':
                 return ''
         glue = self.config['cli_glue']
-        return f'{prefix}{cli_param}{glue}{repr(value)}'
+        return f'{prefix}{cli_param}{glue}{value!r}'
 
     def would_be_ignored(self, key, value):
         return any(self.contents['current'][_k2] not in _vals for (_k1, _k2, _vals) in self.contents['conditionals'] if _k1 == key)
@@ -94,7 +97,7 @@ class AbstractParamsModel(BasicModel):
     def would_be_valid(self, key, value):
         for d in self.contents['forbidden']:
             forbidden = True
-            for k in d.keys():
+            for k in d:
                 if (k != key and d[k] != self.contents['current'][k]) or (k == key and d[k] != value):
                     forbidden = False
                     break

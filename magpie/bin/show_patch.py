@@ -4,12 +4,11 @@ import pathlib
 
 import magpie
 
-
 # ================================================================================
 # Main function
 # ================================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie show patch')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--patch', type=str, required=True)
@@ -24,7 +23,7 @@ if __name__ == "__main__":
 
     # recreate patch
     if args.patch.endswith('.patch'):
-        with open(args.patch) as f:
+        with pathlib.Path(args.patch).open('r') as f:
             args.patch = f.read().strip()
     patch = magpie.core.Patch.from_string(args.patch)
 
@@ -35,8 +34,8 @@ if __name__ == "__main__":
 
     # show patch
     software.logger.info('==== REPORT ====')
-    software.logger.info(f'Patch: {patch}')
-    software.logger.info(f'Diff:\n{variant.diff}')
+    software.logger.info('Patch: %s', patch)
+    software.logger.info('Diff:\n%s', variant.diff)
     if args.keep:
         software.logger.info('==== PATH ====')
         software.logger.info(software.work_dir)

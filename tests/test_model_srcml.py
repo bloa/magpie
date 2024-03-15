@@ -1,16 +1,15 @@
 import contextlib
-import copy
-import os
+import pathlib
+
 import pytest
 
-from magpie.models.xml import XmlModel, SrcmlModel
-from .util import assert_diff
+from magpie.models.xml import SrcmlModel, XmlModel
 
 
-@pytest.fixture
+@pytest.fixture()
 def xml_model():
     model = XmlModel('triangle.c.xml')
-    with contextlib.chdir(os.path.join('tests', 'examples')):
+    with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model
 

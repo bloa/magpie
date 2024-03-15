@@ -4,12 +4,11 @@ import pathlib
 
 import magpie
 
-
 # ================================================================================
 # Main function
 # ================================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie genetic programming')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--algo', type=str)
@@ -28,7 +27,8 @@ if __name__ == "__main__":
     if config['search']['algorithm']:
         algo = magpie.utils.algo_from_string(config['search']['algorithm'])
         if not issubclass(algo, magpie.algos.GeneticProgramming):
-            raise RuntimeError(f'Invalid genetic programming algorithm "{algo.__name__}"')
+            msg = f'Invalid genetic programming algorithm "{algo.__name__}"'
+            raise RuntimeError(msg)
     else:
         config['search']['algorithm'] = 'GeneticProgrammingUniformConcat'
         algo = magpie.algos.GeneticProgrammingUniformConcat

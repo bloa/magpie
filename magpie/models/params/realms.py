@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
+import abc
 import random
 
-class Realm(ABC):
+
+class Realm(abc.ABC):
     @classmethod
     def random_value_from_realm(cls, realm):
         if isinstance(realm, Realm):
@@ -17,10 +18,11 @@ class Realm(ABC):
                 if callable(realm[0]):
                     x = cls.random_value_from_realm(realm[1])
                     return realm[0](x)
-            raise RuntimeError(f'Invalid param realm "{repr(realm)}"')
+            msg = f'Invalid param realm "{realm!r}"'
+            raise RuntimeError(msg)
         return realm # single value?
 
-    @abstractmethod
+    @abc.abstractmethod
     def random_value(self):
         pass
 

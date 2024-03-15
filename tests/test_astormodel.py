@@ -1,30 +1,33 @@
 import contextlib
 import copy
-import os
-import pytest
+import pathlib
 import re
 
+import pytest
+
 from magpie.models.astor import AstorModel
+
 from .util import assert_diff
 
-@pytest.fixture
+
+@pytest.fixture()
 def astor_model():
     model = AstorModel('triangle.py')
-    with contextlib.chdir(os.path.join('tests', 'examples')):
+    with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model
 
-@pytest.fixture
+@pytest.fixture()
 def file_contents():
-    path = os.path.join('tests', 'examples', 'triangle.py')
-    with open(path, 'r') as myfile:
+    path = pathlib.Path('tests') / 'examples' / 'triangle.py'
+    with path.open('r') as myfile:
         return myfile.read()
 
 def test_dump(astor_model, file_contents):
     """Immediate dump should be transparent (as much as possible)"""
     dump = astor_model.dump()
-    dump_list = dump.split("\n")
-    orig_list = file_contents.split("\n")
+    dump_list = dump.split('\n')
+    orig_list = file_contents.split('\n')
     while dump_list or orig_list:
         # skip empty lines
         if dump_list and not dump_list[0]:

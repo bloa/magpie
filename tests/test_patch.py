@@ -1,5 +1,6 @@
 from magpie.core import Edit, Patch
 
+
 def test_str_no_data():
     p = Patch()
     assert str(p) == ''
@@ -14,7 +15,7 @@ def test_str_multiple_edits():
     e2 = Edit('target_file', 'data1')
     e3 = Edit('target_file', 'data2')
     p = Patch([e1, e2, e3])
-    assert str(p) == '{} | {} | {}'.format(str(e1), str(e2), str(e3))
+    assert str(p) == f'{e1} | {e2} | {e3}'
 
 def test_equality_no_data():
     """Equality by value"""

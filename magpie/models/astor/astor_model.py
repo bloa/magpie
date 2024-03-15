@@ -1,5 +1,6 @@
 import ast
 import copy
+import pathlib
 
 import magpie.core
 import magpie.utils
@@ -7,8 +8,8 @@ import magpie.utils
 
 class AstorModel(magpie.core.BasicModel):
     def init_contents(self):
-        with open(self.filename) as f:
-            self.contents = ast.parse(f.read()+'\n')
+        with pathlib.Path(self.filename).open('r') as target_file:
+            self.contents = ast.parse(target_file.read()+'\n')
 
         self.locations = {'stmt': [], '_inter_block': []}
         def visit_node(parent_pos, node):
@@ -30,7 +31,7 @@ class AstorModel(magpie.core.BasicModel):
         o_f, o_t, o_i = target_orig # file name, tag, path index
         if (d_f != self.filename or
             o_f != ref_model.filename):
-            raise ValueError()
+            raise ValueError
         dst_root = self.contents
         dst_pos = self.locations[d_t][d_i]
         ingr_root = ref_model.contents
@@ -50,7 +51,7 @@ class AstorModel(magpie.core.BasicModel):
         o_f, o_t, o_i = target_orig # file name, tag, path index
         if (d_f != self.filename or
             o_f != ref_model.filename):
-            raise ValueError()
+            raise ValueError
         dst_root = self.contents
         dst_pos = self.locations[d_t][d_i]
         ingr_root = ref_model.contents
@@ -77,7 +78,7 @@ class AstorModel(magpie.core.BasicModel):
     def do_delete(self, target):
         d_f, d_t, d_i = target # file name, tag, path index
         if d_f != self.filename:
-            raise ValueError()
+            raise ValueError
         dst_root = self.contents
         dst_pos = self.locations[d_t][d_i]
         try:

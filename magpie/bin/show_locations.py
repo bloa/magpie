@@ -4,12 +4,11 @@ import pathlib
 
 import magpie
 
-
 # ================================================================================
 # Main function
 # ================================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie show locations')
     parser.add_argument('--scenario', type=pathlib.Path, required=True)
     parser.add_argument('--filename', type=str)
@@ -33,7 +32,7 @@ if __name__ == "__main__":
             continue
         print(f'==== {filename} ====')
         model = software.noop_variant.models[filename]
-        for tag in model.locations.keys():
+        for tag in model.locations:
             if args.tag is not None and args.tag != tag:
                 continue
             print(f'---- {tag} ----')

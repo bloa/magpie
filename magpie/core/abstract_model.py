@@ -1,7 +1,9 @@
 import abc
+import pathlib
 import random
 
 import magpie.settings
+
 
 class AbstractModel(abc.ABC):
     def __init__(self, filename):
@@ -31,16 +33,16 @@ class AbstractModel(abc.ABC):
         dump = self.dump()
         # skip writing if file is (or should be) untouched
         if not self.cached_dump:
-            raise RuntimeError()
+            raise RuntimeError
         if dump == self.cached_dump:
             if self.trust_local:
                 return
-            with open(self.renamed_filename, 'r') as tmp_file:
+            with pathlib.Path(self.renamed_filename).open('r') as tmp_file:
                 if tmp_file.read() == dump:
                     return
             self.trust_local = True
         # write only if file _really_ changed
-        with open(self.renamed_filename, 'w') as tmp_file:
+        with pathlib.Path(self.renamed_filename).open('w') as tmp_file:
             tmp_file.write(dump)
 
     def random_target(self, target_type=None):
@@ -53,7 +55,7 @@ class AbstractModel(abc.ABC):
                 if r < w:
                     return (self.filename, target_type, loc)
                 r -= w
-            raise RuntimeError()
+            raise RuntimeError
         loc = random.choice(self.locations_names[target_type])
         return (self.filename, target_type, loc)
 

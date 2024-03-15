@@ -1,10 +1,22 @@
-from .xml_model import XmlModel
-from .xml_edits import AbstractXmlNodeDeletion, AbstractXmlNodeReplacement, AbstractXmlNodeInsertion
-from .xml_edits import AbstractXmlTextSetting, AbstractXmlTextWrapping
-
+from .srcml_edits import (
+    SrcmlArithmeticOperatorSetting,
+    SrcmlComparisonOperatorSetting,
+    SrcmlExprReplacement,
+    SrcmlNumericSetting,
+    SrcmlRelativeNumericSetting,
+    SrcmlStmtDeletion,
+    SrcmlStmtInsertion,
+    SrcmlStmtReplacement,
+    XmlLineDeletion,
+    XmlLineInsertion,
+    XmlLineReplacement,
+)
 from .srcml_model import SrcmlModel
-from .srcml_edits import XmlLineDeletion, XmlLineReplacement, XmlLineInsertion
-from .srcml_edits import SrcmlStmtDeletion, SrcmlStmtReplacement, SrcmlStmtInsertion
-from .srcml_edits import SrcmlExprReplacement
-from .srcml_edits import SrcmlComparisonOperatorSetting, SrcmlArithmeticOperatorSetting
-from .srcml_edits import SrcmlNumericSetting, SrcmlRelativeNumericSetting
+from .xml_edits import (
+    AbstractXmlNodeDeletion,
+    AbstractXmlNodeInsertion,
+    AbstractXmlNodeReplacement,
+    AbstractXmlTextSetting,
+    AbstractXmlTextWrapping,
+)
+from .xml_model import XmlModel

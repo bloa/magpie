@@ -11,6 +11,7 @@ import subprocess
 import time
 
 import magpie.settings
+
 from .execresult import ExecResult
 from .variant import Variant
 
@@ -18,8 +19,8 @@ from .variant import Variant
 class AbstractSoftware(abc.ABC):
     def __init__(self, path, reset=True):
         self.logger = None
-        self.path = os.path.abspath(path.strip())
-        self.basename = os.path.basename(self.path)
+        self.path = pathlib.Path(path.strip()).resolve()
+        self.basename = self.path.name
         self.target_files = []
         self.noop_variant = None
         self.work_dir = None
@@ -33,23 +34,21 @@ class AbstractSoftware(abc.ABC):
     def reset_timestamp(self):
         # ensures a unique timestamp unique
         self.timestamp = str(int(time.time()))
-        try:
-            os.makedirs(magpie.settings.work_dir)
-        except FileExistsError:
-            pass
+        with contextlib.suppress(FileExistsError):
+            pathlib.Path(magpie.settings.work_dir).mkdir(parents=True)
         while True:
             self.run_label = f'{self.basename}_{self.timestamp}'
-            new_work_dir = os.path.join(os.path.abspath(magpie.settings.work_dir), self.run_label)
+            new_work_dir = pathlib.Path(magpie.settings.work_dir).resolve() / self.run_label
             lock_file = f'{new_work_dir}.lock'
             try:
                 fd = os.open(lock_file, os.O_CREAT | os.O_EXCL)
                 os.close(fd)
                 try:
-                    os.mkdir(new_work_dir)
-                    os.rmdir(new_work_dir)
+                    new_work_dir.mkdir()
+                    new_work_dir.rmdir()
                     break
                 except FileExistsError:
-                    os.remove(lock_file)
+                    pathlib.Path(lock_file).unlink()
             except FileExistsError:
                 pass
             self.timestamp = str(int(self.timestamp)+1)
@@ -64,11 +63,9 @@ class AbstractSoftware(abc.ABC):
         self.logger.setLevel(logging.DEBUG)
 
         # add file logging
-        try:
+        with contextlib.suppress(FileExistsError):
             pathlib.Path(magpie.settings.log_dir).mkdir(parents=True)
-        except FileExistsError:
-            pass
-        file_handler = logging.FileHandler(os.path.join(magpie.settings.log_dir, f'{self.run_label}.log'), delay=True)
+        file_handler = logging.FileHandler((pathlib.Path(magpie.settings.log_dir) / f'{self.run_label}.log'), delay=True)
         file_handler.setFormatter(logging.Formatter('%(asctime)s\t[%(levelname)s]\t%(message)s'))
         file_handler.setLevel(logging.DEBUG)
         self.logger.addHandler(file_handler)
@@ -80,26 +77,24 @@ class AbstractSoftware(abc.ABC):
 
     def reset_workdir(self):
         # creates or move current work_dir
-        new_work_dir = os.path.join(os.path.abspath(magpie.settings.work_dir), self.run_label)
-        if self.work_dir and os.path.exists(self.work_dir):
-            self.work_dir = shutil.move(self.work_dir, new_work_dir)
+        new_work_dir = pathlib.Path(magpie.settings.work_dir).resolve() / self.run_label
+        if self.work_dir and self.work_dir.exists():
+            self.work_dir = pathlib.Path(shutil.move(self.work_dir, new_work_dir))
             if magpie.settings.local_original_copy:
-                self.path = os.path.join(self.work_dir, magpie.settings.local_original_name)
+                self.path = self.work_dir / magpie.settings.local_original_name
         else:
             self.work_dir = new_work_dir
             if magpie.settings.local_original_copy:
-                new_path = os.path.join(self.work_dir, magpie.settings.local_original_name)
+                new_path = self.work_dir / magpie.settings.local_original_name
                 if self.path != new_path:
                     self.path = shutil.copytree(self.path, new_path)
-        lock_file = f'{new_work_dir}.lock'
-        os.remove(lock_file)
+        pathlib.Path(f'{new_work_dir}.lock').unlink()
 
     def reset_contents(self):
         # expend wildcards in target file list
         if any('*' in f for f in self.target_files):
-            path = pathlib.Path(self.path)
-            tmp = [sorted(path.glob(f)) if '*' in f else [f] for f in self.target_files]
-            self.target_files = [str(f.relative_to(path)) for fl in tmp for f in fl]
+            tmp = [sorted(self.path.glob(f)) if '*' in f else [f] for f in self.target_files]
+            self.target_files = [str(f.relative_to(self.path)) for fl in tmp for f in fl]
 
         # reset noop variant
         self.noop_variant = Variant(self)
@@ -110,7 +105,7 @@ class AbstractSoftware(abc.ABC):
 
     def write_variant(self, variant):
         # reset work directory
-        work_path = os.path.join(self.work_dir, self.basename)
+        work_path = self.work_dir / self.basename
         self.sync_folder(work_path, self.path)
 
         # process modified files
@@ -126,30 +121,35 @@ class AbstractSoftware(abc.ABC):
             return
         contents_original = os.listdir(original)
         for entry in contents_target:
-            if os.path.isdir(os.path.join(target, entry)):
+            target_entry = target / entry
+            if target_entry.is_dir():
                 if entry not in contents_original:
                     # new directory
-                    shutil.rmtree(os.path.join(target, entry))
+                    shutil.rmtree(target_entry)
                 # else: common directory
             elif entry not in contents_original:
                 # new file
-                os.remove(os.path.join(target, entry))
-            elif os.path.getmtime(os.path.join(original, entry)) < os.path.getmtime(os.path.join(target, entry)):
-                # modified file
-                shutil.copyfile(os.path.join(original, entry), os.path.join(target, entry))
-                shutil.copystat(os.path.join(original, entry), os.path.join(target, entry))
+                target_entry.unlink()
+            else:
+                original_entry = original / entry
+                if original_entry.stat().st_mtime < target_entry.stat().st_mtime:
+                    # modified file
+                    shutil.copyfile(original_entry, target_entry)
+                    shutil.copystat(original_entry, target_entry)
             # else: unmodified file
         for entry in contents_original:
-            if os.path.isdir(os.path.join(original, entry)):
+            target_entry = target / entry
+            original_entry = original / entry
+            if original_entry.is_dir():
                 if entry in contents_target:
                     # recursion
-                    self.sync_folder(os.path.join(target, entry), os.path.join(original, entry))
+                    self.sync_folder(target_entry, original_entry)
                 else:
                     # deleted directory (?)
-                    shutil.copytree(os.path.join(original, entry), os.path.join(target, entry))
+                    shutil.copytree(original_entry, target_entry)
             elif entry not in contents_target:
                 # deleted file
-                shutil.copyfile(os.path.join(original, entry), os.path.join(target, entry))
+                shutil.copyfile(original_entry, target_entry)
             # else: appears in both (already handled)
 
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, lengthout=1e6):
@@ -207,17 +207,14 @@ class AbstractSoftware(abc.ABC):
                     end = time.time()
                 return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
         except FileNotFoundError:
-            return ExecResult(cmd, 'CLI_ERROR', -1, b"", b"", 0, 0)
+            return ExecResult(cmd, 'CLI_ERROR', -1, b'', b'', 0, 0)
 
     def clean_work_dir(self):
-        try:
+        with contextlib.suppress(FileNotFoundError):
             shutil.rmtree(self.work_dir)
-        except FileNotFoundError:
-            pass
-        try:
-            os.rmdir(magpie.settings.work_dir)
-        except FileNotFoundError:
-            pass
-        except OSError as e:
-            if e.errno != errno.ENOTEMPTY:
-                raise
+        with contextlib.suppress(FileNotFoundError):
+            try:
+                pathlib.Path(magpie.settings.work_dir).rmdir()
+            except OSError as e:
+                if e.errno != errno.ENOTEMPTY:
+                    raise

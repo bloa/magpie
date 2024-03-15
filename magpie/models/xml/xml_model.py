@@ -1,10 +1,12 @@
 import copy
+import pathlib
 import re
 from xml.etree import ElementTree
 
 import magpie.utils
 
 from .abstract_model import AbstractXmlModel
+
 
 class XmlModel(AbstractXmlModel):
     def __init__(self, filename):
@@ -20,7 +22,7 @@ class XmlModel(AbstractXmlModel):
             self.config[k] = set(config_section[k].split())
 
     def init_contents(self):
-        with open(self.filename) as target_file:
+        with pathlib.Path(self.filename).open('r') as target_file:
             tree = self.string_to_tree(target_file.read())
         self.contents = self.process_tree(tree)
 
@@ -105,18 +107,18 @@ class XmlModel(AbstractXmlModel):
     @staticmethod
     def split_xpath(xpath, prefix=None):
         if xpath == '.':
-            raise ValueError()
+            raise ValueError
         if prefix is None:
             pattern = re.compile(r'^(.*)/([^\[]+)(?:\[([^\]]+)\])?$')
             match = re.match(pattern, xpath)
             if match is None:
-                raise LookupError()
+                raise LookupError
             return (match.group(1), match.group(2), int(match.group(3)), None)
         if xpath[:len(prefix)+1] == prefix+'/':
             pattern = re.compile(r'^/([^\[]+)(?:\[([^\]]+)\])?(?:/(.*))?$')
             match = re.match(pattern, xpath[len(prefix):])
             if match is None:
-                raise LookupError()
+                raise LookupError
             return (prefix, match.group(1), int(match.group(2)), match.group(3))
         return (None, None, None, None)
 
@@ -126,7 +128,7 @@ class XmlModel(AbstractXmlModel):
         o_f, o_t, o_i = target_orig # file name, tag, xpath index
         if (d_f != self.filename or
             o_f != ref_model.filename):
-            raise ValueError()
+            raise ValueError
         target = self.contents.find(self.locations[d_t][d_i])
         ingredient = ref_model.contents.find(ref_model.locations[o_t][o_i])
         if target is None or ingredient is None:
@@ -191,7 +193,7 @@ class XmlModel(AbstractXmlModel):
         o_f, o_t, o_i = target_orig # file name, tag, xpath index
         if (d_f != self.filename or
             o_f != ref_model.filename):
-            raise ValueError()
+            raise ValueError
         parent_xpath, insert_index = self.locations[d_t][d_i].split('><')
         insert_index = int(insert_index)
         parent = self.contents.find(parent_xpath)
@@ -250,7 +252,7 @@ class XmlModel(AbstractXmlModel):
         # get elements
         d_f, d_t, d_i = target # file name, tag, xpath index
         if d_f != self.filename:
-            raise ValueError()
+            raise ValueError
         target = self.contents.find(self.locations[d_t][d_i])
         if target is None:
             return False
@@ -268,7 +270,7 @@ class XmlModel(AbstractXmlModel):
     def do_set_text(self, target, value):
         d_f, d_t, d_i = target # file name, tag, xpath index
         if d_f != self.filename:
-            raise ValueError()
+            raise ValueError
         target = self.contents.find(self.locations[d_t][d_i])
         if target is None or target.text == value:
             return False
@@ -278,7 +280,7 @@ class XmlModel(AbstractXmlModel):
     def do_wrap_text(self, target, prefix, suffix):
         d_f, d_t, d_i = target # file name, tag, xpath index
         if d_f != self.filename:
-            raise ValueError()
+            raise ValueError
         target = self.contents.find(self.locations[d_t][d_i])
         if target is None:
             return False
@@ -387,7 +389,8 @@ class XmlModel(AbstractXmlModel):
             m = re.match(r'^(.*)\/[^\[]+\[(\d+)\]$', xpath)
             target = root.find(xpath)
             parent = root.find(m.groups()[0])
-            assert target is not None
+            if target is None:
+                raise AssertionError
             if parent is root:
                 return ''
             index = int(m.groups()[1])
@@ -399,15 +402,13 @@ class XmlModel(AbstractXmlModel):
                         break
                     parent_lead = child.tail
                 else:
-                    assert False
+                    raise RuntimeError
             if parent_lead:
                 if '\n' in parent_lead:
                     lead = parent_lead.split('\n')[-1]
-                    lead = re.match(r'^(\s*)', lead).groups()[0]
-                    return lead
+                    return re.match(r'^(\s*)', lead).groups()[0]
             lead = self.find_indent(m.groups()[0]) + (parent_lead or '')
-            lead = re.match(r'^(\s*)', lead).groups()[0]
-            return lead
+            return re.match(r'^(\s*)', lead).groups()[0]
 
         return aux(self.contents, xpath)
 
