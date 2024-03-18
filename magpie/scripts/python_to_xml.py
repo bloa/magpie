@@ -1,22 +1,9 @@
 import argparse
 import ast
+import pathlib
+import sys
 from ast import *
 from contextlib import contextmanager, nullcontext
-import sys
-
-def read_file_or_stdin(filename):
-    if filename == 'stdin':
-        return sys.stdin.read()
-    with open(filename) as f:
-        return f.read()
-
-def unparse_xml(root, filename=""):
-    unparser = XmlUnparser()
-    output = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-    output += f"<unit filename=\"{filename}\">\n"
-    output += unparser.visit(root)
-    output += "\n</unit>\n"
-    return output
 
 
 # mostly lifted from cpython/Lib/ast.py
@@ -270,6 +257,16 @@ if __name__ == "__main__":
     parser.add_argument('file', default='stdin', nargs='?')
     args = parser.parse_args()
 
-    contents = read_file_or_stdin(args.file)
-    root = ast.parse(contents+'\n')
-    print(unparse_xml(root, args.file))
+    if args.file == 'stdin':
+        full = sys.stdin.read()
+    else:
+        with pathlib.Path(args.file).open('r') as f:
+            full = f.read()
+    root = ast.parse(full+'\n')
+
+    unparser = XmlUnparser()
+    output = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+    output += f"<unit filename=\"{args.file}\">\n"
+    output += unparser.visit(root)
+    output += "\n</unit>\n"
+    print(output)
