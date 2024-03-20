@@ -17,43 +17,47 @@ For the latter we recommend the [srcML](https://www.srcml.org/) tool with out-of
 Finally, Magpie also enables parameter tuning and algorithm configuration, both independently and concurrently of the source code search process.
 
 
-## Getting Started
+## Requirements
 
-**Requirements:**
-
+- Unix (Linux/macOS/etc; untested on Windows)
 - Python 3.8+
-- [Pytest](https://docs.pytest.org/) [optional: for running tests]
 
-Install Magpie by cloning the git repository:
+
+## Try it now!
 
     git clone https://github.com/bloa/magpie.git
-
-Optionally, run Magpie's unit tests:
-
-    pytest
-
-Try one of the following examples:
-
-    python3 magpie local_search --scenario examples/triangle-cpp/_magpie/scenario_slow.txt
-<!-- -->
-    python3 magpie local_search --scenario examples/triangle-java/_magpie/scenario_bug.txt
-<!-- -->
-    python3 magpie show_patch --scenario examples/triangle-cpp/_magpie/scenario_slow.txt --patch "SrcmlStmtDeletion(('triangle.cpp.xml', 'stmt', 3))"
-<!-- -->
-    python3 magpie minify_patch --scenario examples/triangle-py/_magpie/scenario_slow.txt --patch "SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 35), ('triangle.py.xml', 'stmt', 22)) | SrcmlStmtReplacement(('triangle.py.xml', 'stmt', 7), ('triangle.py.xml', 'stmt', 1)) | SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 24), ('triangle.py.xml', 'stmt', 6)) | SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 15), ('triangle.py.xml', 'stmt', 21)) | SrcmlStmtDeletion(('triangle.py.xml', 'stmt', 8))"
+    cd magpie
+    python3 magpie local_search --scenario examples/triangle-c/_magpie/scenario_slow.txt
 
 
 ## Documentation
 
-- [User Guide](./docs/guide.md)
-- [Tutorial](./docs/tutorial.md)
-- [Scenario Files](./docs/scenario.md)
-- [Algorithm Configuration](./docs/algoconfig.md)
+Everything you need to know about Magpie.
+
+**Tutorials**
+
+- [Quick start](./docs/tutorials/quick_start.md) **(start here!)**
+- [Searching variants](./docs/tutorials/search.md)
+
+**How-to guides**
+
+- [Write a custom fitness function](./docs/howto/custom_fitness_function.md)
+
+**Explanations**
+
+- [Project structure](./docs/explanations/project_structure.md)
+
+**Reference guides**
+
+- [Entry points](./docs/reference/entry_points.md)
+- [Fitness functions](./docs/reference/fitness_functions.md)
+- [Scenario files](./docs/reference/scenario_file.md)
+- [Algorithm configuration model](./docs/params_model.md)
 
 
 ## Acknowledgements
 
-Magpie is based on [PyGGI 2.0](https://github.com/coinse/pyggi), developped at [COINSE KAIST](https://coinse.kaist.ac.kr/) in collaboration with [UCL SOLAR](https://solar.cs.ucl.ac.uk/).  
+Magpie is based on [PyGGI 2.0](https://github.com/coinse/pyggi), developed at [COINSE KAIST](https://coinse.kaist.ac.kr/) in collaboration with [UCL SOLAR](https://solar.cs.ucl.ac.uk/).  
 Part of its development was supported by UK EPSRC Fellowship EP/P023991/1.
 
 If you use Magpie for a publication, we kindly ask you to cite the following [ArXiV paper](https://arxiv.org/abs/2208.02811) that describes MAGPIE's approach:

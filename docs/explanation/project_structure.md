@@ -1,4 +1,4 @@
-# Overview
+# Project Structure
 
 ## Usage Philosophy
 
@@ -30,7 +30,7 @@ Ultimately, the typical Magpie setup will involve the following structure:
     .
     ├── code // Software to optimise
     │   └── ...
-    ├── magpie // Magpie source code (not the entire git repository)
+    ├── magpie // Magpie source code directory
     │   └── ...
     ├── _magpie_logs // Experiments' log files (automatically generated)
     │   └── ...
@@ -52,7 +52,7 @@ This step is only conducted **once**, at the very beginning of the Mapgie execut
 It is meant to fetch or update software files that wouldn't otherwise be present in the specified directory.
 Since it might modify or initialise from scratch target files (e.g., by automatically computing XML ASTs), this step will **always** be performed.
 
-See for example the `examples/scenario/magpie_coverage.txt` scenario in which this step is used to sync a copy of Magpie itself.
+See for example the `examples/magpie/_magpie/scenario_coverage.txt` scenario in which this step is used to sync a copy of Magpie itself.
 
 
 ## Setup
@@ -61,7 +61,7 @@ This step is only conducted **once**, during warmup with the unmodified software
 It is useful for performing some initial processing or compilation so as to avoid wasting resources on things that would otherwise be repeated for every single software variant.
 Conversely to the "init" step, this step will not be performed when no evaluation of the target software is required.
 
-See for example the `examples/scenario/triangle-cpp_runtime.txt` scenario in which this step is used to create an initialised CMake build directory.
+See for example the `examples/triangle-cpp/_magpie/scenario_slow.txt` scenario in which this step is used to create an initialised CMake build directory.
 
 
 ## Compile
@@ -69,7 +69,7 @@ See for example the `examples/scenario/triangle-cpp_runtime.txt` scenario in whi
 This step is conducted **for every software variant**, before the test and run steps.
 It is meant for processing shared between the test and run steps (e.g., compilation).
 
-See for example the `examples/scenario/triangle-c_runtime.txt` and `examples/scenario/triangle-java_repair.txt` scenario in which this step is used to call `make` and `javac`, respectively.
+See for example the `examples/triangle-c/_magpie/scenario_slow.txt` and `examples/triangle-java/_magpie/scenario_bug.txt` scenario in which this step is used to call `make` and `javac`, respectively.
 
 
 ## Test
@@ -96,7 +96,7 @@ The fitness value of the software variant is then aggregated from its multiple i
 
 We will use the following example:
 
-    python3 magpie.py local_search --scenario examples/scenario/triangle-cpp_runtime.txt
+    python3 magpie local_search --scenario examples/triangle-cpp/_magpie/scenario_slow.txt
 
 Execution starts with a "warmup" step.
 
