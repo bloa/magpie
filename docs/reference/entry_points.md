@@ -1,7 +1,3 @@
-# Fitness Function
-
-
-
 # Entry Points
 
     bin
