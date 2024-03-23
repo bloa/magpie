@@ -37,7 +37,7 @@ Everything you need to know about Magpie.
 **Tutorials**
 
 - [Quick start](./docs/tutorials/quick_start.md) **(start here!)**
-- [Searching variants](./docs/tutorials/search.md)
+- [Search for improved variants](./docs/tutorials/search.md)
 
 **How-to guides**
 
