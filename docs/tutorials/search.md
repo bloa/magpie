@@ -1,4 +1,4 @@
-# Searching for improved variants
+# Search for improved variants
 
 In this tutorial we are concerned by running Magpie to find improved variant of a given software.
 We will consider two use cases, a first one in which we want to improve execution time, and a second in which we aim to fix a semantic bug.
