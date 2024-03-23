@@ -146,7 +146,7 @@ class ValidMinify(ValidSearch):
             ranking.sort(key=lambda c: c[1] or float('inf'))
 
             # rebuild
-            if ranking[0][1] < self.report['initial_fitness']:
+            if ranking[0][1] < self.report['reference_fitness']:
                 self.software.logger.info('-- rebuild --')
                 rebuild = magpie.core.Patch([ranking[0][0]])
                 rebuild_fitness = ranking[0][1]
@@ -159,7 +159,7 @@ class ValidMinify(ValidSearch):
                     if run.status == 'SUCCESS' and self.dominates(run.fitness, rebuild_fitness):
                         rebuild_fitness = run.fitness
                         rebuild.edits.append(edit)
-            elif self.report['best_fitness'] > self.report['initial_fitness']:
+            elif self.report['best_fitness'] > self.report['reference_fitness']:
                 self.report['stop'] = 'validation end (all bad)'
                 return self.report['best_patch'], self.report['best_fitness']
 

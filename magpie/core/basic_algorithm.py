@@ -101,17 +101,17 @@ class BasicAlgorithm(AbstractAlgorithm):
         batch = [b for b in batch if b] # discards empty bins
         self.software.batch = batch if any(batch) else [['']] # single empty instance when no batch
         # early exit before warmup
-        if self.report['initial_fitness'] is None:
+        if self.report['reference_fitness'] is None:
             return
-        # reset initial fitness
+        # reset reference fitness
         patch = Patch([])
         variant = Variant(self.software, patch)
         run = self.evaluate_variant(variant)
-        self.report['initial_fitness'] = run.fitness
+        self.report['reference_fitness'] = run.fitness
         self.report['best_fitness'] = run.fitness
-        self.hook_warmup_evaluation('INITIAL', patch, run)
+        self.hook_warmup_evaluation('REF', patch, run)
         if run.status != 'SUCCESS':
-            msg = 'Initial solution has failed'
+            msg = 'Reference software evaluation failed'
             raise RuntimeError(msg)
         # update best patch
         if self.report['best_patch'] and self.report['best_patch'].edits:
@@ -136,7 +136,7 @@ class BasicAlgorithm(AbstractAlgorithm):
 
     def hook_batch_evaluation(self, count, patch, run, best=False):
         c = '*' if best else ' '
-        self.aux_log_eval(count, run.status, c, run.fitness, self.report['initial_fitness'], len(patch.edits), run.log)
+        self.aux_log_eval(count, run.status, c, run.fitness, self.report['reference_fitness'], len(patch.edits), run.log)
 
     def hook_start(self):
         if not self.config['possible_edits']:
@@ -159,7 +159,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.software.logger.debug(variant.patch)
         # self.software.logger.debug(run) # uncomment for detail on last cmd
         counter = self.aux_log_counter()
-        self.aux_log_eval(counter, run.status, c, run.fitness, self.report['initial_fitness'], len(variant.patch.edits), run.log)
+        self.aux_log_eval(counter, run.status, c, run.fitness, self.report['reference_fitness'], len(variant.patch.edits), run.log)
         if accept or best:
             self.software.logger.debug(variant.diff)
 
@@ -196,6 +196,8 @@ class BasicAlgorithm(AbstractAlgorithm):
         variant = Variant(self.software, patch)
         if self.report['initial_patch'] is None:
             self.report['initial_patch'] = patch
+        if self.report['reference_patch'] is None:
+            self.report['reference_patch'] = patch
         warmup_values = []
         for _ in range(max(self.config['warmup'] or 1, 1), 0, -1):
             run = self.evaluate_variant(variant, force=True)
@@ -220,8 +222,8 @@ class BasicAlgorithm(AbstractAlgorithm):
             raise ValueError(msg)
         run.fitness = current_fitness
         self.cache_set(variant.diff, run)
-        self.hook_warmup_evaluation('INITIAL', patch, run)
-        self.report['initial_fitness'] = current_fitness
+        self.hook_warmup_evaluation('REF', patch, run)
+        self.report['reference_fitness'] = current_fitness
         if self.report['best_patch'] is None:
             self.report['best_fitness'] = current_fitness
             self.report['best_patch'] = patch

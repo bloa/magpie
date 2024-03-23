@@ -57,7 +57,7 @@ We define four command lines:
 
 As for the search, for the purpose of this tutorial we limit it to _either_ **100 steps** or **60 seconds**, whatever happens first.
 
-In the following, by "initial software" we mean the software such as it is after the "init" step, i.e., including the seeded performance bug.
+In the following, by "reference software" we mean the software such as it is after the "init" step, i.e., in our case including the seeded performance bug.
 
 
 ### Magpie run
@@ -67,13 +67,13 @@ We do that by simply running the (local) magpie module using `python3 magpie`, u
 
     python3 magpie local_search --scenario examples/triangle-c/_magpie/scenario_slow.txt
 
-Magpie starts with evaluating the initial software three times, using the latest measurement as baseline (**0.0808 seconds**).
+Magpie starts with evaluating the reference software three times, using the latest measurement as baseline (**0.0808 seconds**).
 
     ==== WARMUP ====
     WARM    SUCCESS               0.0804                  
     WARM    SUCCESS               0.0762                  
     WARM    SUCCESS               0.0808                  
-    INITIAL SUCCESS               0.0808                  
+    REF     SUCCESS               0.0808                  
 
 The fault should be easy enough to be fix in almost every run.
 You should be seeing lines such that:
@@ -82,9 +82,9 @@ You should be seeing lines such that:
     23      SUCCESS              *0.0049 (6.06%) [1 edit(s)] 
     24      TEST_CODE_ERROR       None  [2 edit(s)] 
 
-In this case, the 22th software variant applied a single modification to the original software and ran the payload in **0.0788 seconds**, very slightly faster (**97.52%** of the initial fitness of **0.0808 seconds**).
+In this case, the 22th software variant applied a single modification to the original software and ran the payload in **0.0788 seconds**, very slightly faster (**97.52%** of the reference fitness of **0.0808 seconds**).
 
-The 23th software variant ran in **0.0049** seconds, (much faster: **6.06%** or the initial fitness).
+The 23th software variant ran in **0.0049** seconds, (much faster: **6.06%** of the reference fitness).
 The **\*** asterisk indicates that this is a new best fitness value.
 
 The 24th software variant failed to complete the test suite.
@@ -99,7 +99,7 @@ If Magpie found a fix, it will then produce a report similar to
     Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_1709750917.log
     Patch file: _magpie_logs/triangle-c_1709750917.patch
     Diff file: _magpie_logs/triangle-c_1709750917.diff
-    Initial fitness: 0.0808
+    Reference fitness: 0.0808
     Best fitness: 0.0049
     Best patch: SrcmlStmtDeletion(('triangle.c.xml', 'stmt', 1))
     Diff:
@@ -116,7 +116,7 @@ If Magpie found a fix, it will then produce a report similar to
      int classify_triangle(double a, double b, double c) {
 
 In my case, Magpie stopped after 60 seconds.
-It successfully found a patch, lowering the initial fitness of **0.0808 seconds** to **0.0049 seconds**.
+It successfully found a patch, lowering the reference fitness of **0.0808 seconds** to **0.0049 seconds**.
 The patch contain a single edit, **SrcmlStmtDeletion(('triangle.c.xml', 'stmt', 1))**, which deletes one statement.
 Looking at the diff, the deleted statement is **nanosleep(&ms,NULL);**.
 
@@ -180,7 +180,7 @@ Our example test suite (**test_triangle.c**) outputs the total number of tests a
     printf("Failures: %d\n", failed);
 
 Magpie _absolutely requires_ both these figures to compute a software fitness value, and does so by computing their ratio as a percentage.
-For example, the initial software of **scenario_slow.txt** reports a fitness value of **33.33**, meaning that one third of the test cases failed.
+For example, the reference software of **scenario_slow.txt** reports a fitness value of **33.33**, meaning that one third of the test cases failed.
 Without checking that the total number is non-zero, Magpie wouldn't be able to distinguish between a software with no failed tests, and one that would make the test runner crash gracefully.
 
 
@@ -195,7 +195,7 @@ More likely, Magpie found a patch that improved the fitness, without reaching th
 
 For example, the following is one such outcome:
 
-    Initial fitness: 33.33
+    Reference fitness: 33.33
     Best fitness: 19.05
     Best patch: SrcmlStmtReplacement(('triangle.c.xml', 'stmt', 16), ('triangle.c.xml', 'stmt', 6))
     Diff:
@@ -239,7 +239,7 @@ Here follows the complete output:
     WARM    SUCCESS               33.33                   
     WARM    SUCCESS               33.33                   
     WARM    SUCCESS               33.33                   
-    INITIAL SUCCESS               33.33                   
+    REF     SUCCESS               33.33                   
     ==== START: ValidTest ====
     1       SUCCESS              *0.0 (0.0%) [2 edit(s)]  
     ==== END ====
@@ -249,6 +249,7 @@ Here follows the complete output:
     Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_1709927677.log
     Patch file: _magpie_logs/triangle-c_1709927677.patch
     Diff file: _magpie_logs/triangle-c_1709927677.diff
+    Reference fitness: 33.33
     Initial fitness: 33.33
     Best fitness: 0.0
     Best patch: SrcmlStmtReplacement(('triangle.c.xml', 'stmt', 16), ('triangle.c.xml', 'stmt', 18)) | SrcmlStmtReplacement(('triangle.c.xml', 'stmt', 18), ('triangle.c.xml', 'stmt', 16))
@@ -270,4 +271,4 @@ Here follows the complete output:
        return SCALENE;
      }
 
-First (**WARMUP**) Magpie runs the initial bugged software, then (**START**) it runs the validation algorithm ValidTest, which simply runs once the provided patch, then it reports its finding, linking to the different output files and showing the diff computed from the patch.
+First (**WARMUP**) Magpie runs the bugged software, then (**START**) it runs the validation algorithm ValidTest, which simply runs once the provided patch, then it reports its finding, linking to the different output files and showing the diff computed from the patch.
