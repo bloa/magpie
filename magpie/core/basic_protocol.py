@@ -52,7 +52,7 @@ class BasicProtocol:
             diff_file = f'{base_path}.diff'
             logger.info('Patch file: %s', patch_file)
             logger.info('Diff file: %s', diff_file)
-            logger.info('Initial fitness: %s', result['initial_fitness'])
+            logger.info('Reference fitness: %s', result['reference_fitness'])
             logger.info('Best fitness: %s', result['best_fitness'])
             logger.info('Best patch: %s', result['best_patch'])
             logger.info('Diff:\n%s', result['diff'])

@@ -24,7 +24,8 @@ class AbstractAlgorithm(abc.ABC):
         self.stats['wallclock_start'] = time.time() # dummy
         self.report = {}
         self.report['initial_patch'] = None
-        self.report['initial_fitness'] = None
+        self.report['reference_patch'] = None
+        self.report['reference_fitness'] = None
         self.report['best_fitness'] = None
         self.report['best_patch'] = None
         self.report['stop'] = None
