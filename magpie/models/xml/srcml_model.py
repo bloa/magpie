@@ -110,4 +110,68 @@ class SrcmlModel(XmlModel):
             else:
                 element.tag = 'operator_misc'
 
+    @staticmethod
+    def focus_tags(element, tags):
+        last = None
+        marked = []
+        for i, child in enumerate(element):
+            SrcmlModel.focus_tags(child, tags)
+            if child.tag not in tags:
+                marked.append(child)
+                if child.text:
+                    if last is not None:
+                        last.tail = (last.tail or '') + child.text
+                    else:
+                        element.text = (element.text or '') + child.text
+                if len(child) > 0:
+                    for sub_child in reversed(child):
+                        element.insert(i+1, sub_child)
+                    last = child[-1]
+                if child.tail:
+                    if last is not None:
+                        last.tail = (last.tail or '') + child.tail
+                    else:
+                        element.text = (element.text or '') + child.tail
+            else:
+                last = child
+        for child in marked:
+            element.remove(child)
+
+    @staticmethod
+    def remove_tags(element, tags):
+        if len(tags) == 0:
+            return
+        last = None
+        marked = []
+        remove_all = '*' in tags
+        for i, child in enumerate(element):
+            SrcmlModel.remove_tags(child, tags)
+            if remove_all or child.tag in tags:
+                marked.append(child)
+                if child.text:
+                    if last is not None:
+                        last.tail = (last.tail or '') + child.text
+                    else:
+                        element.text = (element.text or '') + child.text
+                if len(child) > 0:
+                    for sub_child in reversed(child):
+                        element.insert(i+1, sub_child)
+                    last = child[-1]
+                if child.tail:
+                    if last is not None:
+                        last.tail = (last.tail or '') + child.tail
+                    else:
+                        element.text = (element.text or '') + child.tail
+            else:
+                last = child
+        for child in marked:
+            element.remove(child)
+
+    @staticmethod
+    def rewrite_tags(element, tags, new_tag):
+        if element.tag in tags:
+            element.tag = new_tag
+        for child in element:
+            SrcmlModel.rewrite_tags(child, tags, new_tag)
+
 magpie.utils.known_models.append(SrcmlModel)
