@@ -309,10 +309,9 @@ class XmlModel(AbstractXmlModel):
                     parent_lead = child.tail
                 else:
                     raise RuntimeError
-            if parent_lead:
-                if '\n' in parent_lead:
-                    lead = parent_lead.split('\n')[-1]
-                    return re.match(r'^(\s*)', lead).groups()[0]
+            if parent_lead and '\n' in parent_lead:
+                lead = parent_lead.split('\n')[-1]
+                return re.match(r'^(\s*)', lead).groups()[0]
             lead = self.find_indent(m.groups()[0]) + (parent_lead or '')
             return re.match(r'^(\s*)', lead).groups()[0]
 
