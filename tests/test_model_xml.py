@@ -217,7 +217,7 @@ def test_insertion3(xml_model):
     assert_diff(xml_model.dump(), variant.dump(), expected)
 
 @pytest.mark.parametrize(('xml', 'output'), [
-    ('''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    ("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <unit xmlns="http://www.srcML.org/srcML/src" xmlns:cpp="http://www.srcML.org/srcML/cpp" revision="1.0.0" language="C" filename="rotate.c"><cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file>"rotate.h"</cpp:file></cpp:include>
 
 <comment type="line">// rotate three values</comment>
@@ -229,7 +229,7 @@ def test_insertion3(xml_model):
   <expr_stmt><expr><name>n2</name> <operator>=</operator> <name>tn1</name></expr>;</expr_stmt>
   <expr_stmt><expr><name>n3</name> <operator>=</operator> <name>tn2</name></expr>;</expr_stmt>
 </block_content>}</block></function>
-</unit>''', '''#include "rotate.h"
+</unit>""", """#include "rotate.h"
 
 // rotate three values
 void rotate(int& n1, int& n2, int& n3) {
@@ -240,7 +240,7 @@ void rotate(int& n1, int& n2, int& n3) {
   n2 = tn1;
   n3 = tn2;
 }
-'''),
+"""),
 ])
 def test_build_and_strip(xml, output):
     assert XmlModel.strip_xml_from_tree(XmlModel.string_to_tree(xml)).strip() == output.strip()

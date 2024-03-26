@@ -16,7 +16,7 @@ def xml_model():
 
 def test_process_blocks(xml_model):
     tree = xml_model.contents[2][3]
-    oracle = '''<block>{
+    oracle = """<block>{
   <decl_stmt><decl><type><name>double</name></type> <name>tmp</name></decl>;</decl_stmt>
 
   <expr_stmt><expr><call><name>delay</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
@@ -47,10 +47,10 @@ def test_process_blocks(xml_model):
   <if>if<condition>(<expr><name>a</name> <operator>==</operator> <name>b</name> <operator>||</operator> <name>b</name> <operator>==</operator> <name>c</name></expr>)</condition><then>
     <block type="pseudo"><return>return <expr><name>ISOSCELES</name></expr>;</return></block></then></if>
   <return>return <expr><name>SCALENE</name></expr>;</return>
-}</block>'''
+}</block>"""
     assert XmlModel.tree_to_string(tree).strip() == oracle
     SrcmlModel.process_pseudo_blocks(tree)
-    oracle = '''<block>{
+    oracle = """<block>{
   <decl_stmt><decl><type><name>double</name></type> <name>tmp</name></decl>;</decl_stmt>
 
   <expr_stmt><expr><call><name>delay</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
@@ -87,7 +87,7 @@ def test_process_blocks(xml_model):
       <return>return <expr><name>ISOSCELES</name></expr>;</return>
     }/*auto*/</block></then></if>
   <return>return <expr><name>SCALENE</name></expr>;</return>
-}</block>'''
+}</block>"""
     assert XmlModel.tree_to_string(tree).strip() == oracle
 
 def test_process_literals(xml_model):

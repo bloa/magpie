@@ -2,8 +2,8 @@ import argparse
 import ast
 import pathlib
 import sys
-from ast import *
-from contextlib import contextmanager, nullcontext
+from contextlib import contextmanager
+
 
 def read_file_or_stdin(filename):
     if filename == 'stdin':
@@ -11,7 +11,7 @@ def read_file_or_stdin(filename):
     with pathlib.Path(filename).open('r') as f:
         return f.read()
 
-def unparse_xml(root, filename=""):
+def unparse_xml(root, filename=''):
     return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <unit filename="{filename}">
 {XmlUnparser().visit(root)}
@@ -49,7 +49,7 @@ class XmlUnparser(ast._Unparser):
         """Add new source parts, but unsanitized"""
         super().write(*text)
 
-    def fill(self, text=""):
+    def fill(self, text=''):
         """Indent a piece of text and append it, according to the current indentation level"""
         super().fill()
         self.write(text)
@@ -67,7 +67,7 @@ class XmlUnparser(ast._Unparser):
             with self.add_xml('operator'):
                 with self.add_xml(node.__class__.__name__):
                     super().traverse(node)
-        elif isinstance(node, AST):
+        elif isinstance(node, ast.AST):
             with self.add_xml(node.__class__.__name__):
                 super().traverse(node)
         else:
@@ -80,7 +80,7 @@ class XmlUnparser(ast._Unparser):
         the indentation on exit. If *extra* is given, it will be directly
         appended after the colon character.
         """
-        self.write(":")
+        self.write(':')
         if extra:
             self.write(extra)
         self._indent += 1
@@ -93,7 +93,7 @@ class XmlUnparser(ast._Unparser):
             super().visit_Module(node)
 
     def visit_If(self, node):
-        self.fill("if ")
+        self.fill('if ')
         self.traverse(node.test)
         with self.block():
             self.traverse(node.body)
@@ -106,7 +106,7 @@ class XmlUnparser(ast._Unparser):
         #         self.traverse(node.body)
         # final else
         if node.orelse:
-            self.fill("else")
+            self.fill('else')
             with self.block():
                 self.traverse(node.orelse)
 
@@ -115,10 +115,10 @@ class XmlUnparser(ast._Unparser):
             self.set_precedence(ast._Precedence.CMP.next(), node.left, *node.comparators)
             self.traverse(node.left)
             for o, e in zip(node.ops, node.comparators):
-                self.write(" ")
+                self.write(' ')
                 with self.add_xml('cmpop'):
                     self.write(self.cmpops[o.__class__.__name__])
-                self.write(" ")
+                self.write(' ')
                 self.traverse(e)
 
     def visit_UnaryOp(self, node):
@@ -130,11 +130,11 @@ class XmlUnparser(ast._Unparser):
             # factor prefixes (+, -, ~) shouldn't be separated
             # from the value they belong, (e.g: +1 instead of + 1)
             if operator_precedence is not ast._Precedence.FACTOR:
-                self.write(" ")
+                self.write(' ')
             self.set_precedence(operator_precedence, node.operand)
             self.traverse(node.operand)
 
-    binop_rassoc = frozenset(("**",))
+    binop_rassoc = frozenset(('**',))
     def visit_BinOp(self, node):
         operator = self.binop[node.op.__class__.__name__]
         operator_precedence = self.binop_precedence[operator]
@@ -177,14 +177,15 @@ class XmlUnparser(ast._Unparser):
         """Write string literal value with a best effort attempt to avoid backslashes."""
         string, quote_types = self._str_literal_helper(string, quote_types=quote_types)
         quote_type = quote_types[0]
-        self.write_raw(f"{quote_type}{string}{quote_type}")
+        self.write_raw(f'{quote_type}{string}{quote_type}')
 
     def visit_JoinedStr(self, node):
-        self.write("f")
+        self.write('f')
         if self._avoid_backslashes:
             with self.buffered() as buffer:
                 self._write_fstring_inner(node)
-            return self._write_raw_str_avoiding_backslashes("".join(buffer))
+            self._write_raw_str_avoiding_backslashes(''.join(buffer))
+            return
 
         # If we don't need to avoid backslashes globally (i.e., we only need
         # to avoid them inside FormattedValues), it's cosmetically preferred
@@ -197,35 +198,36 @@ class XmlUnparser(ast._Unparser):
             with self.buffered() as buffer:
                 self._write_fstring_inner(value)
             fstring_parts.append(
-                ("".join(buffer), isinstance(value, Constant))
+                (''.join(buffer), isinstance(value, ast.Constant)),
             )
 
         new_fstring_parts = []
         quote_types = list(ast._ALL_QUOTES)
         for value, is_constant in fstring_parts:
-            value, quote_types = self._str_literal_helper(
+            new_value, quote_types = self._str_literal_helper(
                 value,
                 quote_types=quote_types,
                 escape_special_whitespace=is_constant,
             )
-            new_fstring_parts.append(value)
+            new_fstring_parts.append(new_value)
 
-        value = "".join(new_fstring_parts)
+        value = ''.join(new_fstring_parts)
         quote_type = quote_types[0]
-        self.write_raw(f"{quote_type}{value}{quote_type}")
+        self.write_raw(f'{quote_type}{value}{quote_type}')
 
     def _write_fstring_inner(self, node):
-        if isinstance(node, JoinedStr):
+        if isinstance(node, ast.JoinedStr):
             # for both the f-string itself, and format_spec
             for value in node.values:
                 self._write_fstring_inner(value)
-        elif isinstance(node, Constant) and isinstance(node.value, str):
-            value = node.value.replace("{", "{{").replace("}", "}}")
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            value = node.value.replace('{', '{{').replace('}', '}}')
             self.write(value)
-        elif isinstance(node, FormattedValue):
+        elif isinstance(node, ast.FormattedValue):
             self.visit_FormattedValue(node)
         else:
-            raise ValueError(f"Unexpected node inside JoinedStr, {node!r}")
+            msg = f'Unexpected node inside JoinedStr, {node!r}'
+            raise TypeError(msg)
 
     def visit_FormattedValue(self, node):
         def unparse_inner(inner):
@@ -233,30 +235,31 @@ class XmlUnparser(ast._Unparser):
             unparser.set_precedence(ast._Precedence.TEST.next(), inner)
             return unparser.visit(inner)
 
-        with self.delimit("{", "}"):
+        with self.delimit('{', '}'):
             expr = unparse_inner(node.value)
-            if "\\" in expr:
-                raise ValueError("Unable to avoid backslash in f-string expression part")
-            if expr.startswith("{"):
+            if '\\' in expr:
+                msg = 'Unable to avoid backslash in f-string expression part'
+                raise ValueError(msg)
+            if expr.startswith('{'):
                 # Separate pair of opening brackets as "{ {"
-                self.write(" ")
+                self.write(' ')
             self.write_raw(expr)
             if node.conversion != -1:
-                self.write(f"!{chr(node.conversion)}")
+                self.write(f'!{chr(node.conversion)}')
             if node.format_spec:
-                self.write(":")
+                self.write(':')
                 self._write_fstring_inner(node.format_spec)
 
     def visit_Lambda(self, node):
         with self.add_xml('lambda'):
             with self.require_parens(ast._Precedence.TEST, node):
-                self.write("lambda")
+                self.write('lambda')
                 with self.buffered() as buffer:
                     self.traverse(node.args)
                 if buffer:
-                    self.write(" ")
+                    self.write(' ')
                     self.write_raw(*buffer)
-                self.write(": ")
+                self.write(': ')
                 self.set_precedence(ast._Precedence.TEST, node.body)
                 self.traverse(node.body)
 
@@ -265,7 +268,7 @@ class XmlUnparser(ast._Unparser):
 # Main function
 # ================================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie Python to XML formatter')
     parser.add_argument('file', default='stdin', nargs='?')
     args = parser.parse_args()
