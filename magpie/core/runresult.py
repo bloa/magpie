@@ -9,3 +9,5 @@ class RunResult(types.SimpleNamespace):
         self.cache = {}
         self.log = ''
         self.last_exec = None
+        self.cached = False
+        self.updated = False

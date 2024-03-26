@@ -221,15 +221,24 @@ class BasicSoftware(AbstractSoftware):
 
     def evaluate_variant(self, variant, cached_run=None):
         # check batch sync
-        if cached_run is None or not {inst for b in self.batch for inst in b}.issubset(cached_run.cache.keys()):
+        if cached_run is None:
+            # new variant
             self.write_variant(variant)
-        else:
+        elif not cached_run.cache.keys():
+            # cached (failed) --> early exit
+            return cached_run
+        elif {inst for b in self.batch for inst in b}.issubset(cached_run.cache.keys()):
+            # cached (complete) --> early exit
             self.process_batch_final(cached_run)
             return cached_run
+        else:
+            # partially cached
+            self.write_variant(variant)
 
         # evaluate
         work_path = self.work_dir / self.basename
         run_result = cached_run or RunResult(variant, 'UNKNOWN_ERROR')
+        run_result.updated = True
 
         with contextlib.chdir(work_path):
             # one-time setup

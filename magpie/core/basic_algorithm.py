@@ -129,14 +129,14 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stats['wallclock_start'] = self.stats['wallclock_warmup'] = time.time()
         self.software.logger.info('==== WARMUP ====')
 
-    def hook_warmup_evaluation(self, count, patch, run):
-        self.aux_log_eval(count, run.status, ' ', run.fitness, None, None, run.log)
+    def hook_warmup_evaluation(self, counter, patch, run):
+        self.aux_log_eval(counter, None, run, ' ', None)
         if run.status != 'SUCCESS':
             self.software.diagnose_error(run)
 
-    def hook_batch_evaluation(self, count, patch, run, best=False):
+    def hook_batch_evaluation(self, counter, patch, run, best=False):
         c = '*' if best else ' '
-        self.aux_log_eval(count, run.status, c, run.fitness, self.report['reference_fitness'], len(patch.edits), run.log)
+        self.aux_log_eval(counter, patch, run, c, self.report['reference_fitness'])
 
     def hook_start(self):
         if not self.config['possible_edits']:
@@ -159,25 +159,28 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.software.logger.debug(variant.patch)
         # self.software.logger.debug(run) # uncomment for detail on last cmd
         counter = self.aux_log_counter()
-        self.aux_log_eval(counter, run.status, c, run.fitness, self.report['reference_fitness'], len(variant.patch.edits), run.log)
+        self.aux_log_eval(counter, variant.patch, run, c, self.report['reference_fitness'])
         if accept or best:
             self.software.logger.debug(variant.diff)
 
-    def aux_log_eval(self, counter, status, c, fitness, baseline, patch_size, data):
-        if fitness is not None and baseline is not None:
-            if isinstance(fitness, list):
-                tmp = '% '.join([str(round(100*fitness[k]/baseline[k], 2)) for k in range(len(fitness))])
+    def aux_log_eval(self, counter, patch, run, c, baseline):
+        extra = f''
+        if run.fitness is not None and baseline is not None:
+            if isinstance(run.fitness, list):
+                tmp = '% '.join([str(round(100*run.fitness[k]/baseline[k], 2)) for k in range(len(run.fitness))])
             else:
-                tmp = round(100*fitness/baseline, 2)
-            s = f'({tmp}%)'
-        else:
-            s = ''
-        if patch_size is not None:
-            s2 = f'[{patch_size} edit(s)] '
-        else:
-            s2 = ''
-        tmp = f'{fitness!s} {s} {s2}'
-        msg = f'{counter:<7} {status:<20} {c:>1}{tmp:<24}{data}'
+                tmp = round(100*run.fitness/baseline, 2)
+            extra = f'{extra} ({tmp}%)'
+        if patch is not None:
+            extra = f'{extra} [{len(patch.edits)} edit(s)]'
+        if run.cached:
+            if run.updated:
+                extra = f'{extra} [part.cached]'
+            else:
+                extra = f'{extra} [cached]'
+        if run.log is not None:
+            extra = f'{extra} {run.log}'
+        msg = f'{counter:<7} {run.status:<20} {c:>1}{run.fitness!s}{extra}'
         self.software.logger.info(msg)
 
     def aux_log_counter(self):
@@ -257,6 +260,8 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.stats['cache_hits'] += 1
             if self.config['cache_maxsize'] > 0:
                 self.cache_hits[diff] += 1
+            run.cached = True
+            run.updated = False
             return run
 
     def cache_set(self, diff, run):
