@@ -130,13 +130,15 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.software.logger.info('==== WARMUP ====')
 
     def hook_warmup_evaluation(self, counter, patch, run):
-        self.aux_log_eval(counter, None, run, ' ', None)
+        msg = self.aux_log_eval(None, run, ' ', None)
+        self.software.logger.info('%-7s %s', counter, msg)
         if run.status != 'SUCCESS':
             self.software.diagnose_error(run)
 
     def hook_batch_evaluation(self, counter, patch, run, best=False):
         c = '*' if best else ' '
-        self.aux_log_eval(counter, patch, run, c, self.report['reference_fitness'])
+        msg = self.aux_log_eval(patch, run, c, self.report['reference_fitness'])
+        self.software.logger.info('%-7s %s', counter, msg)
 
     def hook_start(self):
         if not self.config['possible_edits']:
@@ -159,12 +161,13 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.software.logger.debug(variant.patch)
         # self.software.logger.debug(run) # uncomment for detail on last cmd
         counter = self.aux_log_counter()
-        self.aux_log_eval(counter, variant.patch, run, c, self.report['reference_fitness'])
+        msg = self.aux_log_eval(variant.patch, run, c, self.report['reference_fitness'])
+        self.software.logger.info('%-7s %s', counter, msg)
         if accept or best:
             self.software.logger.debug(variant.diff)
 
-    def aux_log_eval(self, counter, patch, run, c, baseline):
-        extra = f''
+    def aux_log_eval(self, patch, run, c, baseline):
+        extra = ''
         if run.fitness is not None and baseline is not None:
             if isinstance(run.fitness, list):
                 tmp = '% '.join([str(round(100*run.fitness[k]/baseline[k], 2)) for k in range(len(run.fitness))])
@@ -180,8 +183,7 @@ class BasicAlgorithm(AbstractAlgorithm):
                 extra = f'{extra} [cached]'
         if run.log is not None:
             extra = f'{extra} {run.log}'
-        msg = f'{counter:<7} {run.status:<20} {c:>1}{run.fitness!s}{extra}'
-        self.software.logger.info(msg)
+        return f'{run.status:<20} {c:>1}{run.fitness!s}{extra}'
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
