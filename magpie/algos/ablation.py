@@ -15,12 +15,12 @@ class AblationAnalysis(ValidSearch):
         variant = magpie.core.Variant(self.software, current_patch)
 
         # cleanup
-        self.software.logger.info('-- cleanup --')
+        self.software.logger.info('---- cleanup ----')
         variant = self.do_cleanup(variant)
         self.report['best_patch'] = variant.patch
 
         # full patch first
-        self.software.logger.info('-- exploration --')
+        self.software.logger.info('---- exploration ----')
         if variant.patch.edits:
             run = self.evaluate_variant(variant)
             self.hook_evaluation(variant, run)
@@ -46,7 +46,7 @@ class AblationAnalysis(ValidSearch):
             rebuild.edits.pop(best_edit_id)
 
         # analysis
-        self.software.logger.info('-- backtrack --')
+        self.software.logger.info('---- backtrack ----')
         run = self.evaluate_variant(variant) # should be already cached (initial)
         self.hook_evaluation(variant, run)
         patch = copy.deepcopy(variant.patch)

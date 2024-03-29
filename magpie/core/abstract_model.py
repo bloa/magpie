@@ -26,7 +26,10 @@ class AbstractModel(abc.ABC):
         pass
 
     def show_location(self, target_type, target_loc):
-        return '(unsupported)'
+        msg = '(unsupported)'
+        if magpie.settings.color_output:
+            return f'\033[31m{msg}\033[0m'
+        return msg
 
     def write_to_file(self):
         # compute dump

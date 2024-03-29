@@ -52,3 +52,38 @@ def setup(config):
     else:
         msg = '[magpie] trust_local_filesystem should be Boolean'
         raise ScenarioError(msg)
+
+    # [magpie.log] section
+    sec = config['magpie.log']
+    val = sec['color_output'].lower()
+    if val in ['true', 't', '1']:
+        magpie.settings.color_output = True
+    elif val in ['false', 'f', '0']:
+        magpie.settings.color_output = False
+    else:
+        msg = '[magpie.log] color_output should be Boolean'
+        raise ScenarioError(msg)
+    try:
+        sec['format_info'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='')
+    except KeyError as e:
+        msg = '[magpie.log] error in format_info format string'
+        raise ScenarioError(msg) from e
+    magpie.settings.log_format_info = sec['format_info']
+    try:
+        sec['format_debug'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='')
+    except KeyError as e:
+        msg = '[magpie.log] error in format_debug format string'
+        raise ScenarioError(msg) from e
+    magpie.settings.log_format_debug = sec['format_debug']
+    try:
+        sec['format_fitness'].format(0)
+    except KeyError as e:
+        msg = '[magpie.log] error in format_fitness format string'
+        raise ScenarioError(msg) from e
+    magpie.settings.log_format_fitness = sec['format_fitness']
+    try:
+        sec['format_ratio'].format(0)
+    except KeyError as e:
+        msg = '[magpie.log] error in format_ratio format string'
+        raise ScenarioError(msg) from e
+    magpie.settings.log_format_ratio = sec['format_ratio']

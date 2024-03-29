@@ -4,6 +4,7 @@ import errno
 import logging
 import os
 import pathlib
+import re
 import select
 import shutil
 import signal
@@ -62,18 +63,26 @@ class AbstractSoftware(abc.ABC):
         self.logger = logging.getLogger(self.run_label)
         self.logger.setLevel(logging.DEBUG)
 
+        # add stream handler
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        self.logger.addHandler(stream_handler)
+
+        # to remove ANSI color tags in file logs
+        def color_stripper(record):
+            if isinstance(record.msg, str):
+                record.msg = re.sub(r'\033\[[0-9;]*m', '', record.msg)
+            return True
+
         # add file logging
         with contextlib.suppress(FileExistsError):
             pathlib.Path(magpie.settings.log_dir).mkdir(parents=True)
         file_handler = logging.FileHandler((pathlib.Path(magpie.settings.log_dir) / f'{self.run_label}.log'), delay=True)
         file_handler.setFormatter(logging.Formatter('%(asctime)s\t[%(levelname)s]\t%(message)s'))
         file_handler.setLevel(logging.DEBUG)
+        file_handler.addFilter(color_stripper)
         self.logger.addHandler(file_handler)
 
-        # add stream handler
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        self.logger.addHandler(stream_handler)
 
     def reset_workdir(self):
         # creates or move current work_dir

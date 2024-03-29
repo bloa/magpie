@@ -30,12 +30,18 @@ if __name__ == '__main__':
     for filename in software.target_files:
         if args.filename is not None and args.filename != filename:
             continue
-        print(f'==== {filename} ====')
+        msg = f'==== {filename} ===='
+        if magpie.settings.color_output:
+            msg = f'\033[1m{msg}\033[0m'
+        print(msg)
         model = software.noop_variant.models[filename]
         for tag in model.locations:
             if args.tag is not None and args.tag != tag:
                 continue
-            print(f'---- {tag} ----')
+            msg = f'~~~~ {tag} ~~~~'
+            if magpie.settings.color_output:
+                msg = f'\033[1m{msg}\033[0m'
+            print(msg)
             for loc in model.locations_names[tag]:
                 print(model.show_location(tag, loc))
             print()

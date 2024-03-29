@@ -47,10 +47,17 @@ class AbstractParamsModel(magpie.core.BasicModel):
 
     def show_location(self, target_type, target_loc):
         if target_type != 'param':
-            return '(unsupported)'
+            raise ValueError
+        tag_start = ''
+        tag_end = ':'
+        default_start = 'default='
+        if magpie.settings.color_output:
+            tag_start = f'\033[36m{tag_start}'
+            tag_end = f'{tag_end}\033[0m'
+            default_start = f'\033[30m{default_start}\033[0m'
         space = self.contents['space'][target_loc]
         default = self.contents['current'][target_loc]
-        return f'{target_loc}: {space} default={default}'
+        return f'{tag_start}{target_loc}{tag_end} {space} {default_start}{default}'
 
     def random_value(self, key):
         realm = self.contents['space'][key]

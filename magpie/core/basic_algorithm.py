@@ -2,6 +2,7 @@ import pathlib
 import random
 import time
 
+import magpie.settings
 import magpie.utils
 
 from .abstract_algorithm import AbstractAlgorithm
@@ -127,18 +128,28 @@ class BasicAlgorithm(AbstractAlgorithm):
     def hook_warmup(self):
         self.hook_reset_batch()
         self.stats['wallclock_start'] = self.stats['wallclock_warmup'] = time.time()
-        self.software.logger.info('==== WARMUP ====')
+        msg = '~~~~ WARMUP ~~~~'
+        if magpie.settings.color_output:
+            msg = f'\033[1m{msg}\033[0m'
+        self.software.logger.info(msg)
 
     def hook_warmup_evaluation(self, counter, patch, run):
-        msg = self.aux_log_eval(None, run, ' ', None)
-        self.software.logger.info('%-7s %s', counter, msg)
+        data = self.aux_log_data(None, run, counter, None, False, False)
+        if magpie.settings.log_format_info:
+            msg = magpie.settings.log_format_info.format(**data)
+            if magpie.settings.color_output:
+                msg = self.aux_log_color(msg, run)
+            self.software.logger.info(msg)
         if run.status != 'SUCCESS':
             self.software.diagnose_error(run)
 
     def hook_batch_evaluation(self, counter, patch, run, best=False):
-        c = '*' if best else ' '
-        msg = self.aux_log_eval(patch, run, c, self.report['reference_fitness'])
-        self.software.logger.info('%-7s %s', counter, msg)
+        data = self.aux_log_data(None, run, counter, self.report['reference_fitness'], False, best)
+        if magpie.settings.log_format_info:
+            msg = magpie.settings.log_format_info.format(**data)
+            if magpie.settings.color_output:
+                msg = self.aux_log_color(msg, run, best=best)
+            self.software.logger.info(msg)
 
     def hook_start(self):
         if not self.config['possible_edits']:
@@ -146,47 +157,71 @@ class BasicAlgorithm(AbstractAlgorithm):
             raise RuntimeError(msg)
         # TODO: check that every possible edit can be created and simplify create_edit
         self.stats['wallclock_start'] = time.time() # discards warmup time
-        self.software.logger.info('==== START: %s ====', self.__class__.__name__)
+        self.software.logger.info('')
+        msg = '~~~~ START ~~~~'
+        if magpie.settings.color_output:
+            msg = f'\033[1m{msg}\033[0m'
+        self.software.logger.info(msg)
 
     def hook_main_loop(self):
         pass
 
     def hook_evaluation(self, variant, run, accept=False, best=False):
-        if best:
-            c = '*'
-        elif accept:
-            c = '+'
-        else:
-            c = ' '
-        self.software.logger.debug(variant.patch)
-        # self.software.logger.debug(run) # uncomment for detail on last cmd
-        counter = self.aux_log_counter()
-        msg = self.aux_log_eval(variant.patch, run, c, self.report['reference_fitness'])
-        self.software.logger.info('%-7s %s', counter, msg)
-        if accept or best:
-            self.software.logger.debug(variant.diff)
-
-    def aux_log_eval(self, patch, run, c, baseline):
-        extra = ''
-        if run.fitness is not None and baseline is not None:
-            if isinstance(run.fitness, list):
-                tmp = '% '.join([str(round(100*run.fitness[k]/baseline[k], 2)) for k in range(len(run.fitness))])
-            else:
-                tmp = round(100*run.fitness/baseline, 2)
-            extra = f'{extra} ({tmp}%)'
-        if patch is not None:
-            extra = f'{extra} [{len(patch.edits)} edit(s)]'
-        if run.cached:
-            if run.updated:
-                extra = f'{extra} [part.cached]'
-            else:
-                extra = f'{extra} [cached]'
-        if run.log is not None:
-            extra = f'{extra} {run.log}'
-        return f'{run.status:<20} {c:>1}{run.fitness!s}{extra}'
+        data = self.aux_log_data(variant.patch, run, self.aux_log_counter(), self.report['reference_fitness'], accept, best)
+        if magpie.settings.log_format_info:
+            msg = magpie.settings.log_format_info.format(**data)
+            if magpie.settings.color_output:
+                msg = self.aux_log_color(msg, run, accept=accept, best=best)
+            self.software.logger.info(msg)
+        if magpie.settings.log_format_debug:
+            msg = magpie.settings.log_format_debug.format(**data)
+            self.software.logger.debug(msg)
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
+
+    def aux_log_data(self, patch, run, counter, baseline, accept, best):
+        data = {}
+        data['counter'] = counter or self.aux_log_counter()
+        data['status'] = run.status
+        data['best'] = '*' if best else '+' if accept else ' '
+        data['fitness'] = 'None'
+        if run.fitness is not None:
+            tmp = run.fitness
+            if not isinstance(run.fitness, list):
+                tmp = [tmp]
+            data['fitness'] = ' '.join([magpie.settings.log_format_fitness.format(x) for x in tmp])
+        data['ratio'] = '--'
+        if run.fitness is not None and baseline is not None:
+            if isinstance(run.fitness, list):
+                tmp = [fit/base for fit, base in zip(run.fitness, baseline)]
+            else:
+                tmp = [run.fitness/baseline]
+            data['ratio'] = ' '.join([magpie.settings.log_format_ratio.format(x) for x in tmp])
+        data['extra'] = 'extra'
+        data['log'] = run.log or ''
+        data['patch'] = str(Patch)
+        data['size'] = f'{len(patch.edits) if patch else 0} edit(s)'
+        data['cached'] = ''
+        if run.cached:
+            if run.updated:
+                data['cached'] = '[part.cached]'
+            else:
+                data['cached'] = '[cached]'
+        return data
+
+    def aux_log_color(self, msg, run, accept=False, best=False):
+        if magpie.settings.color_output is False:
+            return msg
+        if run.cached and not run.updated:
+            return f'\033[30m{msg}\033[0m'
+        if best:
+            return f'\033[32m{msg}\033[0m'
+        if accept:
+            return f'\033[33m{msg}\033[0m'
+        if run.status != 'SUCCESS':
+            return f'\033[31m{msg}\033[0m'
+        return msg
 
     def hook_end(self):
         self.stats['wallclock_end'] = time.time()
@@ -194,7 +229,10 @@ class BasicAlgorithm(AbstractAlgorithm):
         if self.report['best_patch']:
             variant = Variant(self.software, self.report['best_patch'])
             self.report['diff'] = variant.diff
-        self.software.logger.info('==== END ====')
+        msg = '~~~~ END ~~~~'
+        if magpie.settings.color_output:
+            msg = f'\033[1m{msg}\033[0m'
+        self.software.logger.info(msg)
 
     def warmup(self):
         patch = Patch([])

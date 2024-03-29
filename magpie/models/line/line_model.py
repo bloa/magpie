@@ -21,15 +21,18 @@ class LineModel(AbstractLineModel):
         return ''.join(s + '\n' for s in self.contents if s is not None)
 
     def show_location(self, target_type, target_loc):
-        out = '(unsupported target_type)'
+        tag_start = ''
+        tag_end = ''
+        if magpie.settings.color_output:
+            tag_start = f'\033[36m{tag_start}'
+            tag_end = f'{tag_end}\033[0m'
         if target_type == 'line':
-            out = f'{target_loc}:{self.contents[self.locations[target_type][target_loc]]}'
-        elif target_type == '_inter_line':
+            return f'{tag_start}{target_loc}:{tag_end}{self.contents[self.locations[target_type][target_loc]]}'
+        if target_type == '_inter_line':
             if target_loc == 0:
-                out = '0=before initial line'
-            else:
-                out = f'{target_loc}=after:{self.contents[self.locations[target_type][target_loc-1]]}'
-        return out
+                return f'{tag_start}0=before initial line{tag_end}'
+            return f'{tag_start}{target_loc}=after:{tag_end}{self.contents[self.locations[target_type][target_loc-1]]}'
+        raise ValueError
 
     def do_replace(self, ref_model, target_dest, target_orig):
         d_f, d_t, d_i = target_dest # file name, "line", line index

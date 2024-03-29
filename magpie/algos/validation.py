@@ -120,12 +120,12 @@ class ValidMinify(ValidSearch):
 
         # cleanup
         if self.config['do_cleanup']:
-            self.software.logger.info('-- cleanup --')
+            self.software.logger.info('---- cleanup ----')
             variant = self.do_cleanup(variant)
             self.report['best_patch'] = variant.patch
 
         # full patch first
-        self.software.logger.info('-- initial patch --')
+        self.software.logger.info('---- initial patch ----')
         if variant.patch.edits:
             run = self.evaluate_variant(variant)
             self.hook_evaluation(variant, run)
@@ -135,7 +135,7 @@ class ValidMinify(ValidSearch):
 
         if self.config['do_rebuild']:
             # ranking
-            self.software.logger.info('-- ranking --')
+            self.software.logger.info('---- ranking ----')
             ranking = []
             for edit in variant.patch.edits:
                 patch = magpie.core.Patch([edit])
@@ -147,7 +147,7 @@ class ValidMinify(ValidSearch):
 
             # rebuild
             if ranking[0][1] < self.report['reference_fitness']:
-                self.software.logger.info('-- rebuild --')
+                self.software.logger.info('---- rebuild ----')
                 rebuild = magpie.core.Patch([ranking[0][0]])
                 rebuild_fitness = ranking[0][1]
                 for (edit, _) in ranking[1:]:
@@ -165,7 +165,7 @@ class ValidMinify(ValidSearch):
 
         # round robin simplify
         if self.config['do_simplify']:
-            self.software.logger.info('-- simplify --')
+            self.software.logger.info('---- simplify ----')
             n = len(self.report['best_patch'].edits)+1
             rr_limit = self.config['round_robin_limit']
             last_i = 0

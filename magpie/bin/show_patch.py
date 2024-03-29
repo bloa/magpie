@@ -33,12 +33,17 @@ if __name__ == '__main__':
     variant = magpie.core.Variant(software, patch)
 
     # show patch
-    software.logger.info('==== REPORT ====')
+    msg = '==== REPORT ===='
+    if magpie.settings.color_output:
+        msg = f'\033[1m{msg}\033[0m'
+    software.logger.info(msg)
     software.logger.info('Patch: %s', patch)
-    software.logger.info('Diff:\n%s', variant.diff)
+    diff = variant.diff
+    if magpie.settings.color_output:
+        diff = magpie.core.BasicProtocol.color_diff(diff)
+    software.logger.info('Diff:\n%s', diff)
     if args.keep:
-        software.logger.info('==== PATH ====')
-        software.logger.info(software.work_dir)
+        software.logger.info('Artefact: %s', software.work_dir)
         software.write_variant(variant)
     else:
         software.clean_work_dir()

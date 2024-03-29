@@ -15,6 +15,15 @@ default_scenario = {
         'trust_local_filesystem': True,
     },
 
+    # [magpie.log] section
+    'magpie.log': {
+        'color_output': True,
+        'format_info': '{counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}',
+        'format_debug': 'patch({counter})="{patch}"',
+        'format_fitness': '{:.2f}',
+        'format_ratio': '{:.2%%}',
+    },
+
     # [software] section
     'software': {
         'path': '',

@@ -57,7 +57,15 @@ class XmlModel(AbstractXmlModel):
         return self.strip_xml_from_tree(self.contents)
 
     def show_location(self, target_type, target_loc):
-        out = '(unsupported target_type)'
+        insert = '(INSERTION POINT)'
+        tag_start = '# '
+        tag_middle = ': '
+        tag_end = '\n'
+        if magpie.settings.color_output:
+            insert = f'\033[32m{insert}\033[0m'
+            tag_start = f'\033[36m{tag_start}'
+            tag_middle = f'{tag_middle}\033[34m'
+            tag_end = f'{tag_end}\033[0m'
         if target_type[:7] == '_inter_':
             fakepath = self.locations[target_type][target_loc]
             parent_xpath, insert_index = fakepath.split('><')
@@ -65,7 +73,7 @@ class XmlModel(AbstractXmlModel):
             parent = copy.deepcopy(self.contents.find(parent_xpath))
             sp = self.find_indent(parent_xpath)
             if insert_index == 0:
-                parent.text = f'{parent.text or ""}\n(INSERTION POINT)\n{sp}'
+                parent.text = f'{parent.text or ""}\n{insert}\n{sp}'
             else:
                 child = None
                 tmp = {child.tag: 0 for child in parent}
@@ -74,16 +82,15 @@ class XmlModel(AbstractXmlModel):
                     if i == insert_index-1:
                         child_xpath = f'{parent_xpath}/{child.tag}[{tmp[child.tag]}]'
                         spc = self.find_indent(child_xpath)
-                        child.tail = f'\n{spc}(INSERTION POINT){child.tail or ""}'
+                        child.tail = f'\n{spc}{insert}{child.tail or ""}'
                         break
             tmp = self.tree_to_string(parent)
-            out = f'# {target_loc}: {fakepath}\n{sp}{tmp}'
-        else:
-            xpath = self.locations[target_type][target_loc]
-            sp = self.find_indent(xpath)
-            tmp = self.tree_to_string(self.contents.find(xpath), keep_tail=False)
-            out = f'# {target_loc}: {xpath}\n{sp}{tmp}'
-        return out
+            return f'{tag_start}{target_loc}{tag_middle}{fakepath}{tag_end}{sp}{tmp}'
+        # default: non '_inter_' tag
+        xpath = self.locations[target_type][target_loc]
+        sp = self.find_indent(xpath)
+        tmp = self.tree_to_string(self.contents.find(xpath), keep_tail=False)
+        return f'{tag_start}{target_loc}{tag_middle}{xpath}{tag_end}{sp}{tmp}'
 
     @staticmethod
     def string_to_tree(xml_str):
