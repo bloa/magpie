@@ -1,5 +1,5 @@
 default_scenario = {
-    # [magpie]
+    # [magpie] section
     'magpie': {
         'import': '',
         'seed': '',
@@ -15,7 +15,7 @@ default_scenario = {
         'trust_local_filesystem': True,
     },
 
-    # [software]
+    # [software] section
     'software': {
         'path': '',
         'target_files': '',
@@ -48,7 +48,7 @@ default_scenario = {
         'batch_fitness_strategy': 'sum', # sum ; average ; median
     },
 
-    # [srcml]
+    # [srcml] section
     'srcml': {
         'rename': """
 stmt: break continue decl_stmt do expr_stmt for goto if return switch while
@@ -60,7 +60,7 @@ number: literal_number""",
         'process_operators': True,
     },
 
-    # [params]
+    # [params] section
     'params': {
         'timing': 'test run',
         'cli_prefix': '--',
@@ -73,7 +73,7 @@ number: literal_number""",
         'silent_suffix': '$',
     },
 
-    # [search]
+    # [search] section
     'search': {
         'protocol': 'BasicProtocol',
         'algorithm': '',
@@ -91,7 +91,7 @@ number: literal_number""",
         'batch_sample_size': 1,
     },
 
-    # [search.ls]
+    # [search.ls] section
     'search.ls': {
         'delete_prob': 0.5,
         'max_neighbours': '',
@@ -100,7 +100,7 @@ number: literal_number""",
         'tabu_length': 10, # TabuSearch only
     },
 
-    # [search.gp]
+    # [search.gp] section
     'search.gp': {
         'pop_size': 10,
         'delete_prob': 0.5,
@@ -111,7 +111,7 @@ number: literal_number""",
         'batch_reset': True,
     },
 
-    # [search.minify]
+    # [search.minify] section
     'search.minify': {
         'do_cleanup': True,
         'do_rebuild': True,

@@ -8,7 +8,7 @@ from .errors import ScenarioError
 
 
 def pre_setup(config):
-    # [magpie]
+    # [magpie] section
     sec = config['magpie']
     if val := sec['import']:
         for module in val.split():
@@ -25,7 +25,7 @@ def pre_setup(config):
         sec['seed'] = str(val)
 
 def setup(config):
-    # [magpie]
+    # [magpie] section
     sec = config['magpie']
     magpie.settings.log_dir = sec['log_dir']
     magpie.settings.work_dir = sec['work_dir']
