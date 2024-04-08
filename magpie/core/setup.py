@@ -64,13 +64,13 @@ def setup(config):
         msg = '[magpie.log] color_output should be Boolean'
         raise ScenarioError(msg)
     try:
-        sec['format_info'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='')
+        sec['format_info'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='', patchifaccept='', patchifbest='', diff='', diffifaccept='', diffifbest='')
     except KeyError as e:
         msg = '[magpie.log] error in format_info format string'
         raise ScenarioError(msg) from e
     magpie.settings.log_format_info = sec['format_info']
     try:
-        sec['format_debug'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='')
+        sec['format_debug'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='', patchifaccept='', patchifbest='', diff='', diffifaccept='', diffifbest='')
     except KeyError as e:
         msg = '[magpie.log] error in format_debug format string'
         raise ScenarioError(msg) from e
@@ -87,3 +87,15 @@ def setup(config):
         msg = '[magpie.log] error in format_ratio format string'
         raise ScenarioError(msg) from e
     magpie.settings.log_format_ratio = sec['format_ratio']
+    try:
+        sec['format_patchif'].format(patch='')
+    except KeyError as e:
+        msg = '[magpie.log] error in format_patchif format string'
+        raise ScenarioError(msg) from e
+    magpie.settings.log_format_patchif = sec['format_patchif']
+    try:
+        sec['format_diffif'].format(diff='')
+    except KeyError as e:
+        msg = '[magpie.log] error in format_diffif format string'
+        raise ScenarioError(msg) from e
+    magpie.settings.log_format_diffif = sec['format_diffif']

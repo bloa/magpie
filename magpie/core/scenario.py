@@ -19,9 +19,11 @@ default_scenario = {
     'magpie.log': {
         'color_output': True,
         'format_info': '{counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}',
-        'format_debug': 'patch({counter})="{patch}"',
+        'format_debug': 'patch({counter})="{patch}"{diffifbest}',
         'format_fitness': '{:.2f}',
         'format_ratio': '{:.2%%}',
+        'format_patchif': '\n --> {patch}',
+        'format_diffif': '\n{diff}',
     },
 
     # [software] section

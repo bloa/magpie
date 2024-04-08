@@ -44,15 +44,19 @@ Default values:
     [magpie.log]
     color_output = True
     format_info = {counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}
-    format_debug = patch({counter})="{patch}"
+    format_debug = patch({counter})="{patch}"{diffifbest}
     format_fitness = {:.2f}
     format_ratio = {:.2%%}
+    format_patchif = \n --> {patch}
+    format_diffif = \n{diff}
 
 - `color_output`: colourise Magpie's output in the terminal
-- `format_info`: the [format string](https://docs.python.org/3/tutorial/inputoutput.html) used every evaluation, show both in the terminal and file logs; available keys include `counter` (e.g., "WARM" during warmup, or the variant index), `status` (e.g., "SUCCESS" or "COMPILE\_CODE\_ERROR"), `best` (a single character: "*" when the best fitness value so far is improved, "+" for repeated best fitness values, " " otherwise), `fitness` (one or more fitness values, formatted using `format_fitness`), `ratio` (likewise, for ratios using the reference fitness value), `size` (the number of edits of the related patch), `cached` (either the string "[cached]" when the evaluation was bypassed, "[part.cached]" when using instance batches when only some were cached, empty otherwise), and `log` (for additional data reported by the search algorithm)
+- `format_info`: the [format string](https://docs.python.org/3/tutorial/inputoutput.html) used every evaluation, show both in the terminal and file logs; available keys include `counter` (e.g., "WARM" during warmup, or the variant index), `status` (e.g., "SUCCESS" or "COMPILE\_CODE\_ERROR"), `best` (a single character: "*" when the best fitness value so far is improved, "+" for repeated best fitness values, " " otherwise), `fitness` (one or more fitness values, formatted using `format_fitness`), `ratio` (likewise, for ratios using the reference fitness value), `size` (the number of edits of the related patch), `cached` (either the string "[cached]" when the evaluation was bypassed, "[part.cached]" when using instance batches when only some were cached, empty otherwise), `patch`, `patchifaccept`, `patchifbest`, `diff`, `diffifaccept`, `diffifbest`, (formatted when necessary with `format_patchif` and `format_diffif`), and `log` (for additional data reported by the search algorithm)
 - `format_debug`: similar to `format_info`, but only used in file logs
 - `format_fitness`: the format string used when formatting fitness values
 - `format_ratio`: the format string used when formatting fitness values _ratios_
+- `format_patchif`: the format string used when formatting `patchifaccept` and `patchifbest`
+- `format_diffif`: the format string used when formatting `diffifaccept` and `diffifbest`
 
 
 ## `[software]`

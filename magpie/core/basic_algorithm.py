@@ -200,7 +200,12 @@ class BasicAlgorithm(AbstractAlgorithm):
             data['ratio'] = ' '.join([magpie.settings.log_format_ratio.format(x) for x in tmp])
         data['extra'] = 'extra'
         data['log'] = run.log or ''
-        data['patch'] = str(Patch)
+        data['patch'] = str(patch)
+        data['patchifaccept'] = magpie.settings.log_format_patchif.format(patch=data['patch']) if accept else ''
+        data['patchifbest'] = magpie.settings.log_format_patchif.format(patch=data['patch']) if best else ''
+        data['diff'] = run.variant.diff
+        data['diffifaccept'] = magpie.settings.log_format_diffif.format(diff=data['diff']) if accept else ''
+        data['diffifbest'] = magpie.settings.log_format_diffif.format(diff=data['diff']) if best else ''
         data['size'] = f'{len(patch.edits) if patch else 0} edit(s)'
         data['cached'] = ''
         if run.cached:
