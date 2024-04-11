@@ -32,11 +32,11 @@ default_scenario = {
         'target_files': '',
         'software': 'BasicSoftware',
         'model_rules': """
-*.params : ConfigFileParamsModel
+*.params : ParamFileConfigModel
 *.xml : SrcmlModel
 * : LineModel""",
         'model_config': """
-*.params : [params]
+*.params : [paramconfig]
 *.xml : [srcml]""",
         'init_cmd': '',
         'init_timeout': '60',
@@ -71,8 +71,8 @@ number: literal_number""",
         'process_operators': True,
     },
 
-    # [params] section
-    'params': {
+    # [paramconfig] section
+    'paramconfig': {
         'timing': 'test run',
         'cli_prefix': '--',
         'cli_glue': '=',

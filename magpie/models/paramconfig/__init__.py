@@ -1,5 +1,5 @@
-from .abstract_model import AbstractParamsModel
-from .configfile_model import ConfigFileParamsModel
+from .abstract_model import AbstractConfigModel
+from .paramfile_model import ParamFileConfigModel
 from .params_edits import ParamSetting
 from .realms import (
     CategoricalRealm,

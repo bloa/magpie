@@ -68,11 +68,11 @@ Default values:
     target_files =
     software = BasicSoftware
     model_rules =
-        *.params : ConfigFileParamsModel
+        *.params : ParamFileConfigModel
         *.xml : SrcmlModel
         * : LineModel
     model_config =
-        *.params : [params]
+        *.params : [paramconfig]
         *.xml : [srcml]
     possible_edits =
     init_cmd =
@@ -159,11 +159,11 @@ Default values:
 - `process_operators`: rename `<operator>` tags into `<operator_comp>`, `<operator_arith>` or `<operator_misc>` according to their text contents.
 
 
-### `[params]`
+### `[paramconfig]`
 
 Default values:
 
-    [params]
+    [paramconfig]
     timing = run
     cli_prefix = "--"
     cli_glue = "="

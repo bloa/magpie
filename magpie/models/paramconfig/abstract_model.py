@@ -3,7 +3,7 @@ import magpie.core
 from .realms import Realm
 
 
-class AbstractParamsModel(magpie.core.BasicModel):
+class AbstractConfigModel(magpie.core.BasicModel):
     def __init__(self, filename):
         super().__init__(filename)
         self.indirect_locations = False
@@ -21,7 +21,7 @@ class AbstractParamsModel(magpie.core.BasicModel):
 
     def setup(self, config, section_name):
         super().setup(config, section_name)
-        for name in tuple({'params', section_name}):
+        for name in tuple({'paramconfig', section_name}):
             config_section = config[name]
             if (k := 'timing') in config_section:
                 tmp = config_section[k].split()

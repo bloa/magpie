@@ -1,13 +1,13 @@
 import magpie.core
 import magpie.utils
 
-from .abstract_model import AbstractParamsModel
+from .abstract_model import AbstractConfigModel
 
 
 class ParamSetting(magpie.core.Edit):
     @classmethod
     def auto_create(cls, ref):
-        model = ref.random_model(AbstractParamsModel)
+        model = ref.random_model(AbstractConfigModel)
         target = model.random_target('param')
         if not target:
             return None

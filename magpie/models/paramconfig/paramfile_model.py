@@ -4,11 +4,11 @@ import re
 import magpie.core
 import magpie.utils
 
-from .abstract_model import AbstractParamsModel
+from .abstract_model import AbstractConfigModel
 from .realms import Realm
 
 
-class ConfigFileParamsModel(AbstractParamsModel):
+class ParamFileConfigModel(AbstractConfigModel):
     def init_contents(self):
         self.contents = {
             'current': {},
@@ -200,4 +200,4 @@ class ConfigFileParamsModel(AbstractParamsModel):
     def would_be_valid(self, key, value):
         return super().would_be_valid(key, str(value))
 
-magpie.utils.known_models += [ConfigFileParamsModel]
+magpie.utils.known_models += [ParamFileConfigModel]
