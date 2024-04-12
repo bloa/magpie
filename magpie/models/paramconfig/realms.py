@@ -35,8 +35,8 @@ class Realm(abc.ABC):
         return UniformRealm(*args, **kwargs)
 
     @classmethod
-    def uniform_int(cls, *args, **kwargs):
-        return UniformIntRealm(*args, **kwargs)
+    def discrete(cls, *args, **kwargs):
+        return DiscreteRealm(*args, **kwargs)
 
     @classmethod
     def exponential(cls, *args, **kwargs):
@@ -52,7 +52,7 @@ class Realm(abc.ABC):
 
     c = categorical
     u = uniform
-    ui = uniform_int
+    d = discrete
     e = exponential
     g = geometric
     l = lambd
@@ -84,7 +84,7 @@ class UniformRealm(Realm):
             return random.uniform(self.start, self.stop)
         return round(self.start + self.step*random.randrange((self.stop-self.start)/self.step), 10)
 
-class UniformIntRealm(Realm):
+class DiscreteRealm(Realm):
     def __init__(self, start, stop, step=None):
         self.start = start
         self.stop = stop
@@ -92,8 +92,8 @@ class UniformIntRealm(Realm):
 
     def __str__(self):
         if self.step is None:
-            return f'UniformIntRealm({self.start}, {self.stop})'
-        return f'UniformIntRealm({self.start}, {self.stop}, {self.step})'
+            return f'DiscreteRealm({self.start}, {self.stop})'
+        return f'DiscreteRealm({self.start}, {self.stop}, {self.step})'
 
     def random_value(self):
         if self.step is None:

@@ -125,7 +125,7 @@ class ParamFileConfigModel(AbstractConfigModel):
                 msg = f'Illegal default value for {param}: "{default}"'
                 raise magpie.core.ScenarioError(msg)
             self.contents['current'][param] = default
-            self.contents['space'][param] = Realm.uniform_int(*values)
+            self.contents['space'][param] = Realm.discrete(*values)
             return
         m = re.match(r'^\s*(\S+)\s*g\[([^,]+),([^,]+)\]\s*\[([^\]]+)\](?:\s*#.*)?$', line)
         if m:
