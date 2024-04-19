@@ -13,7 +13,7 @@ def test_str_complex_data():
     e = Edit('target_file', ['data1', 'data2'])
     assert str(e) == "Edit('target_file', ['data1', 'data2'])"
 
-def test_str_complix_string_data():
+def test_str_complex_string_data():
     e = Edit('target_file', "['data1', 'data2']")
     assert str(e) == "Edit('target_file', \"['data1', 'data2']\")"
 
