@@ -33,6 +33,7 @@ class AblationAnalysis(ValidSearch):
         removed = []
         while rebuild.edits:
             ranking = []
+            ref_fit = [(-float('inf') if f.maximize else float('inf')) for f in self.software.fitness]
             for k, _ in enumerate(rebuild.edits):
                 patch = copy.deepcopy(rebuild)
                 del patch.edits[k]
@@ -40,7 +41,7 @@ class AblationAnalysis(ValidSearch):
                 run = self.evaluate_variant(tmp)
                 self.hook_evaluation(tmp, run)
                 ranking.append((k, run.fitness))
-            ranking.sort(key=lambda c: c[1] or float('inf'))
+            ranking.sort(key=lambda c: c[1] or ref_fit)
             best_edit_id = ranking[0][0]
             removed.append(best_edit_id)
             rebuild.edits.pop(best_edit_id)

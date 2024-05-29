@@ -40,7 +40,7 @@ def my_runresult(my_software):
 ])
 def test_process_inherit(my_software, my_runresult, return_code, status):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, b'', b'', 1, 0)
-    my_software.fitness.process_init_exec(my_runresult, exec_result)
+    my_software.fitness[0].process_init_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
 
 @pytest.mark.parametrize(('stdout', 'status', 'fitness'), [
@@ -57,6 +57,6 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
 ])
 def test_process_run(my_software, my_runresult, stdout, status, fitness):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
-    my_software.fitness.process_run_exec(my_runresult, exec_result)
+    my_software.fitness[0].process_run_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness

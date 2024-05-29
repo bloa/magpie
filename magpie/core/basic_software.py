@@ -53,7 +53,7 @@ class BasicSoftware(AbstractSoftware):
         if 'fitness' not in config['software']:
             msg = 'Invalid config file: "[software] fitness" must be defined'
             raise ScenarioError(msg)
-        self.fitness = magpie.utils.convert.fitness_from_string(config['software']['fitness'])(self)
+        self.fitness = [magpie.utils.convert.fitness_from_string(s.strip())(self) for s in config['software']['fitness'].split(',')]
 
         # execution-related parameters
         self.init_performed = False
@@ -203,7 +203,8 @@ class BasicSoftware(AbstractSoftware):
                                                 lengthout=lengthout)
                     run_result = RunResult(None, exec_result.status)
                     if run_result.status == 'SUCCESS':
-                        self.fitness.process_init_exec(run_result, exec_result)
+                        for fit in self.fitness:
+                            fit.process_init_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'INIT_{run_result.status}'
                         run_result.last_exec = exec_result
@@ -234,6 +235,9 @@ class BasicSoftware(AbstractSoftware):
         run_result.updated = True
 
         with contextlib.chdir(work_path):
+            # serves as base before run_cmd
+            default_variant_fitness = [None for _ in self.fitness]
+
             # one-time setup
             if not self.setup_performed:
                 self.setup_performed = True
@@ -261,9 +265,11 @@ class BasicSoftware(AbstractSoftware):
                     run_result.status = exec_result.status
                     run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
-                        self.fitness.process_setup_exec(run_result, exec_result)
+                        for fit in self.fitness:
+                            fit.process_setup_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'SETUP_{run_result.status}'
+                        run_result.fitness = None
                         return run_result
 
                 # sync work directory
@@ -285,9 +291,14 @@ class BasicSoftware(AbstractSoftware):
                 run_result.status = exec_result.status
                 run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
-                    self.fitness.process_compile_exec(run_result, exec_result)
+                    for i, fit in enumerate(self.fitness):
+                        run_result.fitness = None
+                        fit.process_compile_exec(run_result, exec_result)
+                        if run_result.fitness is not None:
+                            default_variant_fitness[i] = run_result.fitness
                 if run_result.status != 'SUCCESS':
                     run_result.status = f'COMPILE_{run_result.status}'
+                    run_result.fitness = None
                     return run_result
 
             # run "[software] test_cmd" if provided
@@ -306,9 +317,16 @@ class BasicSoftware(AbstractSoftware):
                 run_result.status = exec_result.status
                 run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
-                    self.fitness.process_test_exec(run_result, exec_result)
-                if run_result.status != 'SUCCESS':
+                    for i, fit in enumerate(self.fitness):
+                        run_result.fitness = None
+                        fit.process_test_exec(run_result, exec_result)
+                        if run_result.fitness is not None:
+                            default_variant_fitness[i] = run_result.fitness
+                if run_result.status == 'SUCCESS':
+                    run_result.fitness = default_variant_fitness
+                else:
                     run_result.status = f'TEST_{run_result.status}'
+                    run_result.fitness = None
                     return run_result
 
             # run "[software] run_cmd" if provided
@@ -320,6 +338,7 @@ class BasicSoftware(AbstractSoftware):
                 batch_lengthout = self.batch_lengthout
                 insts = [inst for b in self.batch for inst in b]
                 for inst in insts:
+                    variant_fitness = default_variant_fitness[:]
                     if inst in run_result.cache:
                         continue
                     run_cmd = self.run_cmd.strip()
@@ -337,8 +356,12 @@ class BasicSoftware(AbstractSoftware):
                     run_result.status = exec_result.status
                     run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
-                        self.fitness.process_run_exec(run_result, exec_result)
-                    self.process_batch_single(run_result, inst)
+                        for i, fit in enumerate(self.fitness):
+                            run_result.fitness = None
+                            fit.process_run_exec(run_result, exec_result)
+                            if run_result.fitness is not None:
+                                variant_fitness[i] = run_result.fitness
+                    self.process_batch_single(run_result, inst, variant_fitness)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'RUN_{run_result.status}'
                         break
@@ -352,9 +375,9 @@ class BasicSoftware(AbstractSoftware):
                         if batch_lengthout < 0:
                             run_result.status = 'BATCH_LENGTHOUT'
                             break
+                self.process_batch_final(run_result)
 
         # final process
-        self.process_batch_final(run_result)
         return run_result
 
     def compute_local_cli(self, variant, step):
@@ -364,13 +387,12 @@ class BasicSoftware(AbstractSoftware):
             cli = model.update_cli(variant, cli, step)
         return cli
 
-    def process_batch_single(self, run_result, inst):
-        run_result.cache[inst] = (run_result.status, run_result.fitness)
-        self.logger.debug('EXEC> %s %s %s', inst, run_result.status, run_result.fitness)
+    def process_batch_single(self, run_result, inst, variant_fitness):
+        run_result.cache[inst] = (run_result.status, variant_fitness)
+        self.logger.debug('EXEC> %s %s %s', inst, run_result.status, variant_fitness)
 
     def process_batch_final(self, run_result):
-        tmp = []
-        fit = []
+        fit_per_batch = []
         for b in self.batch:
             bin_fitness = []
             for inst in b:
@@ -380,63 +402,76 @@ class BasicSoftware(AbstractSoftware):
                     run_result.fitness = None
                     return
                 bin_fitness.append(fitness)
-            multi = isinstance(bin_fitness[0], list)
+            multi = len(bin_fitness[0]) > 1
             if self.batch_bin_fitness_strategy == 'aggregate':
-                tmp.extend(bin_fitness)
+                fit_per_batch.extend(bin_fitness) # ???
             else:
-                for a in ([list(a) for a in zip(*bin_fitness)] if multi else [bin_fitness]):
-                    precision = max(len(str(float(x)).split('.')[1]) for x in a)
-                    if self.batch_bin_fitness_strategy == 'sum':
-                        v = sum(a)
-                    elif self.batch_bin_fitness_strategy == 'average':
-                        v = sum(a)/len(a)
-                        precision += 1
-                    elif self.batch_bin_fitness_strategy == 'median':
-                        if len(a) % 2 == 0:
-                            v = sorted(a)[len(a)//2]
-                        else:
-                            v = sum(sorted(a)[len(a)//2:len(a)//2+2])/2
+                acc = []
+                tmp = [list(a) for a in zip(*bin_fitness)] if multi else bin_fitness
+                for a in tmp: # a_k = fitness values per instance for fitness k
+                    if len(a) == 1: # single instance
+                        v = a[0]
+                        precision = len(str(float(v)))
+                    else:
+                        precision = max(len(str(float(x)).split('.')[1]) for x in a)
+                        if self.batch_bin_fitness_strategy == 'sum':
+                            v = sum(a)
+                        elif self.batch_bin_fitness_strategy == 'average':
+                            v = sum(a)/len(a)
                             precision += 1
-                    elif self.batch_bin_fitness_strategy == 'q10':
-                        if len(a) % 10 == 0:
-                            v = sorted(a)[len(a)//10]
-                        else:
-                            v = sum(sorted(a)[len(a)//10:len(a)//10+2])/2
-                            precision += 1
-                    elif self.batch_bin_fitness_strategy == 'q25':
-                        if len(a) % 4 == 0:
-                            v = sorted(a)[len(a)//4]
-                        else:
-                            v = sum(sorted(a)[len(a)//10:len(a)//10+2])/2
-                            precision += 1
-                    elif self.batch_bin_fitness_strategy == 'q75':
-                        if len(a) % 4 == 0:
-                            v = sorted(a)[3*len(a)//4]
-                        else:
-                            v = sum(sorted(a)[3*len(a)//4:3*len(a)//4+2])/2
-                            precision += 1
-                    elif self.batch_bin_fitness_strategy == 'q90':
-                        if len(a) % 10 == 0:
-                            v = sorted(a)[len(a)//10]
-                        else:
-                            v = sum(sorted(a)[9*len(a)//10:9*len(a)//10+2])/2
-                            precision += 1
-                    tmp.append(round(v, precision))
-        for a in ([list(a) for a in zip(*tmp)] if multi else [tmp]):
-            precision = max(len(str(float(x)).split('.')[1]) for x in a)
-            if self.batch_fitness_strategy == 'sum':
-                v = sum(a)
-            elif self.batch_fitness_strategy == 'average':
-                v = sum(a)/len(a)
-                precision += 1
-            elif self.batch_fitness_strategy == 'median':
-                if len(a) % 2 == 0:
-                    v = sorted(a)[len(a)//2]
-                else:
-                    v = sum(sorted(a)[len(a)//2:len(a)//2+2])/2
+                        elif self.batch_bin_fitness_strategy == 'median':
+                            if len(a) % 2 == 0:
+                                v = sorted(a)[len(a)//2]
+                            else:
+                                v = sum(sorted(a)[len(a)//2:len(a)//2+2])/2
+                                precision += 1
+                        elif self.batch_bin_fitness_strategy == 'q10':
+                            if len(a) % 10 == 0:
+                                v = sorted(a)[len(a)//10]
+                            else:
+                                v = sum(sorted(a)[len(a)//10:len(a)//10+2])/2
+                                precision += 1
+                        elif self.batch_bin_fitness_strategy == 'q25':
+                            if len(a) % 4 == 0:
+                                v = sorted(a)[len(a)//4]
+                            else:
+                                v = sum(sorted(a)[len(a)//10:len(a)//10+2])/2
+                                precision += 1
+                        elif self.batch_bin_fitness_strategy == 'q75':
+                            if len(a) % 4 == 0:
+                                v = sorted(a)[3*len(a)//4]
+                            else:
+                                v = sum(sorted(a)[3*len(a)//4:3*len(a)//4+2])/2
+                                precision += 1
+                        elif self.batch_bin_fitness_strategy == 'q90':
+                            if len(a) % 10 == 0:
+                                v = sorted(a)[len(a)//10]
+                            else:
+                                v = sum(sorted(a)[9*len(a)//10:9*len(a)//10+2])/2
+                                precision += 1
+                    acc.append(round(v, precision))
+                fit_per_batch.append(acc)
+        acc = []
+        tmp = [list(a) for a in zip(*fit_per_batch)] if multi else fit_per_batch[:]
+        for a in tmp: # a_k = fitness values per bin for fitness k
+            if len(a) == 1: # single bin
+                v = a[0]
+                precision = len(str(float(v)))
+            else:
+                precision = max(len(str(float(x)).split('.')[1]) for x in a)
+                if self.batch_fitness_strategy == 'sum':
+                    v = sum(a)
+                elif self.batch_fitness_strategy == 'average':
+                    v = sum(a)/len(a)
                     precision += 1
-            fit.append(round(v, precision))
-        run_result.fitness = fit if multi else fit[0]
+                elif self.batch_fitness_strategy == 'median':
+                    if len(a) % 2 == 0:
+                        v = sorted(a)[len(a)//2]
+                    else:
+                        v = sum(sorted(a)[len(a)//2:len(a)//2+2])/2
+                        precision += 1
+            acc.append(round(v, precision))
+        run_result.fitness = acc
 
     def diagnose_error(self, run):
         self.logger.info('!*'*40)
