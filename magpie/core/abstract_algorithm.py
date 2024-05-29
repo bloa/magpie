@@ -59,6 +59,9 @@ class AbstractAlgorithm(abc.ABC):
             return False
         return fit1 < fit2
 
+    def dominates_or_equal(self, fit1, fit2):
+        return self.dominates(fit1, fit2) or fit1 == fit2
+
     def stopping_condition(self):
         if self.report['stop'] is not None:
             return True
@@ -75,9 +78,8 @@ class AbstractAlgorithm(abc.ABC):
             if self.stats['steps'] >= self.stop['steps']:
                 self.report['stop'] = 'step budget'
                 return True
-        if self.stop['fitness'] is not None: # todo: list
-            if self.report['best_fitness'] is not None:
-                if self.report['best_fitness'] <= self.stop['fitness']:
-                    self.report['stop'] = 'target fitness reached'
-                    return True
+        if self.stop['fitness'] and self.report['best_fitness']:
+            if self.dominates_or_equal(self.report['best_fitness'], self.stop['fitness']):
+                self.report['stop'] = 'target fitness reached'
+                return True
         return False

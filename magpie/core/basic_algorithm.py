@@ -1,3 +1,4 @@
+import math
 import pathlib
 import random
 import time
@@ -31,7 +32,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.config['warmup_strategy'] = sec['warmup_strategy']
         self.stop['steps'] = int(val) if (val := sec['max_steps']) else None
         self.stop['wall'] = int(val) if (val := sec['max_time']) else None
-        self.stop['fitness'] = int(val) if (val := sec['target_fitness']) else None
+        self.stop['fitness'] = [float(s) for s in val.split('s')] if (val := sec['target_fitness']) else None
         self.config['cache_maxsize'] = int(val) if (val := sec['cache_maxsize']) else 0
         self.config['cache_keep'] = float(sec['cache_keep'])
 
@@ -194,7 +195,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         data['ratio'] = '--'
         if run.fitness is not None and baseline is not None:
             if isinstance(run.fitness, list):
-                tmp = [fit/base for fit, base in zip(run.fitness, baseline)]
+                tmp = [fit/base if base != 0 else math.inf for fit, base in zip(run.fitness, baseline)]
             else:
                 tmp = [run.fitness/baseline]
             data['ratio'] = ' '.join([magpie.settings.log_format_ratio.format(x) for x in tmp])

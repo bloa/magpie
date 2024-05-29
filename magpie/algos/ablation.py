@@ -40,7 +40,9 @@ class AblationAnalysis(ValidSearch):
                 run = self.evaluate_variant(tmp)
                 self.hook_evaluation(tmp, run)
                 ranking.append((k, run.fitness))
-            ranking.sort(key=lambda c: c[1] or float('inf'))
+            if ranking:
+                tmp = [float('inf') for _ in ranking[0][1]]
+                ranking.sort(key=lambda c: c[1] or tmp)
             best_edit_id = ranking[0][0]
             removed.append(best_edit_id)
             rebuild.edits.pop(best_edit_id)
