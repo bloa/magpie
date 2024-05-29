@@ -53,7 +53,14 @@ class BasicSoftware(AbstractSoftware):
         if 'fitness' not in config['software']:
             msg = 'Invalid config file: "[software] fitness" must be defined'
             raise ScenarioError(msg)
-        self.fitness = [magpie.utils.convert.fitness_from_string(s.strip())(self) for s in config['software']['fitness'].split(',')]
+        self.fitness = []
+        for s in [s.strip() for s in config['software']['fitness'].split(',')]:
+            if s[0] == '-':
+                fit = magpie.utils.convert.fitness_from_string(s[1:])(self)
+                fit.maximize = True
+            else:
+                fit = magpie.utils.convert.fitness_from_string(s)(self)
+            self.fitness.append(fit)
 
         # execution-related parameters
         self.init_performed = False
