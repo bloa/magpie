@@ -13,7 +13,7 @@ def pre_setup(config):
     if val := sec['import']:
         for module in val.split():
             try:
-                s = pathlib.Path(config['software']['path']) /  module
+                s = str(pathlib.Path(config['software']['path']) / module)
                 importlib.import_module(s.rstrip('.py').lstrip('./').replace('/', '.'))
             except ModuleNotFoundError:
                 importlib.import_module(val.rstrip('.py').lstrip('./').replace('/', '.'))
