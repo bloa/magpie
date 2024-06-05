@@ -51,6 +51,8 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
     (b'collected 3 items\n 3 passed', 'SUCCESS', 0.0),
     (b'4 runs, 7 assertions, 4 failures, 0 errors, 0 skips', 'SUCCESS', 100.0),
     (b'There were 4 failures:\nFAILURES!!!\nTests run: 4,  Failures: 4', 'SUCCESS', 100.0),
+    (b'Tests run: 10,  Failures: 5', 'SUCCESS', 50.0),
+    (b'OK (13 tests)', 'SUCCESS', 0.0),
     # PARSE_ERROR on everything else
     (b'', 'PARSE_ERROR', None),
     (b'0 fail', 'PARSE_ERROR', None),

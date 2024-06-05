@@ -10,7 +10,7 @@ target_files =
 fitness = bloat_chars
 
 init_cmd = bash init.sh
-test_cmd = pytest
+test_cmd = pytest tests/unit
 
 [search]
 algorithm = MyAlgo
