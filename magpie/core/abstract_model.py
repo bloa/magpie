@@ -59,8 +59,12 @@ class AbstractModel(abc.ABC):
                     return (self.filename, target_type, loc)
                 r -= w
             raise RuntimeError
-        loc = random.choice(self.locations_names[target_type])
-        return (self.filename, target_type, loc)
+        if target_type in self.locations_names:
+            if tmp := self.locations_names[target_type]:
+                loc = random.choice(tmp)
+                return (self.filename, target_type, loc)
+            return None
+        return None
 
     def update_cli(self, variant, cli, step):
         return cli
