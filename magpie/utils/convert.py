@@ -1,3 +1,5 @@
+import re
+
 from .known import algos as known_algos
 from .known import edits as known_edits
 from .known import fitness as known_fitness
@@ -25,6 +27,10 @@ def fitness_from_string(s):
     for klass in known_fitness:
         if klass.__name__.lower() == s2:
             return klass
+    m = re.search(r'(<.+>)', s)
+    if m:
+        klass = fitness_from_string(s.replace(m.group(1), 'templated'))
+        return klass.template(m.group(1))
     msg = f'Unknown fitness class "{s}"'
     raise RuntimeError(msg)
 

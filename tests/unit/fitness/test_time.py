@@ -57,7 +57,6 @@ def test_process_run_posixtime(my_software, my_runresult, stderr, status, fitnes
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
 
-
 @pytest.mark.parametrize(('stderr', 'status', 'fitness'), [
     # SUCCESS on PERF output
     (b'       1.001619582 seconds time elapsed', 'SUCCESS', 1.0016),
