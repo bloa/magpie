@@ -4,7 +4,7 @@ import magpie.utils.known
 from magpie.core import TemplatedFitness
 
 
-class GnuTimeTemplatedFitness(TemplatedFitness):
+class PerfTemplatedFitness(TemplatedFitness):
     KEY = None
 
     @classmethod
@@ -15,29 +15,23 @@ class GnuTimeTemplatedFitness(TemplatedFitness):
 
     def process_run_exec(self, run_result, exec_result):
         super().process_run_exec(run_result, exec_result)
-        # assume GNU /usr/bin/time -v
+        # assume perf stat
         stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
         try:
             for line in stderr.splitlines():
                 tmp = line.lower().replace(' ', '')
-                if m := re.search(rf'{self.KEY}.*:(\d+):(\d\d):(\d\d\.\d\d)', tmp):
-                    run_result.fitness = 3600*int(m.group(1)) + 60*int(m.group(2)) + float(m.group(3))
-                    break
-                if m := re.search(rf'{self.KEY}.*:(\d\d):(\d\d\.\d\d)', tmp):
-                    run_result.fitness = 60*int(m.group(1)) + float(m.group(2))
-                    break
-                if m := re.search(rf'{self.KEY}.*:(\d+\.\d\d)', tmp):
+                if m := re.search(rf'(\d+\.\d+).*{self.KEY}', tmp):
                     run_result.fitness = float(m.group(1))
                     break
-                if m := re.search(rf'{self.KEY}.*:(\d+)%', tmp):
-                    run_result.fitness = int(m.group(1))
+                if m := re.search(rf'(\d+\.\d+)%?.*{self.KEY}', tmp):
+                    run_result.fitness = float(m.group(1))
                     break
-                if m := re.search(rf'{self.KEY}.*:(\d+)', tmp):
-                    run_result.fitness = int(m.group(1))
+                if m := re.search(rf'(\d+(?:,\d\d\d)*).*{self.KEY}', tmp):
+                    run_result.fitness = int(m.group(1).replace(',', ''))
                     break
             else:
                 run_result.status = 'PARSE_ERROR'
         except (AttributeError, ValueError):
             run_result.status = 'PARSE_ERROR'
 
-magpie.utils.known.fitness.append(GnuTimeTemplatedFitness)
+magpie.utils.known.fitness.append(PerfTemplatedFitness)

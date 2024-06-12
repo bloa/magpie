@@ -14,4 +14,5 @@ from .patch import Patch
 from .runresult import RunResult
 from .scenario import default_scenario
 from .setup import pre_setup, setup
+from .templated_fitness import TemplatedFitness
 from .variant import Variant
