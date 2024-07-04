@@ -54,7 +54,30 @@ class BasicSoftware(AbstractSoftware):
             msg = 'Invalid config file: "[software] fitness" must be defined'
             raise ScenarioError(msg)
         self.fitness = []
-        for s in [s.strip() for s in config['software']['fitness'].split(',')]:
+        tmp = config['software']['fitness'].split('<')
+        tmp2 = []
+        _msg = 'Invalid config file: bad templating in "[software] fitness"'
+        if '>' in tmp[0]:
+            msg = f'{_msg} (unexpected ">" before any "<")'
+            raise ScenarioError(msg)
+        i = 0
+        while i < len(tmp):
+            if i > 0:
+                if not tmp2:
+                    msg = f'{_msg} (missing fitness name before "<")'
+                    raise ScenarioError(msg)
+                l = tmp[i].split('>')
+                if len(l) != 2:
+                    if len(l) == 1:
+                        msg = f'{_msg} (missing ">" for fitness "{tmp2[-1]}")'
+                    else:
+                        msg = f'{_msg} (unpaired ">")'
+                    raise ScenarioError(msg)
+                tmp2[-1] = f'{tmp2[-1].strip()}<{l[0]}>'
+                tmp[i] = l[1]
+            tmp2.extend(tmp[i].split())
+            i += 1
+        for s in [s.strip() for s in tmp2]:
             if s[0] == '-':
                 fit = magpie.utils.convert.fitness_from_string(s[1:])(self)
                 fit.maximize = True
