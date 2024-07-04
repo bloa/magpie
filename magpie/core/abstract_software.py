@@ -4,6 +4,7 @@ import errno
 import logging
 import os
 import pathlib
+import platform
 import re
 import select
 import shutil
@@ -175,15 +176,15 @@ class AbstractSoftware(abc.ABC):
         env['MAGPIE_BASENAME'] = self.basename
         env['MAGPIE_TIMESTAMP'] = self.timestamp
         try:
-            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env, start_new_session=True) as sprocess:
+            is_posix = os.name == 'posix'
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env, start_new_session=is_posix) as sprocess:
                 if lengthout > 0:
                     stdout_size = 0
                     stderr_size = 0
                     while sprocess.poll() is None:
                         end = time.time()
                         if end-start > timeout:
-                            os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
-                            _, _ = sprocess.communicate()
+                            _kill_proc_with_children(sprocess)
                             return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
                         a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
                         if sprocess.stdout in a:
@@ -199,7 +200,7 @@ class AbstractSoftware(abc.ABC):
                                 stderr += sprocess.stderr.read(1)
                                 stderr_size += 1
                         if stdout_size+stderr_size >= lengthout:
-                            os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                            _kill_proc_with_children(sprocess)
                             _, _ = sprocess.communicate()
                             return ExecResult(cmd, 'LENGTHOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
                     end = time.time()
@@ -209,7 +210,7 @@ class AbstractSoftware(abc.ABC):
                     try:
                         stdout, stderr = sprocess.communicate(timeout=timeout)
                     except subprocess.TimeoutExpired:
-                        os.killpg(os.getpgid(sprocess.pid), signal.SIGKILL)
+                        _kill_proc_with_children(sprocess)
                         stdout, stderr = sprocess.communicate()
                         end = time.time()
                         return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
@@ -227,3 +228,13 @@ class AbstractSoftware(abc.ABC):
             except OSError as e:
                 if e.errno != errno.ENOTEMPTY:
                     raise
+
+if os.name == 'posix':
+    def _kill_proc_with_children(proc):
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+elif platform.system() == 'Windows':
+    def _kill_proc_with_children(proc):
+        subprocess.run(['taskkill', '/F', '/T', '/PID', str(proc.pid)], check=False)
+else: # we probably shouldn't even support this
+    def _kill_proc_with_children(proc):
+        proc.kill() # hoping there aren't any child process
