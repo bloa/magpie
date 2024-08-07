@@ -1,4 +1,4 @@
-import contextlib
+import os
 import pathlib
 import re
 import shlex
@@ -173,7 +173,9 @@ class BasicSoftware(AbstractSoftware):
         if not self.init_performed:
             self.init_performed = True
             if self.init_cmd:
-                with contextlib.chdir(self.path):
+                cwd = pathlib.Path.cwd()
+                try:
+                    os.chdir(self.path)
                     timeout = self.init_timeout or magpie.settings.default_timeout
                     lengthout = self.init_lengthout or magpie.settings.default_lengthout
                     exec_result = self.exec_cmd(shlex.split(self.init_cmd),
@@ -189,6 +191,8 @@ class BasicSoftware(AbstractSoftware):
                         self.diagnose_error(run_result)
                         msg = '(cmd_init) failed to init target software'
                         raise RuntimeError(msg)
+                finally:
+                    os.chdir(cwd)
         super().reset_contents()
 
     def evaluate_variant(self, variant, cached_run=None):
@@ -212,9 +216,11 @@ class BasicSoftware(AbstractSoftware):
         run_result = cached_run or RunResult(variant, 'UNKNOWN_ERROR')
         run_result.updated = True
 
-        with contextlib.chdir(work_path):
-            raw_fitness_values = {}
+        cwd = pathlib.Path.cwd()
+        try:
+            os.chdir(work_path)
 
+            raw_fitness_values = {}
             # one-time setup
             if not self.setup_performed:
                 self.setup_performed = True
@@ -364,6 +370,9 @@ class BasicSoftware(AbstractSoftware):
                 self.process_batch_final(run_result)
             else:
                 run_result.fitness = self.process_final_fitness(raw_fitness_values)
+
+        finally:
+            os.chdir(cwd)
 
         # final process
         return run_result
