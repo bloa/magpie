@@ -1,5 +1,5 @@
-import contextlib
 import copy
+import os
 import pathlib
 
 import pytest
@@ -12,8 +12,12 @@ from .util import assert_diff
 @pytest.fixture
 def line_model():
     model = LineModel('triangle.py')
-    with contextlib.chdir(pathlib.Path('tests') / 'examples'):
+    cwd = pathlib.Path.cwd()
+    try:
+        os.chdir(pathlib.Path('tests') / 'examples')
         model.init_contents()
+    finally:
+        os.chdir(cwd)
     return model
 
 @pytest.fixture

@@ -119,9 +119,13 @@ class AbstractSoftware(abc.ABC):
         self.sync_folder(work_path, self.path)
 
         # process modified files
-        with contextlib.chdir(work_path):
+        cwd = pathlib.Path.cwd()
+        try:
+            os.chdir(work_path)
             for filename in self.target_files:
                 variant.models[filename].write_to_file()
+        finally:
+            os.chdir(cwd)
 
     def sync_folder(self, target, original):
         try:

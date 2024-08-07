@@ -1,4 +1,4 @@
-import contextlib
+import os
 import pathlib
 
 import pytest
@@ -9,8 +9,12 @@ from magpie.models.xml import SrcmlModel, XmlModel
 @pytest.fixture
 def xml_model():
     model = XmlModel('triangle.c.xml')
-    with contextlib.chdir(pathlib.Path('tests') / 'examples'):
+    cwd = pathlib.Path.cwd()
+    try:
+        os.chdir(pathlib.Path('tests') / 'examples')
         model.init_contents()
+    finally:
+        os.chdir(cwd)
     return model
 
 
