@@ -1,6 +1,7 @@
 import contextlib
 import copy
 import difflib
+import os
 import random
 
 import magpie.settings
@@ -15,9 +16,13 @@ class Variant:
         else:
             if patch is not None:
                 raise AssertionError
-            with contextlib.chdir(software.path):
+            cwd = os.getcwd()
+            try:
+                os.chdir(software.path)
                 for filename in software.target_files:
                     self.models[filename] = self._init_model(software, filename)
+            finally:
+                os.chdir(cwd)
         self.patch = patch
         if patch:
             for edit in patch.edits:
