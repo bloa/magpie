@@ -20,7 +20,7 @@ Finally, Magpie also enables parameter tuning and algorithm configuration, both 
 ## Requirements
 
 - Unix (Linux/macOS/etc; untested on Windows)
-- Python 3.8+
+- Python 3.11+
 
 
 ## Try it now!
