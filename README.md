@@ -53,7 +53,7 @@ Everything you need to know about Magpie.
 - [Entry points](./docs/reference/entry_points.md)
 - [Fitness functions](./docs/reference/fitness_functions.md)
 - [Scenario files](./docs/reference/scenario_file.md)
-- [Algorithm configuration model](./docs/params_model.md)
+- [Algorithm configuration model](./docs/reference/paramconfig_model.md)
 
 
 ## Acknowledgements

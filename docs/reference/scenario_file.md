@@ -173,7 +173,7 @@ Default values:
     silent_prefix = "@"
     silent_suffix = "$"
 
-See the page on [algorithm configuration](algoconfig.md#magic-constants).
+See the page on [algorithm configuration](paramconfig_model.md#magic-constants).
 
 
 ## `[search]`
