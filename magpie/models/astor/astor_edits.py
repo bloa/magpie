@@ -4,7 +4,7 @@ import magpie.utils
 from .astor_model import AstorModel
 
 
-class AstorStmtReplacement(magpie.core.Edit):
+class AstorStmtReplacementEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
         target, ingredient = ref.random_targets(AstorModel, 'stmt', 'stmt')
@@ -18,10 +18,10 @@ class AstorStmtReplacement(magpie.core.Edit):
         model = variant.models[self.target[0]]
         return model.do_replace(ref_model, self.target, ingredient)
 
-magpie.utils.known_edits.append(AstorStmtReplacement)
+magpie.utils.known_edits.append(AstorStmtReplacementEdit)
 
 
-class AstorStmtInsertion(magpie.core.Edit):
+class AstorStmtInsertionEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
         target, ingredient = ref.random_targets(AstorModel, '_inter_block', 'stmt')
@@ -35,10 +35,10 @@ class AstorStmtInsertion(magpie.core.Edit):
         model = variant.models[self.target[0]]
         return model.do_insert(ref_model, self.target, ingredient)
 
-magpie.utils.known_edits.append(AstorStmtInsertion)
+magpie.utils.known_edits.append(AstorStmtInsertionEdit)
 
 
-class AstorStmtDeletion(magpie.core.Edit):
+class AstorStmtDeletionEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel).random_target('stmt')
@@ -50,10 +50,10 @@ class AstorStmtDeletion(magpie.core.Edit):
         model = variant.models[self.target[0]]
         return model.do_delete(self.target)
 
-magpie.utils.known_edits.append(AstorStmtDeletion)
+magpie.utils.known_edits.append(AstorStmtDeletionEdit)
 
 
-class AstorStmtMoving(magpie.core.Edit):
+class AstorStmtMovingEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
         target, ingredient = ref.random_targets(AstorModel, 'stmt', 'stmt')
@@ -68,4 +68,4 @@ class AstorStmtMoving(magpie.core.Edit):
         model.do_insert(ref_model, self.target, ingredient)
         return model.do_delete(ref_model, self.target)
 
-magpie.utils.known_edits.append(AstorStmtMoving)
+magpie.utils.known_edits.append(AstorStmtMovingEdit)

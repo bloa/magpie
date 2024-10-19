@@ -1,76 +1,73 @@
 import magpie.utils
 
 from .xml_edits import (
-    AbstractXmlNodeDeletion,
-    AbstractXmlNodeInsertion,
-    AbstractXmlNodeReplacement,
-    AbstractXmlTextSetting,
-    AbstractXmlTextWrapping,
+    XmlNodeDeletionTemplatedEdit,
+    XmlNodeInsertionTemplatedEdit,
+    XmlNodeReplacementTemplatedEdit,
+    XmlTextSettingTemplatedEdit,
+    XmlTextWrappingTemplatedEdit,
 )
 
 
-class XmlLineDeletion(AbstractXmlNodeDeletion):
-    NODE_TAG = 'line'
+class XmlLineDeletionEdit(XmlNodeDeletionTemplatedEdit):
+    TEMPLATE = ('line',)
 
-magpie.utils.known_edits.append(XmlLineDeletion)
+magpie.utils.known_edits.append(XmlLineDeletionEdit)
 
-class XmlLineReplacement(AbstractXmlNodeReplacement):
-    NODE_TAG = 'line'
+class XmlLineReplacementEdit(XmlNodeReplacementTemplatedEdit):
+    TEMPLATE = ('line',)
 
-magpie.utils.known_edits.append(XmlLineReplacement)
+magpie.utils.known_edits.append(XmlLineReplacementEdit)
 
-class XmlLineInsertion(AbstractXmlNodeInsertion):
-    NODE_PARENT_TAG = 'unit'
-    NODE_TAG = 'line'
+class XmlLineInsertionEdit(XmlNodeInsertionTemplatedEdit):
+    TEMPLATE = ('line', 'unit')
 
-magpie.utils.known_edits.append(XmlLineInsertion)
+magpie.utils.known_edits.append(XmlLineInsertionEdit)
 
-class SrcmlStmtDeletion(AbstractXmlNodeDeletion):
-    NODE_TAG = 'stmt'
+class SrcmlStmtDeletionEdit(XmlNodeDeletionTemplatedEdit):
+    TEMPLATE = ('stmt',)
 
-magpie.utils.known_edits.append(SrcmlStmtDeletion)
+magpie.utils.known_edits.append(SrcmlStmtDeletionEdit)
 
-class SrcmlStmtReplacement(AbstractXmlNodeReplacement):
-    NODE_TAG = 'stmt'
+class SrcmlStmtReplacementEdit(XmlNodeReplacementTemplatedEdit):
+    TEMPLATE = ('stmt',)
 
-magpie.utils.known_edits.append(SrcmlStmtReplacement)
+magpie.utils.known_edits.append(SrcmlStmtReplacementEdit)
 
-class SrcmlStmtInsertion(AbstractXmlNodeInsertion):
-    NODE_PARENT_TAG = 'block'
-    NODE_TAG = 'stmt'
+class SrcmlStmtInsertionEdit(XmlNodeInsertionTemplatedEdit):
+    TEMPLATE = ('stmt', 'block')
 
-magpie.utils.known_edits.append(SrcmlStmtInsertion)
+magpie.utils.known_edits.append(SrcmlStmtInsertionEdit)
 
-class SrcmlConditionReplacement(AbstractXmlNodeReplacement):
-    NODE_TAG = 'condition'
+class SrcmlConditionReplacementEdit(XmlNodeReplacementTemplatedEdit):
+    TEMPLATE = ('condition',)
 
-magpie.utils.known_edits.append(SrcmlConditionReplacement)
+magpie.utils.known_edits.append(SrcmlConditionReplacementEdit)
 
-class SrcmlExprReplacement(AbstractXmlNodeReplacement):
-    NODE_TAG = 'expr'
+class SrcmlExprReplacementEdit(XmlNodeReplacementTemplatedEdit):
+    TEMPLATE = ('expr',)
 
-magpie.utils.known_edits.append(SrcmlExprReplacement)
+magpie.utils.known_edits.append(SrcmlExprReplacementEdit)
 
-class SrcmlComparisonOperatorSetting(AbstractXmlTextSetting):
-    NODE_TAG = 'operator_comp'
-    CHOICES = ('==', '!=', '<', '<=', '>', '>=')
+class SrcmlComparisonOperatorSettingEdit(XmlTextSettingTemplatedEdit):
+    TEMPLATE = ('operator_comp', '==', '!=', '<', '<=', '>', '>=')
 
-magpie.utils.known_edits.append(SrcmlComparisonOperatorSetting)
+magpie.utils.known_edits.append(SrcmlComparisonOperatorSettingEdit)
 
-class SrcmlArithmeticOperatorSetting(AbstractXmlTextSetting):
-    NODE_TAG = 'operator_arith'
-    CHOICES = ('+', '-', '*', '/', '%')
+class SrcmlArithmeticOperatorSettingEdit(XmlTextSettingTemplatedEdit):
+    TEMPLATE = ('operator_arith', '+', '-', '*', '/', '%')
 
-magpie.utils.known_edits.append(SrcmlArithmeticOperatorSetting)
+magpie.utils.known_edits.append(SrcmlArithmeticOperatorSettingEdit)
 
-class SrcmlNumericSetting(AbstractXmlTextSetting):
-    NODE_TAG = 'number'
-    CHOICES = ('-1', '0', '1')
+class SrcmlNumericSettingEdit(XmlTextSettingTemplatedEdit):
+    TEMPLATE = ('number', '-1', '0', '1')
 
-magpie.utils.known_edits.append(SrcmlNumericSetting)
+magpie.utils.known_edits.append(SrcmlNumericSettingEdit)
 
-class SrcmlRelativeNumericSetting(AbstractXmlTextWrapping):
-    NODE_TAG = 'number'
-    CHOICES = (('(', '+1)'), ('(', '-1)'), ('(', '/2)'), ('(', '*2)'), ('(', '*3/2)'), ('(', '*2/3)'))
+class SrcmlRelativeNumericSettingEdit(XmlTextWrappingTemplatedEdit):
+    TEMPLATE = ('number',
+                '(', '+1)', '(', '-1)',
+                '(', '/2)', '(', '*2)',
+                '(', '*3/2)', '(', '*2/3)')
 
-magpie.utils.known_edits.append(SrcmlRelativeNumericSetting)
+magpie.utils.known_edits.append(SrcmlRelativeNumericSettingEdit)
