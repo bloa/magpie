@@ -1,7 +1,7 @@
 from .astor_edits import (
-    AstorStmtDeletion,
-    AstorStmtInsertion,
-    AstorStmtMoving,
-    AstorStmtReplacement,
+    AstorStmtDeletionEdit,
+    AstorStmtInsertionEdit,
+    AstorStmtMovingEdit,
+    AstorStmtReplacementEdit,
 )
 from .astor_model import AstorModel

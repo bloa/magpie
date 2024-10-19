@@ -1,16 +1,14 @@
 import random
 
-from magpie.core import Edit
+import magpie
 
 from .abstract_model import AbstractXmlModel
 
 
-class AbstractXmlNodeDeletion(Edit):
-    NODE_TAG = ''
-
+class XmlNodeDeletionTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
+        target = ref.random_model(AbstractXmlModel).random_target(cls.TEMPLATE[0])
         if not target:
             return None
         return cls(target)
@@ -19,13 +17,13 @@ class AbstractXmlNodeDeletion(Edit):
         model = variant.models[self.target[0]]
         return model.do_delete(self.target)
 
+magpie.utils.known_edits.append(XmlNodeDeletionTemplatedEdit)
 
-class AbstractXmlNodeReplacement(Edit):
-    NODE_TAG = ''
 
+class XmlNodeReplacementTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AbstractXmlModel, cls.NODE_TAG, cls.NODE_TAG)
+        target, ingredient = ref.random_targets(AbstractXmlModel, cls.TEMPLATE[0], cls.TEMPLATE[0])
         if not (target and ingredient):
             return None
         return cls(target, ingredient)
@@ -36,14 +34,13 @@ class AbstractXmlNodeReplacement(Edit):
         model = variant.models[self.target[0]]
         return model.do_replace(ref_model, self.target, ingredient)
 
+magpie.utils.known_edits.append(XmlNodeReplacementTemplatedEdit)
 
-class AbstractXmlNodeInsertion(Edit):
-    NODE_PARENT_TAG = ''
-    NODE_TAG = ''
 
+class XmlNodeInsertionTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AbstractXmlModel, f'_inter_{cls.NODE_PARENT_TAG}', cls.NODE_TAG)
+        target, ingredient = ref.random_targets(AbstractXmlModel, f'_inter_{cls.TEMPLATE[1]}', cls.TEMPLATE[0])
         if not (target and ingredient):
             return None
         return cls(target, ingredient)
@@ -54,15 +51,14 @@ class AbstractXmlNodeInsertion(Edit):
         model = variant.models[self.target[0]]
         return model.do_insert(ref_model, self.target, ingredient)
 
+magpie.utils.known_edits.append(XmlNodeInsertionTemplatedEdit)
 
-class AbstractXmlTextSetting(Edit):
-    NODE_TAG = ''
-    CHOICES = ('',)
 
+class XmlTextSettingTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
-        ingredient = random.choice(cls.CHOICES)
+        target = ref.random_model(AbstractXmlModel).random_target(cls.TEMPLATE[0])
+        ingredient = random.choice(cls.TEMPLATE[1:])
         if not target:
             return None
         return cls(target, ingredient)
@@ -72,15 +68,15 @@ class AbstractXmlTextSetting(Edit):
         model = variant.models[self.target[0]]
         return model.do_set_text(self.target, ingredient)
 
+magpie.utils.known_edits.append(XmlTextSettingTemplatedEdit)
 
-class AbstractXmlTextWrapping(Edit):
-    NODE_TAG = ''
-    CHOICES = (('(', ')'),)
 
+class XmlTextWrappingTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AbstractXmlModel).random_target(cls.NODE_TAG)
-        ingredient = random.choice(cls.CHOICES)
+        target = ref.random_model(AbstractXmlModel).random_target(cls.TEMPLATE[0])
+        i = random.randrange(1, len(cls.TEMPLATE)//2)
+        ingredient = (cls.TEMPLATE[2*i-1], cls.TEMPLATE[2*i])
         if not target:
             return None
         return cls(target, ingredient)
@@ -89,3 +85,5 @@ class AbstractXmlTextWrapping(Edit):
         ingredient = self.data[0]
         model = variant.models[self.target[0]]
         return model.do_wrap_text(self.target, *ingredient)
+
+magpie.utils.known_edits.append(XmlTextWrappingTemplatedEdit)

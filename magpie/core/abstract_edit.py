@@ -1,7 +1,8 @@
 import abc
+import re
 
 
-class Edit:
+class AbstractEdit:
     def __init__(self, target, *args):
         self.target = target
         self.data = list(args)
@@ -26,7 +27,8 @@ class Edit:
         return hash(str(self))
 
     def __str__(self):
+        base = re.sub(r'Edit(<.*>)?$', '\\1', self.__class__.__name__)
         if self.data:
             tmp = ', '.join([repr(d) for d in self.data])
-            return f'{self.__class__.__name__}({self.target!r}, {tmp})'
-        return f'{self.__class__.__name__}({self.target!r})'
+            return f'{base}({self.target!r}, {tmp})'
+        return f'{base}({self.target!r})'

@@ -14,6 +14,6 @@ run_timeout = 1
 max_steps = 100
 max_time = 60
 possible_edits =
-    SrcmlStmtReplacement
-    SrcmlStmtInsertion
-    SrcmlStmtDeletion
+    XmlNodeDeletion<stmt>
+    XmlNodeReplacement<stmt>
+    XmlNodeInsertion<stmt,block>

@@ -11,7 +11,7 @@ class Patch:
         if s == '':
             return patch
         for blob in s.split(' | '):
-            m = re.search(r'^(\w+)\((.+)\)$', blob)
+            m = re.search(r'^(\w+(?:<.*?>)?)\((.+)\)$', blob)
             klass = magpie.utils.edit_from_string(m.group(1))
             args = ast.literal_eval(f'[{m.group(2)}]')
             patch.edits.append(klass(*args))
