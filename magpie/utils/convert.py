@@ -16,10 +16,15 @@ def model_from_string(s):
     raise RuntimeError(msg)
 
 def edit_from_string(s):
+    s2 = s.lower().replace('_', '') + 'edit'
     for klass in known_edits:
-        if klass.__name__ == s:
+        if klass.__name__.lower() == s2:
             return klass
-    msg = f'Unknown edit class "{s}"'
+    m = re.search(r'(<.+>)', s)
+    if m:
+        klass = edit_from_string(s.replace(m.group(1), 'Templated'))
+        return klass.template(m.group(1))
+    msg = f'Unknown edit class "{s}Edit"'
     raise RuntimeError(msg)
 
 def fitness_from_string(s):
