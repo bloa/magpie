@@ -9,14 +9,14 @@ from magpie.models.line import LineModel
 from .util import assert_diff
 
 
-@pytest.fixture()
+@pytest.fixture
 def line_model():
     model = LineModel('triangle.py')
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model
 
-@pytest.fixture()
+@pytest.fixture
 def file_contents():
     path = pathlib.Path('tests') / 'examples' / 'triangle.py'
     with path.open('r') as myfile:

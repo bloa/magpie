@@ -17,7 +17,7 @@ class ParamFileConfigModel(AbstractConfigModel):
             'forbidden': [],
         }
         with pathlib.Path(self.filename).open('r') as config_file:
-            for line in config_file.readlines():
+            for line in config_file:
                 self._read_line(line)
         self.locations = {'param': list(self.contents['current'].keys())}
 
