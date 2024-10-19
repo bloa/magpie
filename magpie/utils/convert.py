@@ -28,15 +28,15 @@ def edit_from_string(s):
     raise RuntimeError(msg)
 
 def fitness_from_string(s):
-    s2 = s.replace('_', '') + 'fitness'
+    s2 = s.lower().replace('_', '') + 'fitness'
     for klass in known_fitness:
         if klass.__name__.lower() == s2:
             return klass
     m = re.search(r'(<.+>)', s)
     if m:
-        klass = fitness_from_string(s.replace(m.group(1), 'templated'))
+        klass = fitness_from_string(s.replace(m.group(1), 'Templated'))
         return klass.template(m.group(1))
-    msg = f'Unknown fitness class "{s}"'
+    msg = f'Unknown fitness class "{s}Fitness"'
     raise RuntimeError(msg)
 
 def protocol_from_string(s):
