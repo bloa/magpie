@@ -6,7 +6,7 @@ import pytest
 from magpie.models.xml import SrcmlModel, XmlModel
 
 
-@pytest.fixture()
+@pytest.fixture
 def xml_model():
     model = XmlModel('triangle.c.xml')
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
