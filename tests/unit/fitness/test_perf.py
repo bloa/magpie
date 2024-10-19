@@ -22,15 +22,15 @@ class StubSoftware(BasicSoftware):
         self.contents = {}
         self.locations = {}
 
-@pytest.fixture()
+@pytest.fixture
 def my_software():
     return StubSoftware()
 
-@pytest.fixture()
+@pytest.fixture
 def my_runresult(my_software):
     return RunResult(my_software, 'SUCCESS')
 
-@pytest.fixture()
+@pytest.fixture
 def my_execresult():
     return ExecResult(
         ['(empty)'],

@@ -25,7 +25,7 @@ class BloatWordsFitness(BasicFitness):
         for filename in self.software.target_files:
             renamed = run_result.variant.models[filename].renamed_filename
             with pathlib.Path(renamed).open('r') as target:
-                run_result.fitness += sum(len(s.split()) for s in target.readlines())
+                run_result.fitness += sum(len(s.split()) for s in target)
 
 magpie.utils.known.fitness.append(BloatWordsFitness)
 
@@ -38,6 +38,6 @@ class BloatCharsFitness(BasicFitness):
         for filename in self.software.target_files:
             renamed = run_result.variant.models[filename].renamed_filename
             with pathlib.Path(renamed).open('r') as target:
-                run_result.fitness += sum(len(s) for s in target.readlines())
+                run_result.fitness += sum(len(s) for s in target)
 
 magpie.utils.known.fitness.append(BloatCharsFitness)

@@ -9,14 +9,14 @@ from magpie.models.xml import XmlModel
 from .util import assert_diff
 
 
-@pytest.fixture()
+@pytest.fixture
 def xml_model():
     model = XmlModel('Triangle.java.xml')
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model
 
-@pytest.fixture()
+@pytest.fixture
 def file_contents():
     path = pathlib.Path('tests') / 'examples' / 'Triangle.java'
     with path.open('r') as myfile:

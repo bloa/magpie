@@ -53,24 +53,24 @@ magpie.utils.known_edits.append(SrcmlExprReplacement)
 
 class SrcmlComparisonOperatorSetting(AbstractXmlTextSetting):
     NODE_TAG = 'operator_comp'
-    CHOICES = ['==', '!=', '<', '<=', '>', '>=']
+    CHOICES = ('==', '!=', '<', '<=', '>', '>=')
 
 magpie.utils.known_edits.append(SrcmlComparisonOperatorSetting)
 
 class SrcmlArithmeticOperatorSetting(AbstractXmlTextSetting):
     NODE_TAG = 'operator_arith'
-    CHOICES = ['+', '-', '*', '/', '%']
+    CHOICES = ('+', '-', '*', '/', '%')
 
 magpie.utils.known_edits.append(SrcmlArithmeticOperatorSetting)
 
 class SrcmlNumericSetting(AbstractXmlTextSetting):
     NODE_TAG = 'number'
-    CHOICES = ['-1', '0', '1']
+    CHOICES = ('-1', '0', '1')
 
 magpie.utils.known_edits.append(SrcmlNumericSetting)
 
 class SrcmlRelativeNumericSetting(AbstractXmlTextWrapping):
     NODE_TAG = 'number'
-    CHOICES = [('(', '+1)'), ('(', '-1)'), ('(', '/2)'), ('(', '*2)'), ('(', '*3/2)'), ('(', '*2/3)')]
+    CHOICES = (('(', '+1)'), ('(', '-1)'), ('(', '/2)'), ('(', '*2)'), ('(', '*3/2)'), ('(', '*2/3)'))
 
 magpie.utils.known_edits.append(SrcmlRelativeNumericSetting)

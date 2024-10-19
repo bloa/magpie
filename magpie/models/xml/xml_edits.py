@@ -57,7 +57,7 @@ class AbstractXmlNodeInsertion(Edit):
 
 class AbstractXmlTextSetting(Edit):
     NODE_TAG = ''
-    CHOICES = ['']
+    CHOICES = ('',)
 
     @classmethod
     def auto_create(cls, ref):
@@ -75,7 +75,7 @@ class AbstractXmlTextSetting(Edit):
 
 class AbstractXmlTextWrapping(Edit):
     NODE_TAG = ''
-    CHOICES = [('(', ')')]
+    CHOICES = (('(', ')'),)
 
     @classmethod
     def auto_create(cls, ref):

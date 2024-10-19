@@ -42,7 +42,7 @@ class BasicAlgorithm(AbstractAlgorithm):
                 self.config['possible_edits'].append(magpie.utils.edit_from_string(edit))
         except RuntimeError:
             msg = f'Invalid config file: unknown edit type "{edit}" in "[software] possible_edits"'
-            raise ScenarioError(msg)
+            raise ScenarioError(msg) from None
         if self.config['possible_edits'] == []:
             msg = 'Invalid config file: "[search] possible_edits" must be non-empty!'
             raise ScenarioError(msg)

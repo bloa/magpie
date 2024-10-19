@@ -3,7 +3,7 @@ import pytest
 from magpie.core import BasicFitness, ExecResult, RunResult
 
 
-@pytest.fixture()
+@pytest.fixture
 def my_runresult():
     return RunResult(None, 'SUCCESS')
 
