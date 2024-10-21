@@ -14,7 +14,6 @@ possible TARGET:
     show_patch      	(magpie/bin/show_patch.py)
     clear_xml       	(magpie/scripts/clear_xml.py)
     line_to_xml     	(magpie/scripts/line_to_xml.py)
-    python_to_xml   	(magpie/scripts/python_to_xml.py)
 ```
 
 ## Usage
@@ -183,20 +182,6 @@ Arguments:
 - `--file FILE`: path to the source file to parse (required)
 
 
-### `python_to_xml`
-
-Parses a Python source file and generates a corresponding XML representation using Python's native AST tools.
-
-Examples:
-
-    python3 magpie scripts/python_to_xml examples/triangle-py/triangle.py
-<!-- -->
-    cat examples/triangle-py/triangle.py | python3 magpie scripts/python_to_xml
-
-Arguments:
-- `--file FILE`: path to the Python source file to parse (required)
-
-
 ### `clear_xml`
 
 Takes an XML file as input and outputs its contents with all XML tags stripped, leaving only the raw content.
@@ -204,5 +189,3 @@ Takes an XML file as input and outputs its contents with all XML tags stripped, 
 Examples:
 
     python3 magpie scripts/clear_xml examples/triangle-c/_magpie/triangle_bug.c.xml
-    <!-- -->
-    cat examples/triangle-py/triangle.py | python3 magpie scripts/python_to_xml.py | python3 magpie scripts/clear_xml.py
