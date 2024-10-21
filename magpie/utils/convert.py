@@ -1,5 +1,6 @@
 from .known import algos as known_algos
 from .known import edits as known_edits
+from .known import fitness as known_fitness
 from .known import models as known_models
 from .known import protocols as known_protocols
 from .known import software as known_software
@@ -17,6 +18,14 @@ def edit_from_string(s):
         if klass.__name__ == s:
             return klass
     msg = f'Unknown edit class "{s}"'
+    raise RuntimeError(msg)
+
+def fitness_from_string(s):
+    s2 = s.replace('_', '') + 'fitness'
+    for klass in known_fitness:
+        if klass.__name__.lower() == s2:
+            return klass
+    msg = f'Unknown fitness class "{s}"'
     raise RuntimeError(msg)
 
 def protocol_from_string(s):

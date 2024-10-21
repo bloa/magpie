@@ -1,10 +1,8 @@
 import contextlib
 import pathlib
-import re
 import shlex
 
 import magpie.settings
-import magpie.utils.known
 
 from .abstract_software import AbstractSoftware
 from .errors import ScenarioError
@@ -55,12 +53,7 @@ class BasicSoftware(AbstractSoftware):
         if 'fitness' not in config['software']:
             msg = 'Invalid config file: "[software] fitness" must be defined'
             raise ScenarioError(msg)
-        known_fitness = ['output', 'time', 'posix_time', 'perf_time', 'perf_instructions', 'repair', 'bloat_lines', 'bloat_words', 'bloat_chars']
-        if config['software']['fitness'] not in known_fitness:
-            tmp = '/'.join(known_fitness)
-            msg = f'Invalid config file: "[software] fitness" key must be {tmp}'
-            raise ScenarioError(msg)
-        self.fitness_type = config['software']['fitness']
+        self.fitness = magpie.utils.convert.fitness_from_string(config['software']['fitness'])(self)
 
         # execution-related parameters
         self.init_performed = False
@@ -210,7 +203,7 @@ class BasicSoftware(AbstractSoftware):
                                                 lengthout=lengthout)
                     run_result = RunResult(None, exec_result.status)
                     if run_result.status == 'SUCCESS':
-                        self.process_init_exec(run_result, exec_result)
+                        self.fitness.process_init_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'INIT_{run_result.status}'
                         run_result.last_exec = exec_result
@@ -268,7 +261,7 @@ class BasicSoftware(AbstractSoftware):
                     run_result.status = exec_result.status
                     run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
-                        self.process_setup_exec(run_result, exec_result)
+                        self.fitness.process_setup_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'SETUP_{run_result.status}'
                         return run_result
@@ -292,7 +285,7 @@ class BasicSoftware(AbstractSoftware):
                 run_result.status = exec_result.status
                 run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
-                    self.process_compile_exec(run_result, exec_result)
+                    self.fitness.process_compile_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
                     run_result.status = f'COMPILE_{run_result.status}'
                     return run_result
@@ -313,14 +306,10 @@ class BasicSoftware(AbstractSoftware):
                 run_result.status = exec_result.status
                 run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
-                    self.process_test_exec(run_result, exec_result)
+                    self.fitness.process_test_exec(run_result, exec_result)
                 if run_result.status != 'SUCCESS':
                     run_result.status = f'TEST_{run_result.status}'
                     return run_result
-
-            # when fitness is computed from test_cmd, run_cmd is irrelevant
-            if self.fitness_type in ['repair', 'bloat_lines', 'bloat_words', 'bloat_chars']:
-                return run_result
 
             # run "[software] run_cmd" if provided
             if self.run_cmd:
@@ -348,7 +337,7 @@ class BasicSoftware(AbstractSoftware):
                     run_result.status = exec_result.status
                     run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
-                        self.process_run_exec(run_result, exec_result)
+                        self.fitness.process_run_exec(run_result, exec_result)
                     self.process_batch_single(run_result, inst)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'RUN_{run_result.status}'
@@ -374,111 +363,6 @@ class BasicSoftware(AbstractSoftware):
             model = variant.models[target]
             cli = model.update_cli(variant, cli, step)
         return cli
-
-    def process_init_exec(self, run_result, exec_result):
-        # "[software] init_cmd" must yield nonzero return code
-        if exec_result.return_code != 0:
-            run_result.status = 'CODE_ERROR'
-
-    def process_setup_exec(self, run_result, exec_result):
-        # "[software] setup_cmd" must yield nonzero return code
-        if exec_result.return_code != 0:
-            run_result.status = 'CODE_ERROR'
-
-    def process_compile_exec(self, run_result, exec_result):
-        # "[software] compile_cmd" must yield nonzero return code
-        if exec_result.return_code != 0:
-            run_result.status = 'CODE_ERROR'
-
-    def process_test_exec(self, run_result, exec_result):
-        # if "[software] fitness" is "repair", we check STDOUT for the number of failed test cases
-        if self.fitness_type == 'repair':
-            stdout = exec_result.stdout.decode(magpie.settings.output_encoding)
-            for fail_regexp, total_regexp in [
-                (r'Failures: (\d+)\b', r'^(?:Tests run: |OK \()(\d+)\b'), # junit
-                (r'\b(\d+) (?:failed|error)', r'^collected (\d+) items'), # pytest
-                (r' (\d+) (?:failures|errors)', r'^(\d+) runs,'), # minitest
-            ]:
-                fail_matches = re.findall(fail_regexp, stdout, re.MULTILINE)
-                total_matches = re.findall(total_regexp, stdout, re.MULTILINE)
-                n_fail = 0
-                n_total = 0
-                try:
-                    for m in fail_matches:
-                        n_fail += float(m)
-                    for m in total_matches:
-                        n_total += float(m)
-                except ValueError:
-                    run_result.status = 'PARSE_ERROR'
-                if n_total > 0:
-                    run_result.fitness = round(100*n_fail/n_total, 2)
-                    break
-            else:
-                run_result.status = 'PARSE_ERROR'
-
-        # in all other cases "[software] test_cmd" must just yield nonzero return code
-        elif exec_result.return_code != 0:
-            run_result.status = 'CODE_ERROR'
-            return
-
-        # if "[software] fitness" is one of "bloat_*", we can count here
-        if self.fitness_type[:6] == 'bloat_':
-            run_result.fitness = 0
-            for filename in self.target_files:
-                renamed = run_result.variant.models[filename].renamed_filename
-                with pathlib.Path(renamed).open('r') as target:
-                    if self.fitness_type == 'bloat_lines':
-                        run_result.fitness += len(target.readlines())
-                    elif self.fitness_type == 'bloat_words':
-                        run_result.fitness += sum(len(s.split()) for s in target.readlines())
-                    elif self.fitness_type == 'bloat_chars':
-                        run_result.fitness += sum(len(s) for s in target.readlines())
-
-    def process_run_exec(self, run_result, exec_result):
-        # in all cases "[software] run_cmd" must yield nonzero return code
-        if exec_result.return_code != 0:
-            run_result.status = 'CODE_ERROR'
-            return
-
-        # if "[software] fitness" is "output", we check STDOUT for the string "MAGPIE_FITNESS:"
-        if self.fitness_type == 'output':
-            stdout = exec_result.stdout.decode(magpie.settings.output_encoding)
-            m = re.search('MAGPIE_FITNESS: (.*)', stdout)
-            try:
-                run_result.fitness = float(m.group(1))
-            except (AttributeError, ValueError):
-                run_result.status = 'PARSE_ERROR'
-
-        # if "[software] fitness" is "time", we just use time as seen by the main Python process
-        elif self.fitness_type == 'time':
-            run_result.fitness = round(exec_result.runtime, 4)
-
-        # if "[software] fitness" is "posix_time", we assume a POSIX-compatible output on STDERR
-        elif self.fitness_type == 'posix_time':
-            stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
-            m = re.search('real (.*)', stderr)
-            try:
-                run_result.fitness = float(m.group(1))
-            except (AttributeError, ValueError):
-                run_result.status = 'PARSE_ERROR'
-
-        # if "[software] fitness" is "perf_time", we assume a perf-like output on STDERR
-        elif self.fitness_type == 'perf_time':
-            stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
-            m = re.search('(.*) seconds time elapsed', stderr)
-            try:
-                run_result.fitness = round(float(m.group(1)), 4)
-            except (AttributeError, ValueError):
-                run_result.status = 'PARSE_ERROR'
-
-        # if "[software] fitness" is "perf_instructions", we assume a perf-like output on STDERR
-        elif self.fitness_type == 'perf_instructions':
-            stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
-            m = re.search('(.*) instructions', stderr)
-            try:
-                run_result.fitness = int(m.group(1).replace(',', ''))
-            except (AttributeError, ValueError):
-                run_result.status = 'PARSE_ERROR'
 
     def process_batch_single(self, run_result, inst):
         run_result.cache[inst] = (run_result.status, run_result.fitness)
