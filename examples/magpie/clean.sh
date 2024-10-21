@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-rm -rf bin examples magpie _magpie_log _magpie_work test __pycache__
+rm -rf examples magpie tests _magpie_log _magpie_work __pycache__
