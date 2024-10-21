@@ -1,6 +1,6 @@
 [project]
 name = "magpie"
-version = "1.1.0"
+version = "1.2.0"
 description = "Machine Automated General Performance Improvement via Evolution of software"
 license = "MIT"
 authors = [
@@ -10,7 +10,7 @@ authors = [
 readme = "README.md"
 homepage = "https://github.com/bloa/magpie"
 repository = "https://github.com/bloa/magpie"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 
 [project.optional-dependencies]
 test = ["pytest"]
