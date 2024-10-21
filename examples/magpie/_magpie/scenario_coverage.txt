@@ -1,12 +1,11 @@
 [magpie]
 import =
     _magpie/my_algo.py
-    _magpie/my_edits.py
 
 [software]
 path = examples/magpie
 target_files =
-    magpie/**/*.py.xml
+    magpie/**/*.py
 fitness = bloat_chars
 
 init_cmd = bash init.sh
@@ -16,8 +15,7 @@ test_cmd = python3 -m pytest tests/unit
 algorithm = MyAlgo
 max_steps = 10000
 possible_edits =
-    PythonStmtDeletion
-    XmlNodeReplacement<stmt>
+    LineDeletion
 
 [search.ls]
 delete_prob = 0.1
