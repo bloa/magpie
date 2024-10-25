@@ -3,13 +3,14 @@ import runpy
 import sys
 
 root = pathlib.Path(__file__).parent.parent
-all_valid_targets = [path for paths in [sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'scripts']] for path in paths]
+all_valid_targets = [path for paths in [sorted(root.glob(f'magpie/{d}/*.py')) for d in ['bin', 'scripts']] for path in paths if '__init__' not in path.name]
 
 def usage():
     print('usage: python3 magpie ((magpie/){bin,scripts}/)TARGET(.py) [ARGS]...')
     print('possible TARGET:', file=sys.stderr)
+    cwd = pathlib.Path.cwd()
     for path in all_valid_targets:
-        print(f'    {path.stem:16}	({path})', file=sys.stderr)
+        print(f'    {path.stem:16}	({path.relative_to(cwd)})', file=sys.stderr)
 
 def get_valid_target(argv):
     if len(argv) < 2:

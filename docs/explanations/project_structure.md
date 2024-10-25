@@ -7,7 +7,7 @@ This directory contains a magic `__main__.py` Python file and thus is directly e
 Therefore, simply running `python3 magpie` from a terminal (in the parent directory) will provide you with a list of possible entry points:
 
 ```
-usage: python3 magpie ((magpie/){bin,utils}/)TARGET(.py) [ARGS]...
+usage: python3 magpie ((magpie/){bin,scripts}/)TARGET(.py) [ARGS]...
 possible TARGET:
     ablation_analysis	(magpie/bin/ablation_analysis.py)
     genetic_programming	(magpie/bin/genetic_programming.py)
@@ -16,9 +16,9 @@ possible TARGET:
     revalidate_patch	(magpie/bin/revalidate_patch.py)
     show_locations  	(magpie/bin/show_locations.py)
     show_patch      	(magpie/bin/show_patch.py)
-    clear_xml       	(magpie/utils/clear_xml.py)
-    line_to_xml     	(magpie/utils/line_to_xml.py)
-    python_to_xml   	(magpie/utils/python_to_xml.py)
+    clear_xml       	(magpie/scripts/clear_xml.py)
+    line_to_xml     	(magpie/scripts/line_to_xml.py)
+    python_to_xml   	(magpie/scripts/python_to_xml.py)
 ```
 
 To use Magpie, you typically need to provide a _scenario file_ describing, within many other things, where the target software is located, how it is used, how it should be modelled, and what is the fitness function to optimise.
