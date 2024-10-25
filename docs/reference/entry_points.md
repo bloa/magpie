@@ -129,22 +129,22 @@ Example:
 
 Example:
 
-    python3 utils/line_to_xml.py --file examples/code/triangle-java_slow/Triangle.java
+    python3 magpie scripts/line_to_xml --file examples/triangle-java/Triangle.java
 
 
 ### Python to AST XML Converter
 
 Examples:
 
-    python3 utils/python_to_xml.py examples/code/triangle-py_bug/triangle.py
+    python3 magpie scripts/python_to_xml examples/triangle-py/triangle.py
 <!-- -->
-    cat examples/code/triangle-py_bug/triangle.py | python3 utils/python_to_xml.py
+    cat examples/triangle-py/triangle.py | python3 magpie scripts/python_to_xml
 
 
 ### AST XML to Source Code Converter
 
 Examples:
 
-    python3 utils/clear_xml.py examples/code/triangle-py_slow/triangle.py.xml
+    python3 magpie scripts/clear_xml examples/triangle-c/_magpie/triangle_bug.c.xml
 <!-- -->
-    cat examples/code/triangle-py_bug/triangle.py | python3 utils/python_to_xml.py | python3 utils/clear_xml.py
+    cat examples/triangle-py/triangle.py | python3 magpie scripts/python_to_xml.py | python3 magpie scripts/clear_xml.py
