@@ -6,6 +6,8 @@ import pytest
 import magpie
 
 
+scenario_files = pathlib.Path('examples').glob('**/scenario*.txt')
+
 @pytest.fixture
 def teardown():
     config = configparser.ConfigParser()
@@ -14,7 +16,7 @@ def teardown():
     magpie.core.pre_setup(config)
     magpie.core.setup(config)
 
-@pytest.mark.parametrize('filename', pathlib.Path('examples').glob('**/scenario*.txt'), ids=str)
+@pytest.mark.parametrize('filename', scenario_files, ids=str)
 @pytest.mark.usefixtures('teardown')
 def test_scenario_commands(filename):
     # read scenario file
@@ -41,7 +43,7 @@ def test_scenario_commands(filename):
     protocol.run(config)
 
 
-@pytest.mark.parametrize('filename', pathlib.Path('examples').glob('**/scenario*.txt'), ids=str)
+@pytest.mark.parametrize('filename', scenario_files, ids=str)
 @pytest.mark.usefixtures('teardown')
 def test_scenario_algos(filename):
     # read scenario file
