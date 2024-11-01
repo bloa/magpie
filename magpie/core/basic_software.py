@@ -395,7 +395,7 @@ class BasicSoftware(AbstractSoftware):
         if self.fitness_type == 'repair':
             stdout = exec_result.stdout.decode(magpie.settings.output_encoding)
             for fail_regexp, total_regexp in [
-                (r'Failures: (\d+)\b', r'^Tests run: (\d+)\b'), # junit
+                (r'Failures: (\d+)\b', r'^(?:Tests run: |OK \()(\d+)\b'), # junit
                 (r'\b(\d+) (?:failed|error)', r'^collected (\d+) items'), # pytest
                 (r' (\d+) (?:failures|errors)', r'^(\d+) runs,'), # minitest
             ]:
