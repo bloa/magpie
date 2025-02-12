@@ -112,26 +112,24 @@ class ExponentialRealm(Realm):
         return f'ExponentialRealm({self.start}, {self.stop}, {self.lambd})'
 
     def random_value(self):
+        lambd = self.lambd or 10.0/(self.stop - self.start)
         if self.start >= 0:
-            return self.random_positive_value(self.start, self.stop, self.lambd)
+            return self.random_positive_value(self.start, self.stop, lambd)
         if self.stop <= 0:
-            return self.random_negative_value(self.start, self.stop, self.lambd)
+            return self.random_negative_value(self.start, self.stop, lambd)
         if random.randrange(2) == 0:
-            return self.random_positive_value(0, self.stop, self.lambd)
-        return self.random_negative_value(self.start, 0, self.lambd)
+            return self.random_positive_value(0, self.stop, lambd)
+        return self.random_negative_value(self.start, 0, lambd)
 
     def random_positive_value(self, start, stop, lambd):
-        if lambd is None:
-            lambd = 10.0/(stop - start)
-        for _ in range(1000):
-            x = random.expovariate(lambd)
-            if x <= stop - start:
-                return start + x
-        # give up?! and return some uniform value instead
+        x = random.expovariate(lambd)
+        if x <= stop - start:
+            return start + x
+        # probability (with default lambda): e^(-10) ~= 0.00005
         return random.uniform(start, stop)
 
     def random_negative_value(self, start, stop, lambd):
-        return -self.random_positive_value(-stop, -start, None if lambd is None else -lambd)
+        return -self.random_positive_value(-stop, -start, -lambd)
 
 class GeometricRealm(Realm):
     def __init__(self, start, stop, lambd=None):
@@ -145,26 +143,24 @@ class GeometricRealm(Realm):
         return f'GeometricRealm({self.start}, {self.stop}, {self.lambd})'
 
     def random_value(self):
+        lambd = self.lambd or 10.0/(self.stop - self.start)
         if self.start >= 0:
-            return self.random_positive_value(self.start, self.stop, self.lambd)
+            return self.random_positive_value(self.start, self.stop, lambd)
         if self.stop <= 0:
-            return self.random_negative_value(self.start, self.stop, self.lambd)
+            return self.random_negative_value(self.start, self.stop, lambd)
         if random.randrange(2) == 0:
             return self.random_positive_value(0, self.stop, self.lambd)
         return self.random_negative_value(self.start, 0, self.lambd)
 
     def random_positive_value(self, start, stop, lambd):
-        if lambd is None:
-            lambd = 10.0/(stop - start)
-        for _ in range(1000):
-            x = int(random.expovariate(lambd))
-            if x <= stop - start:
-                return start + x
-        # give up?! and return some uniform value instead
-        return random.uniform(start, stop)
+        x = int(random.expovariate(lambd))
+        if x <= stop - start:
+            return start + x
+        # probability with default lambda: e^(-10) ~= 0.00005
+        return random.randint(self.start, self.stop)
 
     def random_negative_value(self, start, stop, lambd):
-        return -self.random_positive_value(-stop, -start, None if lambd is None else -lambd)
+        return -self.random_positive_value(-stop, -start, -lambd)
 
 
 class LambdaRealm(Realm):
