@@ -48,6 +48,22 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
         try:
             # warmup
             self.hook_warmup()
+
+            # initial grow first to avoid wasting warmup
+            offsprings = []
+            tries = magpie.settings.edit_retries
+            while tries and len(offsprings) < self.config['pop_size']:
+                sol = magpie.core.Patch()
+                self.mutate(sol)
+                if sol in offsprings:
+                    tries -= 1
+                    continue
+                offsprings.append(sol)
+            if len(offsprings) < self.config['pop_size']:
+                self.report['stop'] = f'unable to fill initial population ({len(offsprings)} unique edits generated < {self.config['pop_size']})'
+                return
+
+            # actual warmup
             self.warmup()
 
             # early stop if something went wrong during warmup
@@ -60,11 +76,7 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
             # initial pop
             pop = {}
             local_best_fitness = None
-            while len(pop) < self.config['pop_size']:
-                sol = magpie.core.Patch()
-                self.mutate(sol)
-                if sol in pop:
-                    continue
+            for sol in offsprings:
                 variant = magpie.core.Variant(self.software, sol)
                 run = self.evaluate_variant(variant)
                 accept = best = False
@@ -111,8 +123,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                 while len(offsprings) < self.config['pop_size']:
                     sol = magpie.core.Patch()
                     self.mutate(sol)
-                    if sol in pop:
-                        continue
+                    if sol in offsprings:
+                        continue # guaranteed to terminate (valid initial population)
                     offsprings.append(sol)
                 # replace
                 pop.clear()
