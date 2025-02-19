@@ -94,7 +94,8 @@ class SrcmlModel(XmlModel):
         for child in element:
             SrcmlModel.process_literals(child)
         if element.tag == 'literal':
-            element.tag = f"literal_{element.attrib.get('type')}"
+            tmp = element.attrib.get('type')
+            element.tag = f'literal_{tmp}'
             del element.attrib['type']
 
     @staticmethod
