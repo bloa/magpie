@@ -173,26 +173,9 @@ class XmlUnparser(ast._Unparser):
                 self.write(' ')
             self.interleave(tmp, increasing_level_traverse, node.values)
 
-    def _write_raw_str_avoiding_backslashes(self, string, *, quote_types=ast._ALL_QUOTES):
-        """Write string literal value with a best effort attempt to avoid backslashes."""
-        string, quote_types = self._str_literal_helper(string, quote_types=quote_types)
-        quote_type = quote_types[0]
-        self.write_raw(f'{quote_type}{string}{quote_type}')
-
     def visit_JoinedStr(self, node):
         self.write('f')
-        if self._avoid_backslashes:
-            with self.buffered() as buffer:
-                self._write_fstring_inner(node)
-            self._write_raw_str_avoiding_backslashes(''.join(buffer))
-            return
 
-        # If we don't need to avoid backslashes globally (i.e., we only need
-        # to avoid them inside FormattedValues), it's cosmetically preferred
-        # to use escaped whitespace. That is, it's preferred to use backslashes
-        # for cases like: f"{x}\n". To accomplish this, we keep track of what
-        # in our buffer corresponds to FormattedValues and what corresponds to
-        # Constant parts of the f-string, and allow escapes accordingly.
         fstring_parts = []
         for value in node.values:
             with self.buffered() as buffer:
@@ -203,43 +186,53 @@ class XmlUnparser(ast._Unparser):
 
         new_fstring_parts = []
         quote_types = list(ast._ALL_QUOTES)
+        fallback_to_repr = False
         for value, is_constant in fstring_parts:
-            new_value, quote_types = self._str_literal_helper(
-                value,
-                quote_types=quote_types,
-                escape_special_whitespace=is_constant,
-            )
-            new_fstring_parts.append(new_value)
+            if is_constant:
+                value, new_quote_types = self._str_literal_helper(
+                    value,
+                    quote_types=quote_types,
+                    escape_special_whitespace=True,
+                )
+                if set(new_quote_types).isdisjoint(quote_types):
+                    fallback_to_repr = True
+                    break
+                quote_types = new_quote_types
+            else:
+                if "\n" in value:
+                    quote_types = [q for q in quote_types if q in ast._MULTI_QUOTES]
+                    assert quote_types
+
+                new_quote_types = [q for q in quote_types if q not in value]
+                if new_quote_types:
+                    quote_types = new_quote_types
+            new_fstring_parts.append(value)
+
+        if fallback_to_repr:
+            # If we weren't able to find a quote type that works for all parts
+            # of the JoinedStr, fallback to using repr and triple single quotes.
+            quote_types = ["'''"]
+            new_fstring_parts.clear()
+            for value, is_constant in fstring_parts:
+                if is_constant:
+                    value = repr('"' + value)  # force repr to use single quotes
+                    expected_prefix = "'\""
+                    assert value.startswith(expected_prefix), repr(value)
+                    value = value[len(expected_prefix):-1]
+                new_fstring_parts.append(value)
 
         value = ''.join(new_fstring_parts)
         quote_type = quote_types[0]
         self.write_raw(f'{quote_type}{value}{quote_type}')
 
-    def _write_fstring_inner(self, node):
-        if isinstance(node, ast.JoinedStr):
-            # for both the f-string itself, and format_spec
-            for value in node.values:
-                self._write_fstring_inner(value)
-        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
-            value = node.value.replace('{', '{{').replace('}', '}}')
-            self.write(value)
-        elif isinstance(node, ast.FormattedValue):
-            self.visit_FormattedValue(node)
-        else:
-            msg = f'Unexpected node inside JoinedStr, {node!r}'
-            raise TypeError(msg)
-
     def visit_FormattedValue(self, node):
         def unparse_inner(inner):
-            unparser = type(self)(_avoid_backslashes=True)
+            unparser = type(self)()
             unparser.set_precedence(ast._Precedence.TEST.next(), inner)
             return unparser.visit(inner)
 
         with self.delimit('{', '}'):
             expr = unparse_inner(node.value)
-            if '\\' in expr:
-                msg = 'Unable to avoid backslash in f-string expression part'
-                raise ValueError(msg)
             if expr.startswith('{'):
                 # Separate pair of opening brackets as "{ {"
                 self.write(' ')
@@ -248,20 +241,19 @@ class XmlUnparser(ast._Unparser):
                 self.write(f'!{chr(node.conversion)}')
             if node.format_spec:
                 self.write(':')
-                self._write_fstring_inner(node.format_spec)
+                self._write_fstring_inner(node.format_spec, is_format_spec=True)
 
     def visit_Lambda(self, node):
-        with self.add_xml('lambda'):
-            with self.require_parens(ast._Precedence.TEST, node):
-                self.write('lambda')
-                with self.buffered() as buffer:
-                    self.traverse(node.args)
-                if buffer:
-                    self.write(' ')
-                    self.write_raw(*buffer)
-                self.write(': ')
-                self.set_precedence(ast._Precedence.TEST, node.body)
-                self.traverse(node.body)
+        with self.require_parens(ast._Precedence.TEST, node):
+            self.write('lambda')
+            with self.buffered() as buffer:
+                self.traverse(node.args)
+            if buffer:
+                self.write(' ')
+                self.write_raw(*buffer)
+            self.write(': ')
+            self.set_precedence(ast._Precedence.TEST, node.body)
+            self.traverse(node.body)
 
 
 # ================================================================================
