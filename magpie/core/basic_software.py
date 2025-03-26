@@ -513,7 +513,7 @@ class BasicSoftware(AbstractSoftware):
             self.logger.info('CWD: %s', pathlib.Path(self.work_dir) / self.basename)
             self.logger.info('CMD: %s', run.last_exec.cmd)
             self.logger.info('STATUS: %s', run.last_exec.status)
-            self.logger.info('RETURN_CODE: %d', run.last_exec.return_code)
+            self.logger.info('RETURN_CODE: %s', run.last_exec.return_code)
             self.logger.info('RUNTIME: %s', run.last_exec.runtime)
             encoding = magpie.settings.output_encoding
             self.logger.info('STDOUT: (see log file)')
