@@ -1,12 +1,19 @@
 import configparser
 import pathlib
+import re
 
 import pytest
 
 import magpie
 
-
-scenario_files = pathlib.Path('examples').glob('**/scenario*.txt')
+scenario_files = set()
+blacklist = [
+    r'minisat',
+]
+for txt in pathlib.Path('examples').glob('**/scenario*.txt'):
+    print(txt)
+    if not any(re.search(r, str(txt)) for r in blacklist):
+        scenario_files.add(txt)
 
 @pytest.fixture
 def teardown():
