@@ -12,6 +12,6 @@ test_timeout = 2
 target_fitness = 0
 max_steps = 100
 possible_edits =
-    SrcmlStmtReplacement
-    SrcmlStmtDeletion
-    SrcmlStmtInsertion
+    XmlNodeDeletion<stmt>
+    XmlNodeReplacement<stmt>
+    XmlNodeInsertion<stmt,block>

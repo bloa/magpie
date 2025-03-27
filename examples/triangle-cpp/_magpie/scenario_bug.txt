@@ -17,6 +17,6 @@ run_cmd =
 target_fitness = 0
 max_steps = 100
 possible_edits =
-    SrcmlStmtReplacement
-    SrcmlStmtInsertion
-    SrcmlStmtDeletion
+    XmlNodeDeletion<stmt>
+    XmlNodeReplacement<stmt>
+    XmlNodeInsertion<stmt,block>

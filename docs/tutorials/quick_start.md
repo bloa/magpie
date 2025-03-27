@@ -18,7 +18,7 @@ Show the diff corresponding to a given patch:
 
 Simplify a given patch by removing unnecessary bloat:
 
-    python3 magpie minify_patch --scenario examples/triangle-py/_magpie/scenario_slow.txt --patch "SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 35), ('triangle.py.xml', 'stmt', 22)) | SrcmlStmtReplacement(('triangle.py.xml', 'stmt', 7), ('triangle.py.xml', 'stmt', 1)) | SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 24), ('triangle.py.xml', 'stmt', 6)) | SrcmlStmtInsertion(('triangle.py.xml', '_inter_block', 15), ('triangle.py.xml', 'stmt', 21)) | SrcmlStmtDeletion(('triangle.py.xml', 'stmt', 8))"
+    python3 magpie minify_patch --scenario examples/triangle-py/_magpie/scenario_slow.txt --patch "XmlNodeReplacement<stmt>(('triangle.py.xml', 'stmt', 7), ('triangle.py.xml', 'stmt', 0)) | XmlNodeInsertion<stmt,block>(('triangle.py.xml', '_inter_block', 28), ('triangle.py.xml', 'stmt', 3)) | XmlNodeInsertion<stmt,block>(('triangle.py.xml', '_inter_block', 37), ('triangle.py.xml', 'stmt', 3)) | XmlNodeInsertion<stmt,block>(('triangle.py.xml', '_inter_block', 20), ('triangle.py.xml', 'stmt', 8)) | XmlNodeDeletion<stmt>(('triangle.py.xml', 'stmt', 4))"
 
 
 ## Run tests (optional)

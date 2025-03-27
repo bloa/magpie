@@ -5,10 +5,11 @@ default_lengthout = 1e6
 [software]
 path = examples/minisat
 target_files =
-    core/Solver.cc
+    core/*.cc
 fitness = time
 
 init_cmd = bash init.sh
+setup_cmd = bash compile.sh
 compile_cmd = bash compile.sh
 test_cmd = bash test.sh
 run_cmd = bash run_fixed.sh

@@ -14,7 +14,8 @@
         </block_content>}</block></if></if_stmt>
 
         <if_stmt><if>if <condition>(<expr><name>a</name> <operator>&gt;</operator> <name>c</name></expr>)</condition> <block>{<block_content>
-            <decl_stmt><decl><type><name>int</name></type> <name>tmp</name> <init>= <expr><name>b</name></expr></init></decl>;</decl_stmt> <comment type="line">// TODO: fixme</comment>
+            <decl_stmt><decl><type><name>int</name></type> <name>tmp</name> <init>= <expr><name>a</name></expr></init></decl>;</decl_stmt> <comment type="line">// TODO: fixme</comment>
+            <expr_stmt><name>tmp</name> <init>= <expr><name>b</name></expr></init>;</expr_stmt> <comment type="line">// TODO: fixme</comment>
             <expr_stmt><expr><name>a</name> <operator>=</operator> <name>c</name></expr>;</expr_stmt>
             <expr_stmt><expr><name>c</name> <operator>=</operator> <name>tmp</name></expr>;</expr_stmt>
         </block_content>}</block></if></if_stmt>

@@ -38,22 +38,28 @@ Everything you need to know about Magpie.
 **Tutorials**
 
 - [Quick start](./docs/tutorials/quick_start.md) **(start here!)**
-- [Search for improved variants](./docs/tutorials/search.md)
+- [Basic usage](./docs/tutorials/basic_usage.md)
+- [Case study](./docs/tutorials/case_study.md)
 
 **How-to guides**
 
-- [Write a custom fitness function](./docs/howto/custom_fitness_function.md)
+- [Add your own fitness function](./docs/howto/write_fitness.md) _(soon)_
+- [Add your own algorithm](./docs/howto/write_algo.md) _(soon)_
+- [Add your own model](./docs/howto/write_model.md) _(soon)_
 
 **Explanations**
 
-- [Project structure](./docs/explanations/project_structure.md)
+- [Codebase structure](./docs/explanations/codebase.md)
+- [Evaluation pipeline](./docs/explanations/pipeline.md)
+- [Output](./docs/explanations/output.md)
 
 **Reference guides**
 
+- [Scenario files](./docs/reference/scenario.md)
 - [Entry points](./docs/reference/entry_points.md)
-- [Fitness functions](./docs/reference/fitness_functions.md)
-- [Scenario files](./docs/reference/scenario_file.md)
-- [Algorithm configuration model](./docs/reference/paramconfig_model.md)
+- [Models](./docs/reference/models.md) _(soon)_
+- [Algorithms](./docs/reference/algorithms.md) _(soon)_
+- [Fitness functions](./docs/reference/fitness.md) _(soon)_
 
 
 ## Acknowledgements

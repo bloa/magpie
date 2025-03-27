@@ -1,7 +1,6 @@
 [magpie]
 default_timeout = 30
 default_lengthout = 1e6
-local_original_copy = True
 
 [software]
 path = examples/minisat
@@ -15,6 +14,5 @@ test_cmd = bash test.sh
 run_cmd = bash run_fixed.sh
 
 [search]
-max_steps = 1000
 max_time = 60
 possible_edits = ParamSetting
