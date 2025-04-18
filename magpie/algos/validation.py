@@ -165,6 +165,7 @@ class ValidMinify(ValidSearch):
                 return self.report['best_patch'], self.report['best_fitness']
 
         # round robin simplify
+        rebuild_fitness = self.report['best_fitness']
         if self.config['do_simplify']:
             self.software.logger.info('---- simplify ----')
             n = len(self.report['best_patch'].edits)+1
@@ -179,8 +180,9 @@ class ValidMinify(ValidSearch):
                     tmp = magpie.core.Variant(self.software, patch)
                     run = self.evaluate_variant(tmp)
                     self.hook_evaluation(tmp, run)
-                    if run.status == 'SUCCESS' and run.fitness == self.report['best_fitness']:
+                    if run.status == 'SUCCESS' and self.dominates_or_equal(run.fitness, rebuild_fitness):
                         self.report['best_patch'] = patch # accept because smaller
+                        rebuild_fitness = run.fitness
                         last_i = i # round robin
                         break
 
