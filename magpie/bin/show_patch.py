@@ -38,12 +38,12 @@ if __name__ == '__main__':
         msg = f'\033[1m{msg}\033[0m'
     software.logger.info(msg)
     software.logger.info('Patch: %s', patch)
+    if args.keep:
+        software.logger.info('Artefact: %s', software.work_dir)
+        software.write_variant(variant)
     diff = variant.diff
     if magpie.settings.color_output:
         diff = magpie.core.BasicProtocol.color_diff(diff)
     software.logger.info('Diff:\n%s', diff)
-    if args.keep:
-        software.logger.info('Artefact: %s', software.work_dir)
-        software.write_variant(variant)
-    else:
+    if not args.keep:
         software.clean_work_dir()
