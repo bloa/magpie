@@ -483,7 +483,7 @@ class BasicSoftware(AbstractSoftware):
                     acc.append(round(v, precision))
                 fit_per_batch.append(acc)
         acc = []
-        tmp = [list(a) for a in zip(*fit_per_batch)] if multi else fit_per_batch[:]
+        tmp = [list(a) for a in zip(*fit_per_batch)]
         for a in tmp: # a_k = fitness values per bin for fitness k
             if len(a) == 1: # single bin
                 v = a[0]
