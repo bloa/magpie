@@ -135,22 +135,14 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.software.logger.info(msg)
 
     def hook_warmup_evaluation(self, counter, patch, run):
-        data = self.aux_log_data(None, run, counter, None, False, False)
-        if magpie.settings.log_format_info:
-            msg = magpie.settings.log_format_info.format(**data)
-            if magpie.settings.color_output:
-                msg = self.aux_log_color(msg, run)
-            self.software.logger.info(msg)
+        data = self.aux_log_data(patch, run, counter, None, False, False)
+        self.aux_log_print(data, run, False, False)
         if run.status != 'SUCCESS':
             self.software.diagnose_error(run)
 
     def hook_batch_evaluation(self, counter, patch, run, best=False):
-        data = self.aux_log_data(None, run, counter, self.report['reference_fitness'], False, best)
-        if magpie.settings.log_format_info:
-            msg = magpie.settings.log_format_info.format(**data)
-            if magpie.settings.color_output:
-                msg = self.aux_log_color(msg, run, best=best)
-            self.software.logger.info(msg)
+        data = self.aux_log_data(patch, run, counter, self.report['reference_fitness'], False, best)
+        self.aux_log_print(data, run, False, best)
 
     def hook_start(self):
         if not self.config['possible_edits']:
@@ -169,14 +161,7 @@ class BasicAlgorithm(AbstractAlgorithm):
 
     def hook_evaluation(self, variant, run, accept=False, best=False):
         data = self.aux_log_data(variant.patch, run, self.aux_log_counter(), self.report['reference_fitness'], accept, best)
-        if magpie.settings.log_format_info:
-            msg = magpie.settings.log_format_info.format(**data)
-            if magpie.settings.color_output:
-                msg = self.aux_log_color(msg, run, accept=accept, best=best)
-            self.software.logger.info(msg)
-        if magpie.settings.log_format_debug:
-            msg = magpie.settings.log_format_debug.format(**data)
-            self.software.logger.debug(msg)
+        self.aux_log_print(data, run, accept, best)
 
     def aux_log_counter(self):
         return str(self.stats['steps']+1)
@@ -186,11 +171,12 @@ class BasicAlgorithm(AbstractAlgorithm):
         data['counter'] = counter or self.aux_log_counter()
         data['status'] = run.status
         data['best'] = '*' if best else '+' if accept else ' '
-        data['fitness'] = 'None'
+        data['rawfitness'] = data['fitness'] = 'None'
         if run.fitness is not None:
             tmp = run.fitness
             if not isinstance(run.fitness, list):
                 tmp = [tmp]
+            data['rawfitness'] = ' '.join([str(x) for x in tmp])
             data['fitness'] = ' '.join([magpie.settings.log_format_fitness.format(x) for x in tmp])
         data['ratio'] = '--'
         if run.fitness is not None and baseline is not None:
@@ -215,6 +201,16 @@ class BasicAlgorithm(AbstractAlgorithm):
             else:
                 data['cached'] = '[cached]'
         return data
+
+    def aux_log_print(self, data, run, accept, best):
+        if magpie.settings.log_format_info:
+            msg = magpie.settings.log_format_info.format(**data)
+            if magpie.settings.color_output:
+                msg = self.aux_log_color(msg, run, accept=accept, best=best)
+            self.software.logger.info(msg)
+        if magpie.settings.log_format_debug:
+            msg = magpie.settings.log_format_debug.format(**data)
+            self.software.logger.debug(msg)
 
     def aux_log_color(self, msg, run, accept=False, best=False):
         if magpie.settings.color_output is False:

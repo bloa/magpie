@@ -68,10 +68,12 @@ class BasicProtocol:
             if not isinstance(tmp, list):
                 tmp = [tmp]
             logger.info('Reference fitness: %s', ' '.join([magpie.settings.log_format_fitness.format(x) for x in tmp]))
+            logger.debug('Raw reference fitness: %s', ' '.join([str(x) for x in tmp]))
             tmp = result['best_fitness']
             if not isinstance(tmp, list):
                 tmp = [tmp]
             logger.info('Best fitness: %s', ' '.join([magpie.settings.log_format_fitness.format(x) for x in tmp]))
+            logger.debug('Raw best fitness: %s', ' '.join([str(x) for x in tmp]))
 
             logger.info('')
             msg = '==== BEST PATCH ====\n%s'

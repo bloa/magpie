@@ -419,7 +419,8 @@ class BasicSoftware(AbstractSoftware):
 
     def process_batch_single(self, run_result, inst, variant_fitness):
         run_result.cache[inst] = (run_result.status, variant_fitness)
-        self.logger.debug('EXEC> %s %s %s', inst, run_result.status, variant_fitness)
+        if inst != '':
+            self.logger.debug('EXEC> %s %s %s', inst, run_result.status, variant_fitness)
 
     def process_batch_final(self, run_result):
         fit_per_batch = []

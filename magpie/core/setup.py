@@ -70,7 +70,7 @@ def setup(config):
         raise ScenarioError(msg) from e
     magpie.settings.log_format_info = sec['format_info']
     try:
-        sec['format_debug'].format(counter='', status='', best='', fitness='', ratio='', size='', cached='', log='', patch='', patchifaccept='', patchifbest='', diff='', diffifaccept='', diffifbest='')
+        sec['format_debug'].format(counter='', status='', best='', rawfitness='', fitness='', ratio='', size='', cached='', log='', patch='', patchifaccept='', patchifbest='', diff='', diffifaccept='', diffifbest='')
     except KeyError as e:
         msg = '[magpie.log] error in format_debug format string'
         raise ScenarioError(msg) from e
