@@ -35,7 +35,7 @@ class AbstractModel(abc.ABC):
         # compute dump
         dump = self.dump()
         # skip writing if file is (or should be) untouched
-        if not self.cached_dump:
+        if self.cached_dump is None:
             raise RuntimeError
         if dump == self.cached_dump:
             if self.trust_local:
