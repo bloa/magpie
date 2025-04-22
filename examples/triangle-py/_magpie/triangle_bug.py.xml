@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unit filename="triangle.py">
+<Module><block><stmt><Import>import <alias>enum</alias></Import></stmt>
+
+<stmt><ClassDef>class TriangleType(<expr><Attribute><expr><Name>enum</Name></expr>.Enum</Attribute></expr>):
+    <block><stmt><Assign><expr><Tuple><expr><Name>INVALID</Name></expr>, <expr><Name>EQUILATERAL</Name></expr>, <expr><Name>ISOSCELES</Name></expr>, <expr><Name>SCALENE</Name></expr></Tuple></expr> = <expr><Tuple>(<expr><Constant>0</Constant></expr>, <expr><Constant>1</Constant></expr>, <expr><Constant>2</Constant></expr>, <expr><Constant>3</Constant></expr>)</Tuple></expr></Assign></stmt></block></ClassDef></stmt>
+
+<stmt><FunctionDef>def classify_triangle(<arguments><arg>a</arg>, <arg>b</arg>, <arg>c</arg></arguments>):
+    <block><stmt><If>if <expr><Compare><expr><Name>a</Name></expr> <cmpop>&gt;</cmpop> <expr><Name>b</Name></expr></Compare></expr>:
+        <block><stmt><Assign><expr><Name>tmp</Name></expr> = <expr><Name>a</Name></expr></Assign></stmt>
+        <stmt><Assign><expr><Name>a</Name></expr> = <expr><Name>b</Name></expr></Assign></stmt>
+        <stmt><Assign><expr><Name>b</Name></expr> = <expr><Name>tmp</Name></expr></Assign></stmt></block></If></stmt>
+    <stmt><If>if <expr><Compare><expr><Name>a</Name></expr> <cmpop>&gt;</cmpop> <expr><Name>c</Name></expr></Compare></expr>:
+        <block><stmt><Assign><expr><Name>tmp</Name></expr> = <expr><Name>a</Name></expr></Assign></stmt>
+        <stmt><Assign><expr><Name>a</Name></expr> = <expr><Name>c</Name></expr></Assign></stmt>
+        <stmt><Assign><expr><Name>c</Name></expr> = <expr><Name>tmp</Name></expr></Assign></stmt></block></If></stmt>
+    <stmt><If>if <expr><Compare><expr><Name>b</Name></expr> <cmpop>&gt;</cmpop> <expr><Name>c</Name></expr></Compare></expr>:
+        <block><stmt><Assign><expr><Name>tmp</Name></expr> = <expr><Name>b</Name></expr></Assign></stmt>
+        <stmt><Assign><expr><Name>b</Name></expr> = <expr><Name>c</Name></expr></Assign></stmt>
+        <stmt><Assign><expr><Name>c</Name></expr> = <expr><Name>tmp</Name></expr></Assign></stmt></block></If></stmt>
+    <stmt><If>if <expr><Compare><expr><BinOp><expr><Name>a</Name></expr> <add>+</add> <expr><Name>b</Name></expr></BinOp></expr> <cmpop>&lt;=</cmpop> <expr><Name>c</Name></expr></Compare></expr>:
+        <block><stmt><Return>return <expr><Attribute><expr><Name>TriangleType</Name></expr>.INVALID</Attribute></expr></Return></stmt></block>
+    else:
+        <block><stmt><If>if <expr><BoolOp><expr><Compare><expr><Name>a</Name></expr> <cmpop>==</cmpop> <expr><Name>b</Name></expr></Compare></expr> <boolop>and</boolop> <expr><Compare><expr><Name>b</Name></expr> <cmpop>==</cmpop> <expr><Name>c</Name></expr></Compare></expr></BoolOp></expr>:
+            <block><stmt><Return>return <expr><Attribute><expr><Name>TriangleType</Name></expr>.ISOSCELES</Attribute></expr></Return></stmt></block>
+        else:
+            <block><stmt><If>if <expr><BoolOp><expr><Compare><expr><Name>a</Name></expr> <cmpop>==</cmpop> <expr><Name>b</Name></expr></Compare></expr> <boolop>or</boolop> <expr><Compare><expr><Name>b</Name></expr> <cmpop>==</cmpop> <expr><Name>c</Name></expr></Compare></expr></BoolOp></expr>:
+                <block><stmt><Return>return <expr><Attribute><expr><Name>TriangleType</Name></expr>.EQUILATERAL</Attribute></expr></Return></stmt></block>
+            else:
+                <block><stmt><Return>return <expr><Attribute><expr><Name>TriangleType</Name></expr>.SCALENE</Attribute></expr></Return></stmt></block></If></stmt></block></If></stmt></block></If></stmt></block></FunctionDef></stmt></block></Module>
+</unit>
+
