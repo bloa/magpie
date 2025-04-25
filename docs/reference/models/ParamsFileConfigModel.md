@@ -145,7 +145,7 @@ where:
 
 ### Example
 
-Suppose we want a parameter `foo` that can take wither:
+Suppose we want a parameter `foo` that can take wether:
 - a positive continuous value, or
 - one of three special-meaning negative integers `-1`, `-2`, or `-3`.
 
