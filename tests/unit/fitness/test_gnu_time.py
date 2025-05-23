@@ -1,26 +1,10 @@
 import pytest
 
 import magpie.utils
-from magpie.core import BasicSoftware, ExecResult, RunResult, default_scenario
+from magpie.core import ExecResult, RunResult
 
+from .stub import StubSoftware
 
-class StubSoftware(BasicSoftware):
-    def __init__(self):
-        config = default_scenario.copy()
-        config['software'].update({
-            'path': 'foo',
-            'target_files': 'foo/bar',
-            'possible_edits': 'LineDeletion',
-            'fitness': 'time',
-        })
-        super().__init__(config)
-
-    def reset_workdir(self):
-        pass
-
-    def reset_contents(self):
-        self.contents = {}
-        self.locations = {}
 
 @pytest.fixture
 def my_software():

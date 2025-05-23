@@ -1,25 +1,10 @@
 import pytest
 
-from magpie.core import BasicSoftware, ExecResult, RunResult, default_scenario
+import magpie.utils
+from magpie.core import ExecResult, RunResult
 
+from .stub import StubSoftware
 
-class StubSoftware(BasicSoftware):
-    def __init__(self):
-        config = default_scenario.copy()
-        config['software'].update({
-            'path': 'foo',
-            'target_files': 'foo/bar',
-            'possible_edits': 'LineDeletion',
-            'fitness': 'repair',
-        })
-        super().__init__(config)
-
-    def reset_workdir(self):
-        pass
-
-    def reset_contents(self):
-        self.contents = {}
-        self.locations = {}
 
 @pytest.fixture
 def my_software():
@@ -62,6 +47,7 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
 ])
 def test_process_test_repair(my_software, my_runresult, stdout, status, fitness):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
-    my_software.fitness[0].process_test_exec(my_runresult, exec_result)
+    klass = magpie.utils.convert.fitness_from_string('repair')
+    klass(my_software).process_test_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
