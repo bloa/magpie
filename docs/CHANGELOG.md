@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1] HEAD
+
+**Fixed**
+
+- fix spurious timestamp lock files during tests
+
 ## [1.2.0] 2025-04-22
 
 **Added**

@@ -2,15 +2,18 @@ import re
 
 import pytest
 
-from magpie import settings
-from magpie.core import BasicFitness, BasicSoftware, ExecResult, RunResult, default_scenario
+import magpie
+import magpie.utils
+from magpie.core import BasicFitness, ExecResult, RunResult
+
+from .stub import StubSoftware
 
 
 class CustomFitness(BasicFitness):
     def process_test_exec(self, run_result, exec_result):
         # NO call to super() here, due to fitness on failure
         # we check STDOUT for the number of failed test cases
-        stdout = exec_result.stdout.decode(settings.output_encoding)
+        stdout = exec_result.stdout.decode(magpie.settings.output_encoding)
         for fail_regexp, total_regexp in [
             (r'Failures: (\d+)\b', r'^(?:Tests run: |OK \()(\d+)\b'), # custom
         ]:
@@ -31,25 +34,6 @@ class CustomFitness(BasicFitness):
         else:
             run_result.status = 'PARSE_ERROR'
 
-
-class StubSoftware(BasicSoftware):
-    def __init__(self):
-        config = default_scenario.copy()
-        config['software'].update({
-            'path': 'foo',
-            'target_files': 'foo/bar',
-            'possible_edits': 'LineDeletion',
-            'fitness': 'repair', # replaced
-        })
-        super().__init__(config)
-        self.fitness = [CustomFitness(self)]
-
-    def reset_workdir(self):
-        pass
-
-    def reset_contents(self):
-        self.contents = {}
-        self.locations = {}
 
 @pytest.fixture
 def my_software():
@@ -83,6 +67,7 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
 ])
 def test_process_test_repair(my_software, my_runresult, stdout, status, fitness):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
-    my_software.fitness[0].process_test_exec(my_runresult, exec_result)
+    klass = magpie.utils.convert.fitness_from_string('repair')
+    klass(my_software).process_test_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness
