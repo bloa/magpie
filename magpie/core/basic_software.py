@@ -1,5 +1,6 @@
 import contextlib
 import pathlib
+import re
 import shlex
 
 import magpie.settings
@@ -13,48 +14,122 @@ class BasicSoftware(AbstractSoftware):
     def __init__(self, config):
         self.config = config
 
-        # AbstractSoftware *requires* a path, a list of target files, and a list of possible edits
-        if not (val := config['software']['path']):
-            msg = 'Invalid config file: "[software] path" must be defined'
-            raise ScenarioError(msg)
-        super().__init__(val, reset=False)
-        if not (val := config['software']['target_files']):
-            msg = 'Invalid config file: "[software] target_files" must defined'
-            raise ScenarioError(msg)
-        self.target_files = val.split()
+        super().__init__(config['software']['path'], reset=False)
+        self.target_files = config['software']['target_files'].split()
 
         # model rules
-        self.model_rules = []
-        try:
-            for rule in config['software']['model_rules'].split('\n'):
-                if rule: # discard potential initial empty line
-                    k, v = rule.split(':')
-                    self.model_rules.append((k.strip(), v.strip()))
-        except ValueError as e:
-            msg = f'Badly formated rule: "{rule}"'
-            raise ScenarioError(msg) from e
+        self.model_rules = self._init_model_rules(config['software']['model_rules'])
+        if not self.model_rules:
+            msg = 'Invalid config file: empty "[software] model_rules"'
+            raise ScenarioError(msg)
 
         # model config
-        self.model_config = []
+        self.model_config = self._init_model_config(config['software']['model_config'])
+        if not self.model_config:
+            msg = 'Invalid config file: empty "[software] model_config"'
+            raise ScenarioError(msg)
+
+        # fitness type
+        tmp = self._init_model_fitness(config['software']['fitness'])
+        if not tmp:
+            msg = 'Invalid config file: empty "[software] fitness"'
+            raise ScenarioError(msg)
+        self.fitness = []
+        for s in [s.strip() for s in tmp]:
+            if s[0] == '-':
+                fit = magpie.utils.convert.fitness_from_string(s[1:])(self)
+                fit.maximize = True
+            else:
+                fit = magpie.utils.convert.fitness_from_string(s)(self)
+            self.fitness.append(fit)
+
+        # init
+        self.init_performed = False
+        self.init_cmd = self._str_to_str_or_none(config['software']['init_cmd'])
+        self.init_timeout = self._str_to_float_or_none(config['software']['init_timeout'])
+        self.init_lengthout = self._str_to_int_or_none(config['software']['init_lengthout'])
+
+        # setup
+        self.setup_performed = False
+        self.setup_cmd = self._str_to_str_or_none(config['software']['setup_cmd'])
+        self.setup_timeout = self._str_to_float_or_none(config['software']['setup_timeout'])
+        self.setup_lengthout = self._str_to_int_or_none(config['software']['setup_lengthout'])
+
+        # compile
+        self.compile_cmd = self._str_to_str_or_none(config['software']['compile_cmd'])
+        self.compile_timeout = self._str_to_float_or_none(config['software']['compile_timeout'])
+        self.compile_lengthout = self._str_to_int_or_none(config['software']['compile_lengthout'])
+
+        # test
+        self.test_cmd = self._str_to_str_or_none(config['software']['test_cmd'])
+        self.test_timeout = self._str_to_float_or_none(config['software']['test_timeout'])
+        self.test_lengthout = self._str_to_int_or_none(config['software']['test_lengthout'])
+
+        # run
+        self.run_cmd = self._str_to_str_or_none(config['software']['run_cmd'])
+        self.run_timeout = self._str_to_float_or_none(config['software']['run_timeout'])
+        self.run_lengthout = self._str_to_int_or_none(config['software']['run_lengthout'])
+
+        # batch parameters
+        self.batch = [''] # default initial batch: single empty instance
+        self.batch_fitness_strategy = config['software']['batch_fitness_strategy']
+        known_strategies = ['sum', 'average', 'median']
+        if self.batch_fitness_strategy not in known_strategies:
+            tmp = '/'.join(known_strategies)
+            msg = f'Invalid config file: "[software] batch_fitness_strategy" key must be {tmp}'
+            raise ScenarioError(msg)
+        self.batch_bin_fitness_strategy = config['software']['batch_fitness_strategy']
+        known_strategies = ['aggregate', 'sum', 'average', 'median', 'q10', 'q25', 'q75', 'q90']
+        if self.batch_fitness_strategy not in known_strategies:
+            tmp = '/'.join(known_strategies)
+            msg = f'Invalid config file: "[software] batch_bin_fitness_strategy" key must be {tmp}'
+            raise ScenarioError(msg)
+        self.batch_timeout = self._str_to_float_or_none(config['software']['batch_timeout'])
+        self.batch_lengthout = self._str_to_int_or_none(config['software']['batch_lengthout'])
+
+        # reset everything
+        self.reset_timestamp()
+        self.reset_logger()
+        self.reset_workdir()
+        self.reset_contents()
+
+    @staticmethod
+    def _init_model_rules(value):
+        rules = []
         try:
-            for rule in config['software']['model_config'].split('\n'):
+            for rule in value.split('\n'):
                 if rule: # discard potential initial empty line
                     k, v = rule.split(':')
                     v = v.strip()
-                    if v[0]+v[-1] != '[]':
-                        msg = f'Badly formated section name: "{rule}"'
+                    if re.search(r'[^_A-z0-9]', v):
+                        msg = f'Badly formated rule: "{rule}"'
                         raise ScenarioError(msg)
-                    self.model_config.append((k.strip(), v[1:-1]))
+                    rules.append((k.strip(), v))
         except ValueError as e:
             msg = f'Badly formated rule: "{rule}"'
             raise ScenarioError(msg) from e
+        return rules
 
-        # fitness type
-        if 'fitness' not in config['software']:
-            msg = 'Invalid config file: "[software] fitness" must be defined'
-            raise ScenarioError(msg)
-        self.fitness = []
-        tmp = config['software']['fitness'].split('<')
+    @staticmethod
+    def _init_model_config(value):
+        config = []
+        try:
+            for rule in value.split('\n'):
+                if rule: # discard potential initial empty line
+                    k, v = rule.split(':')
+                    v = v.strip()
+                    if re.search(r'[^_A-z0-9]', v[1:-1]) or v[0]+v[-1] != '[]':
+                        msg = f'Badly formated rule: "{rule}"'
+                        raise ScenarioError(msg)
+                    config.append((k.strip(), v[1:-1]))
+        except ValueError as e:
+            msg = f'Badly formated rule: "{rule}"'
+            raise ScenarioError(msg) from e
+        return config
+
+    @staticmethod
+    def _init_model_fitness(value):
+        tmp = value.split('<')
         tmp2 = []
         _msg = 'Invalid config file: bad templating in "[software] fitness"'
         if '>' in tmp[0]:
@@ -77,149 +152,19 @@ class BasicSoftware(AbstractSoftware):
                 tmp[i] = l[1]
             tmp2.extend(tmp[i].split())
             i += 1
-        for s in [s.strip() for s in tmp2]:
-            if s[0] == '-':
-                fit = magpie.utils.convert.fitness_from_string(s[1:])(self)
-                fit.maximize = True
-            else:
-                fit = magpie.utils.convert.fitness_from_string(s)(self)
-            self.fitness.append(fit)
+        return tmp2
 
-        # execution-related parameters
-        self.init_performed = False
-        self.init_cmd = None
-        self.init_timeout = None
-        self.setup_performed = False
-        self.setup_cmd = None
-        self.setup_timeout = None
-        self.setup_lengthout = None
-        self.compile_cmd = None
-        self.compile_timeout = None
-        self.compile_lengthout = None
-        self.test_cmd = None
-        self.test_timeout = None
-        self.test_lengthout = None
-        self.run_cmd = None
-        self.run_timeout = None
-        self.run_lengthout = None
-        self.batch_timeout = None
-        self.batch_lengthout = None
+    @staticmethod
+    def _str_to_int_or_none(s):
+        return None if s.strip().lower() in ['', 'none'] else int(float(s))
 
-        # init
-        if 'init_cmd' in config['software']:
-            if config['software']['init_cmd'].lower() in ['', 'none']:
-                self.init_cmd = None
-            else:
-                self.init_cmd = config['software']['init_cmd']
-        if 'init_timeout' in config['software']:
-            if config['software']['init_timeout'].lower() in ['', 'none']:
-                self.init_timeout = None
-            else:
-                self.init_timeout = float(config['software']['init_timeout'])
-        if 'init_lengthout' in config['software']:
-            if config['software']['init_lengthout'].lower() in ['', 'none']:
-                self.init_lengthout = None
-            else:
-                self.init_lengthout = int(config['software']['init_lengthout'])
+    @staticmethod
+    def _str_to_float_or_none(s):
+        return None if s.strip().lower() in ['', 'none'] else float(s)
 
-        # setup
-        if 'setup_cmd' in config['software']:
-            if config['software']['setup_cmd'].lower() in ['', 'none']:
-                self.setup_cmd = None
-            else:
-                self.setup_cmd = config['software']['setup_cmd']
-        if 'setup_timeout' in config['software']:
-            if config['software']['setup_timeout'].lower() in ['', 'none']:
-                self.setup_timeout = None
-            else:
-                self.setup_timeout = float(config['software']['setup_timeout'])
-        if 'setup_lengthout' in config['software']:
-            if config['software']['setup_lengthout'].lower() in ['', 'none']:
-                self.setup_lengthout = None
-            else:
-                self.setup_lengthout = int(config['software']['setup_lengthout'])
-
-        # compile
-        if 'compile_cmd' in config['software']:
-            if config['software']['compile_cmd'].lower() in ['', 'none']:
-                self.compile_cmd = None
-            else:
-                self.compile_cmd = config['software']['compile_cmd']
-        if 'compile_timeout' in config['software']:
-            if config['software']['compile_timeout'].lower() in ['', 'none']:
-                self.compile_timeout = None
-            else:
-                self.compile_timeout = float(config['software']['compile_timeout'])
-        if 'compile_lengthout' in config['software']:
-            if config['software']['compile_lengthout'].lower() in ['', 'none']:
-                self.compile_lengthout = None
-            else:
-                self.compile_lengthout = int(config['software']['compile_lengthout'])
-
-        # test
-        if 'test_cmd' in config['software']:
-            if config['software']['test_cmd'].lower() in ['', 'none']:
-                self.test_cmd = None
-            else:
-                self.test_cmd = config['software']['test_cmd']
-        if 'test_timeout' in config['software']:
-            if config['software']['test_timeout'].lower() in ['', 'none']:
-                self.test_timeout = None
-            else:
-                self.test_timeout = float(config['software']['test_timeout'])
-        if 'test_lengthout' in config['software']:
-            if config['software']['test_lengthout'].lower() in ['', 'none']:
-                self.test_lengthout = None
-            else:
-                self.test_lengthout = int(config['software']['test_lengthout'])
-
-        # run
-        if 'run_cmd' in config['software']:
-            if config['software']['run_cmd'].lower() in ['', 'none']:
-                self.run_cmd = None
-            else:
-                self.run_cmd = config['software']['run_cmd']
-        if 'run_timeout' in config['software']:
-            if config['software']['run_timeout'].lower() in ['', 'none']:
-                self.run_timeout = None
-            else:
-                self.run_timeout = float(config['software']['run_timeout'])
-        if 'run_lengthout' in config['software']:
-            if config['software']['run_lengthout'].lower() in ['', 'none']:
-                self.run_lengthout = None
-            else:
-                self.run_lengthout = int(config['software']['run_lengthout'])
-
-        # batch parameters
-        self.batch = [''] # default initial batch: single empty instance
-        self.batch_fitness_strategy = config['software']['batch_fitness_strategy']
-        known_strategies = ['sum', 'average', 'median']
-        if self.batch_fitness_strategy not in known_strategies:
-            tmp = '/'.join(known_strategies)
-            msg = f'Invalid config file: "[software] batch_fitness_strategy" key must be {tmp}'
-            raise ScenarioError(msg)
-        self.batch_bin_fitness_strategy = config['software']['batch_fitness_strategy']
-        known_strategies = ['aggregate', 'sum', 'average', 'median', 'q10', 'q25', 'q75', 'q90']
-        if self.batch_fitness_strategy not in known_strategies:
-            tmp = '/'.join(known_strategies)
-            msg = f'Invalid config file: "[software] batch_bin_fitness_strategy" key must be {tmp}'
-            raise ScenarioError(msg)
-        if 'batch_timeout' in config['software']:
-            if config['software']['batch_timeout'].lower() in ['', 'none']:
-                self.batch_timeout = None
-            else:
-                self.batch_timeout = float(config['software']['batch_timeout'])
-        if 'batch_lengthout' in config['software']:
-            if config['software']['batch_lengthout'].lower() in ['', 'none']:
-                self.batch_lengthout = None
-            else:
-                self.batch_lengthout = int(config['software']['batch_lengthout'])
-
-        # reset everything
-        self.reset_timestamp()
-        self.reset_logger()
-        self.reset_workdir()
-        self.reset_contents()
+    @staticmethod
+    def _str_to_str_or_none(s):
+        return None if s.strip().lower() in ['', 'none'] else s.strip()
 
     def reset_contents(self):
         if not self.init_performed:
