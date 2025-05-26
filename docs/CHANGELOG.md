@@ -2,6 +2,10 @@
 
 ## [1.2.1] HEAD
 
+**Changed**
+
+- added human-readable date (YYYYMMDD) to generated filenames for easier file management
+
 **Fixed**
 
 - fix spurious timestamp lock files during tests
