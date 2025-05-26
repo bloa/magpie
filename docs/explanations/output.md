@@ -88,9 +88,9 @@ For convenience, if an improving patch is found, both a patch and a diff file wi
 ```
 ==== REPORT ====
 Termination: step budget
-Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-cpp_1744907898.log
-Patch file: _magpie_logs/triangle-cpp_1744907898.patch
-Diff file: _magpie_logs/triangle-cpp_1744907898.diff
+Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-cpp_20250417_1744907898.log
+Patch file: _magpie_logs/triangle-cpp_20250417_1744907898.patch
+Diff file: _magpie_logs/triangle-cpp_20250417_1744907898.diff
 Reference fitness: 0.0765
 Best fitness: 0.0060
 

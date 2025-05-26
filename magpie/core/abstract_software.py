@@ -35,11 +35,12 @@ class AbstractSoftware(abc.ABC):
 
     def reset_timestamp(self):
         # ensures a unique timestamp unique
-        self.timestamp = str(int(time.time()))
+        self.unix_timestamp = int(time.time())
         with contextlib.suppress(FileExistsError):
             pathlib.Path(magpie.settings.work_dir).mkdir(parents=True)
         while True:
-            self.run_label = f'{self.basename}_{self.timestamp}'
+            local_time = time.strftime('%Y%m%d', time.localtime(self.unix_timestamp))
+            self.run_label = f'{self.basename}_{local_time}_{self.unix_timestamp}'
             new_work_dir = pathlib.Path(magpie.settings.work_dir).resolve() / self.run_label
             lock_file = f'{new_work_dir}.lock'
             try:
@@ -53,7 +54,7 @@ class AbstractSoftware(abc.ABC):
                     pathlib.Path(lock_file).unlink()
             except FileExistsError:
                 pass
-            self.timestamp = str(int(self.timestamp)+1)
+            self.unix_timestamp += 1
 
     def reset_logger(self):
         # just in case
@@ -174,7 +175,7 @@ class AbstractSoftware(abc.ABC):
         env['MAGPIE_LOG_DIR'] = magpie.settings.log_dir
         env['MAGPIE_WORK_DIR'] = magpie.settings.work_dir
         env['MAGPIE_BASENAME'] = self.basename
-        env['MAGPIE_TIMESTAMP'] = self.timestamp
+        env['MAGPIE_TIMESTAMP'] = str(self.unix_timestamp)
         try:
             is_posix = os.name == 'posix'
             with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env, start_new_session=is_posix) as sprocess:

@@ -136,9 +136,9 @@ Once the search process completes, Magpie summarises the results and provides de
 
 ==== REPORT ====
 Termination: step budget
-Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_1743176048.log
-Patch file: _magpie_logs/triangle-c_1743176048.patch
-Diff file: _magpie_logs/triangle-c_1743176048.diff
+Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_20250328_1743176048.log
+Patch file: _magpie_logs/triangle-c_20250328_1743176048.patch
+Diff file: _magpie_logs/triangle-c_20250328_1743176048.diff
 Reference fitness: 0.08
 Best fitness: 0.00
 
@@ -303,9 +303,9 @@ this ensures that any changes to the benchmark or test suite since the previous 
 ```
 ==== REPORT ====
 Termination: step budget
-Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-cpp_1743183012.log
-Patch file: _magpie_logs/triangle-cpp_1743183012.patch
-Diff file: _magpie_logs/triangle-cpp_1743183012.diff
+Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-cpp_20250328_1743183012.log
+Patch file: _magpie_logs/triangle-cpp_20250328_1743183012.patch
+Diff file: _magpie_logs/triangle-cpp_20250328_1743183012.diff
 Reference fitness: 33.33
 Best fitness: 19.05
 
@@ -356,7 +356,7 @@ The path to the variant will be shown after "Artefact" in the output.
 ```
 ==== REPORT ====
 Patch: XmlNodeReplacement<stmt>(('triangle.cpp.xml', 'stmt', 16), ('triangle.cpp.xml', 'stmt', 18))
-Artefact: /home/aymeric/git/magpie/_magpie_work/triangle-cpp_1743429554
+Artefact: /home/aymeric/git/magpie/_magpie_work/triangle-cpp_20250331_1743429554
 Diff:
 --- before: triangle.cpp
 +++ after: triangle.cpp
@@ -409,9 +409,9 @@ REF     SUCCESS               0.08 (--) [0 edit(s)]
 
 ==== REPORT ====
 Termination: validation end
-Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_1743431029.log
-Patch file: _magpie_logs/triangle-c_1743431029.patch
-Diff file: _magpie_logs/triangle-c_1743431029.diff
+Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_20250331_1743431029.log
+Patch file: _magpie_logs/triangle-c_20250331_1743431029.patch
+Diff file: _magpie_logs/triangle-c_20250331_1743431029.diff
 Reference fitness: 0.0797
 Best fitness: 0.0090
 
@@ -474,9 +474,9 @@ REF     SUCCESS               0.08 (--) [0 edit(s)]
 
 ==== REPORT ====
 Termination: ablation end
-Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_1743431229.log
-Patch file: _magpie_logs/triangle-c_1743431229.patch
-Diff file: _magpie_logs/triangle-c_1743431229.diff
+Log file: /home/aymeric/git/magpie/_magpie_logs/triangle-c_20250331_1743431229.log
+Patch file: _magpie_logs/triangle-c_20250331_1743431229.patch
+Diff file: _magpie_logs/triangle-c_20250331_1743431229.diff
 Reference fitness: 0.08
 Best fitness: 0.01
 
