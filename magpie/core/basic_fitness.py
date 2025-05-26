@@ -18,11 +18,11 @@ class BasicFitness(AbstractFitness):
             run_result.status = 'CODE_ERROR'
 
     def process_test_exec(self, run_result, exec_result):
-        # "[software] compile_cmd" must yield nonzero return code
+        # "[software] test_cmd" must yield nonzero return code
         if exec_result.return_code != 0:
             run_result.status = 'CODE_ERROR'
 
     def process_run_exec(self, run_result, exec_result):
-        # "[software] compile_cmd" must yield nonzero return code
+        # "[software] run_cmd" must yield nonzero return code
         if exec_result.return_code != 0:
             run_result.status = 'CODE_ERROR'
