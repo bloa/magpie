@@ -149,8 +149,8 @@ class GeometricRealm(Realm):
         if self.stop <= 0:
             return self.random_negative_value(self.start, self.stop, lambd)
         if random.randrange(2) == 0:
-            return self.random_positive_value(0, self.stop, self.lambd)
-        return self.random_negative_value(self.start, 0, self.lambd)
+            return self.random_positive_value(0, self.stop, lambd)
+        return self.random_negative_value(self.start, 0, lambd)
 
     def random_positive_value(self, start, stop, lambd):
         x = int(random.expovariate(lambd))
