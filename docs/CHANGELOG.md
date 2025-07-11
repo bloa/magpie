@@ -2,6 +2,10 @@
 
 ## [1.2.1] HEAD
 
+**Added**
+
+- add templated version of `OutputFitness`
+
 **Changed**
 
 - added human-readable date (YYYYMMDD) to generated filenames for easier file management
