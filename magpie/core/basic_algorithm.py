@@ -252,19 +252,7 @@ class BasicAlgorithm(AbstractAlgorithm):
                 self.report['stop'] = f'failed to {step} target software'
                 return
             warmup_values.append(run.fitness)
-        if self.config['warmup_strategy'] == 'last':
-            current_fitness = warmup_values[-1]
-        elif self.config['warmup_strategy'] == 'min':
-            current_fitness = min(warmup_values)
-        elif self.config['warmup_strategy'] == 'max':
-            current_fitness = max(warmup_values)
-        elif self.config['warmup_strategy'] == 'mean':
-            current_fitness = sum(warmup_values)/len(warmup_values)
-        elif self.config['warmup_strategy'] == 'median':
-            current_fitness = sorted(warmup_values)[len(warmup_values)//2]
-        else:
-            msg = 'Unknown warmup strategy'
-            raise ValueError(msg)
+        current_fitness = self._aggregate_warmup(warmup_values, self.config['warmup_strategy'])
         run.fitness = current_fitness
         self.cache_set(variant.diff, run)
         self.hook_warmup_evaluation('REF', patch, run)
@@ -281,6 +269,30 @@ class BasicAlgorithm(AbstractAlgorithm):
             else:
                 self.report['best_patch'] = patch
                 self.report['best_fitness'] = current_fitness
+
+    @classmethod
+    def _aggregate_warmup(cls, warmup_values, strategy):
+        def aux(values):
+            match strategy:
+                case 'last':
+                    return values[-1]
+                case 'min':
+                    return min(values)
+                case 'max':
+                    return max(values)
+                case 'mean':
+                    return sum(values)/len(values)
+                case 'median':
+                    tmp = sorted(values)
+                    k = len(values)//2
+                    return tmp[k] if len(tmp)%2 == 1 else (tmp[k-1]+tmp[k])/2
+                case _:
+                    msg = f'Unknown warmup strategy "{strategy}"'
+                    raise ValueError(msg)
+        if isinstance(warmup_values[0], list):
+            return [aux(values) for values in list(zip(*warmup_values))]
+        else:
+            return aux(warmup_values)
 
     def evaluate_variant(self, variant, force=False):
         cached_run = None

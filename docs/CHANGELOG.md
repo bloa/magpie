@@ -14,6 +14,8 @@
 
 - fix spurious timestamp lock files during tests
 - fix requirement on older CMake
+- fix median computation for warmup values aggregation
+- fix warmup values aggregation for multi-objective optimisation
 
 
 ## [1.2.0] 2025-04-22
