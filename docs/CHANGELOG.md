@@ -6,12 +6,14 @@
 
 - add templated version of `OutputFitness`
 - add support for generalised expression trees for fitness
+- add support for generalised expression trees to the algorithm configuration model (conditionals, forbidden combinations, general assertions)
 
 **Changed**
 
 - added human-readable date (YYYYMMDD) to generated filenames for easier file management
-- remove support for maximisation fitness (just minimise to -inf)
+- removed support for maximisation fitness (just minimise to -inf)
 - changed multi-objective syntax to use ";" instead of space to enable generalised expression trees
+- changed AbstractEdit to a true abstract class
 
 **Fixed**
 

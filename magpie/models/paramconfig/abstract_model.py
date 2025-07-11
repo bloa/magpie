@@ -100,18 +100,14 @@ class AbstractConfigModel(magpie.core.BasicModel):
         return f'{prefix}{cli_param}{glue}{value!r}'
 
     def would_be_ignored(self, key, value):
-        return any(self.contents['current'][_k2] not in _vals for (_k1, _k2, _vals) in self.contents['conditionals'] if _k1 == key)
+        tmp = self.contents['current'].copy()
+        tmp[key] = value
+        return not all(tree.evaluate(tmp) for (_key, tree) in self.contents['conditionals'] if _key == key)
 
     def would_be_valid(self, key, value):
-        for d in self.contents['forbidden']:
-            forbidden = True
-            for k in d:
-                if (k != key and d[k] != self.contents['current'][k]) or (k == key and d[k] != value):
-                    forbidden = False
-                    break
-            if forbidden:
-                return False
-        return True
+        tmp = self.contents['current'].copy()
+        tmp[key] = value
+        return all(tree.evaluate(tmp) for tree in self.contents['asserts'])
 
     def do_set(self, target, value):
         key = target[2]

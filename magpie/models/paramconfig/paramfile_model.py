@@ -1,3 +1,4 @@
+import ast
 import pathlib
 import re
 
@@ -14,11 +15,14 @@ class ParamFileConfigModel(AbstractConfigModel):
             'current': {},
             'space': {},
             'conditionals': [],
-            'forbidden': [],
+            'asserts': [],
         }
         with pathlib.Path(self.filename).open('r') as config_file:
             for line in config_file:
                 self._read_line(line)
+        if not all(tree.evaluate(self.contents['current']) for tree in self.contents['asserts']):
+            msg = f'Default configuration is invalid'
+            raise magpie.core.ScenarioError(msg)
         self.locations = {'param': list(self.contents['current'].keys())}
 
     def _read_line(self, line):
@@ -71,8 +75,8 @@ class ParamFileConfigModel(AbstractConfigModel):
         m = re.match(r'^\s*(\S+)\s*\{([^}]+)\}\s*\[([^\]]+)\](?:\s*#.*)?$', line)
         if m:
             param = m.group(1)
-            default = m.group(3)
-            values = [s.strip() for s in m.group(2).split(',')]
+            default = self._auto_convert(m.group(3))
+            values = [self._auto_convert(s) for s in m.group(2).split(',')]
             if default not in values:
                 msg = f'Illegal default value for {param}: "{default}"'
                 raise magpie.core.ScenarioError(msg)
@@ -153,51 +157,61 @@ class ParamFileConfigModel(AbstractConfigModel):
             self.contents['space'][param] = Realm.geometric(*values)
             return
 
-        # forbidden parameters
+        # forbidden parameters (LEGACY)
         m = re.match(r'^{([^=}]+==[^=}]+(?:,[^=}]+==[^=}]+)*)\}(?:\s*#.*)?$', line)
         if m:
-            tmp = {}
-            for s in m.group(1).split(','):
-                s1, s2 = s.split('=')
-                if s1 not in self.contents['current']:
-                    msg = f'Illegal forbidden parameter: "{s1.strip()}"'
+            tmp = ' and '.join(m.group(1).split(','))
+            try:
+                tree = magpie.utils.BoolTree(f'not ({tmp})')
+            except (SyntaxError, TypeError) as e:
+                msg = f'Illegal assertion: "{line.strip()}"'
+                raise magpie.core.ScenarioError(msg) from e
+            for var in tree.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in assertion: "{line.strip()}"'
                     raise magpie.core.ScenarioError(msg)
-                tmp[s1.strip()] = s2.strip()
-            self.contents['forbidden'].append(tmp)
+            self.contents['asserts'].append(tree)
             return
 
-        # conditional parameters (multiple values)
-        m = re.match(r'^\s*([^|]+)\s*\|\s*([^{]+?)\s* in \{([^}]*)\}(?:\s*#.*)?$', line)
+        # conditional parameters
+        m = re.match(r'^\s*([^|]+)\s*\|\s*(.+)$', line)
         if m:
-            tmp = [m.group(1).strip(), m.group(2).strip(), [s.strip() for s in m.group(2).strip().split(',')]]
-            if tmp[0] not in self.contents['current']:
-                msg = f'Illegal conditional parameter: "{tmp[0]}"'
-                raise magpie.core.ScenarioError(msg)
-            if tmp[1] not in self.contents['current']:
-                msg = f'Illegal conditional parameter: "{tmp[1]}"'
-                raise magpie.core.ScenarioError(msg)
-            self.contents['conditionals'].append(tmp)
+            key = m.group(1).strip()
+            try:
+                tree = magpie.utils.BoolTree(m.group(2).strip())
+            except (SyntaxError, TypeError) as e:
+                msg = f'Illegal assertion: "{line.strip()}"'
+                raise magpie.core.ScenarioError(msg) from e
+            for var in tree.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in condition: "{line.strip()}"'
+                    raise magpie.core.ScenarioError(msg)
+            self.contents['conditionals'].append((key, tree))
             return
 
-        # conditional parameters (single values)
-        m = re.match(r'^\s*([^|]+)\s*\|\s*([^{]+?)\s*==\s*(\S*)(?:\s*#.*)?$', line)
+        # general assert
+        m = re.match(r'^assert\s+(.+)$', line)
         if m:
-            tmp = [m.group(1).strip(), m.group(2).strip(), [m.group(2).strip()]]
-            if tmp[0] not in self.contents['current']:
-                msg = f'Illegal conditional parameter: "{tmp[0]}"'
-                raise magpie.core.ScenarioError(msg)
-            if tmp[1] not in self.contents['current']:
-                msg = f'Illegal conditional parameter: "{tmp[1]}"'
-                raise magpie.core.ScenarioError(msg)
-            self.contents['conditionals'].append(tmp)
+            try:
+                tree = magpie.utils.BoolTree(m.group(1).strip())
+            except (SyntaxError, TypeError) as e:
+                msg = f'Illegal assertion: "{line.strip()}"'
+                raise magpie.core.ScenarioError(msg) from e
+            for var in tree.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in assertion: "{line.strip()}"'
+                    raise magpie.core.ScenarioError(msg)
+            self.contents['asserts'].append(tree)
             return
+
         msg = f'Unable to parse line: "{line.strip()}"'
         raise magpie.core.ScenarioError(msg)
 
-    def would_be_ignored(self, key, value):
-        return super().would_be_ignored(key, str(value))
-
-    def would_be_valid(self, key, value):
-        return super().would_be_valid(key, str(value))
+    @staticmethod
+    def _auto_convert(s):
+        try:
+            return ast.literal_eval(s)
+        except (ValueError, SyntaxError):
+            return s
 
 magpie.utils.known_models += [ParamFileConfigModel]
