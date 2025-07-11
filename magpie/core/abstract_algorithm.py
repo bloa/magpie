@@ -51,16 +51,8 @@ class AbstractAlgorithm(abc.ABC):
         if fit2 is None:
             return True
         if isinstance(fit1, list):
-            for i, (x, y) in enumerate(zip(fit1, fit2)):
-                if x < y:
-                    return not self.software.fitness[i].maximize
-                if x > y:
-                    return self.software.fitness[i].maximize
-            return False
-        if self.software.fitness[0].maximize:
-            return fit1 > fit2
-        else:
-            return fit1 < fit2
+            return any(x < y for (x, y) in zip(fit1, fit2))
+        return fit1 < fit2
 
     def dominates_or_equal(self, fit1, fit2):
         return self.dominates(fit1, fit2) or fit1 == fit2

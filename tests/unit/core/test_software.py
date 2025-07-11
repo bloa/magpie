@@ -74,20 +74,22 @@ def test_init_model_config_fail(value):
     with pytest.raises(ScenarioError):
         BasicSoftware._init_model_config(value)
 
-@pytest.mark.parametrize(('value', 'ref'), [
-    ('time', ['time']),
-    ('-time', ['-time']),
-    ('repair time', ['repair', 'time']),
-    ('repair    time', ['repair', 'time']),
+@pytest.mark.parametrize(('expr', 'ref'), [
+    ('time', [{'time'}]),
+    ('-time', [{'time'}]),
+    ('repair ; time', [{'repair'}, {'time'}]),
+    ('(repair + time)/2', [{'repair', 'time'}]),
+    ('repair  ;  time', [{'repair'}, {'time'}]),
     ("""
     repair
-    time""", ['repair', 'time']),
-    ('perf<foo>', ['perf<foo>']),
-    ('perf<foo> time', ['perf<foo>', 'time']),
-    ('perf<foo bar>  -perf<bar baz>', ['perf<foo bar>', '-perf<bar baz>']),
+    time""", [{'repair'}, {'time'}]),
+    ('perf<foo>', [{'perf<foo>'}]),
+    ('perf<foo> ; time', [{'perf<foo>'}, {'time'}]),
+    ('perf<foo bar> ; -perf<bar baz>', [{'perf<foo bar>'}, {'perf<bar baz>'}]),
 ])
-def test_init_model_fitness(value, ref):
-    assert BasicSoftware._init_model_fitness(value) == ref
+def test_init_model_fitness(expr, ref):
+    trees = BasicSoftware._init_model_fitness(expr)
+    assert [tree.variables for tree in trees] == ref
 
 @pytest.mark.parametrize(('s', 'ref'), [
     ('', None),

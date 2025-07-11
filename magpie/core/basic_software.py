@@ -4,6 +4,7 @@ import re
 import shlex
 
 import magpie.settings
+from magpie.utils import MathTree
 
 from .abstract_software import AbstractSoftware
 from .errors import ScenarioError
@@ -30,18 +31,11 @@ class BasicSoftware(AbstractSoftware):
             raise ScenarioError(msg)
 
         # fitness type
-        tmp = self._init_model_fitness(config['software']['fitness'])
-        if not tmp:
+        self.fitness_trees = self._init_model_fitness(config['software']['fitness'])
+        if not self.fitness_trees:
             msg = 'Invalid config file: empty "[software] fitness"'
             raise ScenarioError(msg)
-        self.fitness = []
-        for s in [s.strip() for s in tmp]:
-            if s[0] == '-':
-                fit = magpie.utils.convert.fitness_from_string(s[1:])(self)
-                fit.maximize = True
-            else:
-                fit = magpie.utils.convert.fitness_from_string(s)(self)
-            self.fitness.append(fit)
+        self.fitness_objectives = {s: magpie.utils.convert.fitness_from_string(s)(self) for tree in self.fitness_trees for s in tree.variables}
 
         # init
         self.init_performed = False
@@ -128,31 +122,39 @@ class BasicSoftware(AbstractSoftware):
         return config
 
     @staticmethod
-    def _init_model_fitness(value):
-        tmp = value.split('<')
-        tmp2 = []
-        _msg = 'Invalid config file: bad templating in "[software] fitness"'
-        if '>' in tmp[0]:
-            msg = f'{_msg} (unexpected ">" before any "<")'
-            raise ScenarioError(msg)
-        i = 0
-        while i < len(tmp):
-            if i > 0:
-                if not tmp2:
-                    msg = f'{_msg} (missing fitness name before "<")'
-                    raise ScenarioError(msg)
-                l = tmp[i].split('>')
-                if len(l) != 2:
-                    if len(l) == 1:
-                        msg = f'{_msg} (missing ">" for fitness "{tmp2[-1]}")'
-                    else:
-                        msg = f'{_msg} (unpaired ">")'
-                    raise ScenarioError(msg)
-                tmp2[-1] = f'{tmp2[-1].strip()}<{l[0]}>'
-                tmp[i] = l[1]
-            tmp2.extend(tmp[i].split())
-            i += 1
-        return tmp2
+    def _init_model_fitness(expr):
+        # multi-objective fitness
+        if ';' in expr:
+            tmp = [BasicSoftware._init_model_fitness(s) for s in expr.split(';')]
+            return [tree for trees in tmp for tree in trees]
+        if '\n' in expr:
+            tmp = [BasicSoftware._init_model_fitness(s) for s in expr.split()]
+            return [tree for trees in tmp for tree in trees]
+        # replace variable names
+        var_map = {}
+        var_count = 1
+        pattern = re.compile(r'\b[a-zA-Z_]\w*(?:<[^<>]*?>)?')
+        def replacer(_match):
+            nonlocal var_count
+            original = _match.group(0)
+            if original not in var_map:
+                var_map[original] = f'var{var_count}'
+                var_count += 1
+            return var_map[original]
+        new_expr = pattern.sub(replacer, expr)
+        # parse expression
+        try:
+            tree = MathTree(new_expr)
+        except SyntaxError as e:
+            msg = 'Invalid config file: unable to parse "[software] fitness"'
+            raise ScenarioError(msg) from e
+        except TypeError as e:
+            msg = 'Invalid config file: "[software] fitness" only supports numeric expressions'
+            raise ScenarioError(msg) from e
+        # put original variable names back
+        for (old, new) in var_map.items():
+            tree.rename(new, old)
+        return [tree]
 
     @staticmethod
     def _str_to_int_or_none(s):
@@ -178,7 +180,7 @@ class BasicSoftware(AbstractSoftware):
                                                 lengthout=lengthout)
                     run_result = RunResult(None, exec_result.status)
                     if run_result.status == 'SUCCESS':
-                        for fit in self.fitness:
+                        for fit in self.fitness_objectives.values():
                             fit.process_init_exec(run_result, exec_result)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'INIT_{run_result.status}'
@@ -210,8 +212,7 @@ class BasicSoftware(AbstractSoftware):
         run_result.updated = True
 
         with contextlib.chdir(work_path):
-            # serves as base before run_cmd
-            default_variant_fitness = [None for _ in self.fitness]
+            raw_fitness_values = {}
 
             # one-time setup
             if not self.setup_performed:
@@ -240,8 +241,11 @@ class BasicSoftware(AbstractSoftware):
                     run_result.status = exec_result.status
                     run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
-                        for fit in self.fitness:
+                        for (name, fit) in self.fitness_objectives.items():
+                            run_result.fitness = None
                             fit.process_setup_exec(run_result, exec_result)
+                            if run_result.fitness is not None:
+                                raw_fitness_values[name] = run_result.fitness
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'SETUP_{run_result.status}'
                         run_result.fitness = None
@@ -266,11 +270,11 @@ class BasicSoftware(AbstractSoftware):
                 run_result.status = exec_result.status
                 run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
-                    for i, fit in enumerate(self.fitness):
+                    for (name, fit) in self.fitness_objectives.items():
                         run_result.fitness = None
                         fit.process_compile_exec(run_result, exec_result)
                         if run_result.fitness is not None:
-                            default_variant_fitness[i] = run_result.fitness
+                            raw_fitness_values[name] = run_result.fitness
                 if run_result.status != 'SUCCESS':
                     run_result.status = f'COMPILE_{run_result.status}'
                     run_result.fitness = None
@@ -292,18 +296,17 @@ class BasicSoftware(AbstractSoftware):
                 run_result.status = exec_result.status
                 run_result.last_exec = exec_result
                 if run_result.status == 'SUCCESS':
-                    for i, fit in enumerate(self.fitness):
+                    for (name, fit) in self.fitness_objectives.items():
                         run_result.fitness = None
                         fit.process_test_exec(run_result, exec_result)
                         if run_result.fitness is not None:
-                            default_variant_fitness[i] = run_result.fitness
-                if run_result.status == 'SUCCESS':
-                    run_result.fitness = default_variant_fitness
-                else:
+                            raw_fitness_values[name] = run_result.fitness
+                if run_result.status != 'SUCCESS':
                     run_result.status = f'TEST_{run_result.status}'
                     run_result.fitness = None
                     return run_result
 
+            default_raw_fitness_values = raw_fitness_values.copy()
             # run "[software] run_cmd" if provided
             if self.run_cmd:
                 cli = self.compute_local_cli(variant, 'run')
@@ -313,7 +316,7 @@ class BasicSoftware(AbstractSoftware):
                 batch_lengthout = self.batch_lengthout
                 insts = [inst for b in self.batch for inst in b]
                 for inst in insts:
-                    variant_fitness = default_variant_fitness[:]
+                    raw_fitness_values = default_raw_fitness_values.copy()
                     if inst in run_result.cache:
                         continue
                     run_cmd = self.run_cmd.strip()
@@ -331,12 +334,13 @@ class BasicSoftware(AbstractSoftware):
                     run_result.status = exec_result.status
                     run_result.last_exec = exec_result
                     if run_result.status == 'SUCCESS':
-                        for i, fit in enumerate(self.fitness):
+                        for (name, fit) in self.fitness_objectives.items():
                             run_result.fitness = None
                             fit.process_run_exec(run_result, exec_result)
                             if run_result.fitness is not None:
-                                variant_fitness[i] = run_result.fitness
-                    self.process_batch_single(run_result, inst, variant_fitness)
+                                raw_fitness_values[name] = run_result.fitness
+                    run_result.fitness = self.process_final_fitness(raw_fitness_values)
+                    self.process_batch_single(run_result, inst)
                     if run_result.status != 'SUCCESS':
                         run_result.status = f'RUN_{run_result.status}'
                         break
@@ -351,6 +355,8 @@ class BasicSoftware(AbstractSoftware):
                             run_result.status = 'BATCH_LENGTHOUT'
                             break
                 self.process_batch_final(run_result)
+            else:
+                run_result.fitness = self.process_final_fitness(raw_fitness_values)
 
         # final process
         return run_result
@@ -362,10 +368,20 @@ class BasicSoftware(AbstractSoftware):
             cli = model.update_cli(variant, cli, step)
         return cli
 
-    def process_batch_single(self, run_result, inst, variant_fitness):
-        run_result.cache[inst] = (run_result.status, variant_fitness)
+    def process_final_fitness(self, raw_fitness_values):
+        final_fitness = []
+        for tree in self.fitness_trees:
+            try:
+                fit = tree.evaluate(raw_fitness_values)
+            except KeyError:
+                return None
+            final_fitness.append(fit)
+        return final_fitness
+
+    def process_batch_single(self, run_result, inst):
+        run_result.cache[inst] = (run_result.status, run_result.fitness)
         if inst != '':
-            self.logger.debug('EXEC> %s %s %s', inst, run_result.status, variant_fitness)
+            self.logger.debug('EXEC> %s %s %s', inst, run_result.status, run_result.fitness)
 
     def process_batch_final(self, run_result):
         fit_per_batch = []

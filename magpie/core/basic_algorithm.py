@@ -174,8 +174,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         data['rawfitness'] = data['fitness'] = 'None'
         if run.fitness is not None:
             tmp = run.fitness
-            if not isinstance(run.fitness, list):
-                tmp = [tmp]
+            assert isinstance(run.fitness, list)
             data['rawfitness'] = ' '.join([str(x) for x in tmp])
             data['fitness'] = ' '.join([magpie.settings.log_format_fitness.format(x) for x in tmp])
         data['ratio'] = '--'

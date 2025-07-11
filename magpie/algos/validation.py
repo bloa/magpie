@@ -137,7 +137,7 @@ class ValidMinify(ValidSearch):
             # ranking
             self.software.logger.info('---- ranking ----')
             ranking = []
-            ref_fit = [(-float('inf') if f.maximize else float('inf')) for f in self.software.fitness]
+            ref_fit = [float('inf') for f in self.software.fitness_trees]
             for edit in variant.patch.edits:
                 patch = magpie.core.Patch([edit])
                 tmp = magpie.core.Variant(self.software, patch)

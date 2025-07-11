@@ -33,7 +33,7 @@ class AblationAnalysis(ValidSearch):
         removed = []
         while rebuild.edits:
             ranking = []
-            ref_fit = [(-float('inf') if f.maximize else float('inf')) for f in self.software.fitness]
+            ref_fit = [float('inf') for f in self.software.fitness_trees]
             for k, _ in enumerate(rebuild.edits):
                 patch = copy.deepcopy(rebuild)
                 del patch.edits[k]

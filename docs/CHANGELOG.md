@@ -5,10 +5,13 @@
 **Added**
 
 - add templated version of `OutputFitness`
+- add support for generalised expression trees for fitness
 
 **Changed**
 
 - added human-readable date (YYYYMMDD) to generated filenames for easier file management
+- remove support for maximisation fitness (just minimise to -inf)
+- changed multi-objective syntax to use ";" instead of space to enable generalised expression trees
 
 **Fixed**
 
