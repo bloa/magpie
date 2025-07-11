@@ -1,4 +1,3 @@
-cmake_minimum_required( VERSION 3.0 )
 project( triangle )
 
 add_library( triangle triangle.cpp )

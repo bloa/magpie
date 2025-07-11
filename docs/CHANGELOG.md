@@ -13,6 +13,8 @@
 **Fixed**
 
 - fix spurious timestamp lock files during tests
+- fix requirement on older CMake
+
 
 ## [1.2.0] 2025-04-22
 
