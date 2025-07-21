@@ -42,8 +42,16 @@ class AbstractConfigModel(magpie.core.BasicModel):
                 if k in config_section:
                     self.config[k] = config_section[k]
 
+    def resolve_dynamic_parameters(self, current):
+        all_params = current.copy()
+        for (key, tree1, tree2) in self.contents['dynamic']:
+            if tree2 is None or tree2.evaluate(all_params):
+                all_params[key] = tree1.evaluate(all_params)
+        return all_params
+
     def dump(self):
-        return ''.join([f'{k} := {v!r}\n' for k,v in self.contents['current'].items() if not self.would_be_ignored(k, v)])
+        all_params = self.resolve_dynamic_parameters(self.contents['current'])
+        return ''.join([f'{k} := {v!r}\n' for k,v in all_params.items() if not self.would_be_ignored(k, all_params)])
 
     def show_location(self, target_type, target_loc):
         if target_type != 'param':
@@ -65,15 +73,18 @@ class AbstractConfigModel(magpie.core.BasicModel):
 
     def update_cli(self, variant, cli, step):
         if step in self.config['timing']:
-            return f'{cli} {self.resolve_cli()}'
+            all_params = self.contents['current']
+            return f'{cli} {self.build_resolved_cli(all_params)}'
         return cli
 
-    def resolve_cli(self):
-        all_params = self.contents['current']
-        tmp = [self.resolve_cli_param(k, v) for k,v in all_params.items() if not self.would_be_ignored(k, v)]
+    def build_resolved_cli(self, all_params):
+        return self.build_raw_cli(self.resolve_dynamic_parameters(all_params))
+
+    def build_raw_cli(self, all_params):
+        tmp = [self.format_cli_param(k, v) for k,v in all_params.items() if not self.would_be_ignored(k, all_params)]
         return ' '.join([s for s in tmp if s != ''])
 
-    def resolve_cli_param(self, param, value):
+    def format_cli_param(self, param, value):
         if param.startswith(self.config['silent_prefix']):
             return ''
         prefix = self.config['cli_prefix']
@@ -99,19 +110,22 @@ class AbstractConfigModel(magpie.core.BasicModel):
         glue = self.config['cli_glue']
         return f'{prefix}{cli_param}{glue}{value!r}'
 
-    def would_be_ignored(self, key, value):
-        tmp = self.contents['current'].copy()
-        tmp[key] = value
-        return not all(tree.evaluate(tmp) for (_key, tree) in self.contents['conditionals'] if _key == key)
+    def would_be_ignored(self, key, all_params):
+        trees = [tree for (_key, tree) in self.contents['conditionals'] if _key == key]
+        return bool(trees) and not any(tree.evaluate(all_params) for tree in trees)
 
-    def would_be_valid(self, key, value):
-        tmp = self.contents['current'].copy()
-        tmp[key] = value
-        return all(tree.evaluate(tmp) for tree in self.contents['asserts'])
+    def would_be_valid(self, all_params):
+        return all(tree.evaluate(all_params) for tree in self.contents['asserts'])
 
     def do_set(self, target, value):
         key = target[2]
-        used = self.would_be_valid(key, value) and not self.would_be_ignored(key, value)
-        if used:
-            self.contents['current'][key] = value
-        return used
+        all_params = self.contents['current'].copy()
+        if all_params[key] == value:
+            return False
+        old_cli = self.build_resolved_cli(all_params)
+        all_params[key] = value
+        all_params = self.resolve_dynamic_parameters(all_params)
+        if not self.would_be_valid(all_params) or self.build_raw_cli(all_params) == old_cli:
+            return False
+        self.contents['current'][key] = value
+        return True

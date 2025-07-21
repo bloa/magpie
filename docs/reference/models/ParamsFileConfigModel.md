@@ -10,12 +10,13 @@ Depending on whether `ParamSetting` is the only edit type specified, algorithm c
 
 # Parameter File
 
-Magpie .params format supports five types of lines:
-1. Empty lines and comments, ignored during parsing;
-2. Magic constants, specifying CLI formatting;
-3. Parameter definitions, including a name, a range of possible values, and a default value;
-4. Conditional parameters; and
-5. Forbidden combinations.
+Magpie .params format supports six types of lines:
+1. empty lines and comments, both ignored during parsing;
+2. magic constants, specifying CLI formatting;
+3. parameter definitions, including a name, a range of possible values, and a default value;
+4. conditional parameters,
+5. dynamic parameters; and
+6. general assertions.
 
 Here is an example fragment:
 ```
@@ -132,55 +133,157 @@ The default `lambda` value is `10/(max-min)`; note that `lambda` is the inverse 
 
 ## Conditional parameters
 
-In some cases, a parameter should only appear on the command line if another parameter is set to a specific value.
-This is especially useful when certain options are only relevant under specific modes or configurations.
+Magpie supports conditional inclusion of parameters using the show directive.
+This allows parameters to appear only when a specific condition holds, offering a clean and expressive way to control which parameters are visible and active in a given configuration.
 
-Magpie allows you to express such dependencies directly within the parameter file using the following format
+Use the following syntax:
 
-    PARAM | CONDITION
+    show PARAM if EXPR
 
 where:
-- `PARAM` is the name of the parameter that will be included _only_ if the condition holds, and
-- `CONDITION` is a logical condition of the form `OTHER_PARAM == VALUE`.
+- `PARAM` is the name of the parameter to conditionally including in the CLI, and
+- `EXPR` is a Python-style Boolean expression that defines the condition under which the parameter is included.
 
-### Example
+Examples:
 
-Suppose we want a parameter `foo` that can take either:
-- a positive continuous value, or
-- one of three special-meaning negative integers `-1`, `-2`, or `-3`.
+**Value-specific parameters**
+```
+optimizer {sgd, adam}[adam]
+momentum f(0.0, 1.0)[0.9]
+beta1 f(0.0, 1.0)[0.9]
+beta2 f(0.0, 1.0)[0.999]
 
-We can express this in Magpie as follows:
+show momentum if optimizer == "sgd"
+show beta1    if optimizer == "adam"
+show beta2    if optimizer == "adam"
+```
 
+In this setup, the three parameters `momentum`, `beta1`, and `beta2` are conditioned to the value of the `optimizer` parameter, and only included in the CLI when relevant.
+
+**Complex conditions**
+```
+scheduler {None, linear, cosine}[linear]
+warmup_steps i(0, 1000)[100]
+
+show warmup_steps if scheduler in ["linear", "cosine"] and warmup_steps > 0
+```
+
+The `warmup_steps` parameter is only used when both a scheduler is used, **and** the parameter value is meaningful.
+
+**Multi-domain parameter**
 ```
 foo$continuous e(0, 999999)[1]
 foo$integer    [-3, -1][-1]
 @foo$flag      {True, False}[True]
 
-foo$continuous | @foo$flag == True
-foo$integer    | @foo$flag == False
+show foo$continuous if @foo$flag
+show foo$integer    if not @foo$flag
 ```
 
-This setup defines three parameters:
-- `foo$continuous`, which covers the continuous range of positive values;
-- `foo$integer`, which includes the three special negative values; and
-- `@foo$flag`, a hidden categorical parameter that controls which of the two is active.
+This defines three parameters:
+- `foo$continuous`, and
+- `foo$integer`, two variants of the `--foo` flag, distinguished by `$` suffixes (hidden in the final CLI); and
+- `@foo$flag`, a hidden parameter ensuring that only one variant is visible at a time.
 
-Both `foo$continuous` and `foo$integer` use the silent suffix `$`, so regardless of which is selected, it will appear on the final command-line as `--foo=value`.
-Similarly, the controller parameter `@foo$flag` uses the silent prefix `@`, meaning it will be excluded of the final command line as well.
+This setup ensures that users will see clean command lines like:
+```
+--foo=5.0   # when @foo$flag == True
+--foo=-2    # when @foo$flag == False
+```
+without ever seeing `@foo$flag` or the internal parameter names.
 
-The two conditional lines ensure that:
-- if `@foo$flag` is `True`, then only `foo$continuous` is included; and that
-- if `@foo$flag` is `False`, then only `foo$integer` is included.
-
-Thanks to the silent prefix and suffix mechanisms, and the conditional rules, the resulting command line will look clean and consistent---e.g., `--foo=5.0` or `--foo=-1`---without exposing the internal selection logic.
+Note using a silent prefix for `@foo$flag` is equivalent to writing `show foo$flag if False` as it ensures the parameter is not included in the final CLI.
 
 
-## Forbidden combinations
+## Dynamic parameters
 
-There may be situations where certain combinations of parameter values should be avoided altogether---for example, if they lead to invalid behaviour, crashes, or logically inconsistent settings.
+Magpie supports dynamic parameters using the set directive. This allows you to define parameters whose values are computed at runtime, based on the values of other parameters.
 
-Magpie lets you specify such constraints using the following format:
+Dynamic parameters are resolved after all regular parameters have been sampled, using a Python-style expression:
+
+    set PARAM = EXPR
+
+where:
+- `PARAM` is the name of the new or overridden parameter.
+- `EXPR` is a Python-like expression that may reference any previously defined parameters.
+
+The resulting value will be included in the final configuration and in the generated command-line, just like any other parameter.
+
+Examples:
+
+**Automated value computation**
+```
+set weight_decay = base_decay / num_params
+```
+
+**Mutually exclusive Booleans**
+```
+enable_x {True, False}[True]
+set enable_y = not enable_x
+```
+
+**Rescaling parameter values**
+```
+a (0, 100)[33]
+b (0, 100)[33]
+c (0, 100)[33]
+
+set @sum_abc = a + b + c
+set a = a / @sum_abc
+set b = b / @sum_abc
+set c = c / @sum_abc
+```
+
+
+## General assertions
+
+Magpie allows you to specify arbitrary constraints on parameter combinations using Python-style assertions.
+This enables rich and flexible expressions to define invalid or undesirable configurations.
+
+Use the `assert` keyword followed by any Boolean expression over parameter names:
+
+    assert EXPR
+
+If the assertion fails (i.e., the expression evaluates to `False`), the corresponding configuration will be automatically discarding without evaluation.
+
+Examples:
+
+    assert optimizer != "sgd" or learning_rate > 0
+    assert not (model == "linear" and depth > 1)
+    assert batch_size in [32, 64, 128]
+
+
+## Legacy support
+
+Additionally, Magpie supports alternative backward-compatible syntax for conditional parameters and forbidden combinations.
+
+### Conditional parameters
+
+Older versions of Magpie supported conditional parameters using a simplified syntax:
+
+    PARAM | OTHER_PARAM == VALUE
+
+This included the named parameter only if the condition was true.
+It is equivalent to:
+
+    show PARAM if OTHER_PARAM == VALUE
+
+This legacy format only supports basic equality conditions (`==`) and lacks the full expressiveness of arbitrary Boolean expressions.
+While still supported for backward compatibility, it is now deprecated.
+Users are encouraged to migrate to the more general `show ... if ...` syntax.
+
+
+### Forbidden combinations
+
+In earlier versions of Magpie, invalid configurations were expressed using a special brace syntax:
 
     {PARAM1 == VALUE1, PARAM2 == VALUE2, ...}
 
-This indicates that the listed combination of parameter values is not allowed and should never be sampled or evaluated.
+This was a shorthand for specifying that a particular conjunction of equality conditions should be avoided.
+It is equivalent to:
+
+    assert not (PARAM1 == VALUE1 and PARAM2 == VALUE2 and ...)
+
+This syntax is **less expressive** than `assert` and only supports simple equality conditions (`==`).
+It is retained for backward compatibility but is no longer recommended.
+For full flexibility and clarity, prefer using `assert EXPR` instead.

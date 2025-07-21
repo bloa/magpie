@@ -15,13 +15,15 @@ class ParamFileConfigModel(AbstractConfigModel):
             'current': {},
             'space': {},
             'conditionals': [],
+            'dynamic': [],
             'asserts': [],
         }
         with pathlib.Path(self.filename).open('r') as config_file:
             for line in config_file:
                 self._read_line(line)
-        if not all(tree.evaluate(self.contents['current']) for tree in self.contents['asserts']):
-            msg = f'Default configuration is invalid'
+        all_params = self.resolve_dynamic_parameters(self.contents['current'])
+        if not all(tree.evaluate(all_params) for tree in self.contents['asserts']):
+            msg = 'Default configuration is invalid'
             raise magpie.core.ScenarioError(msg)
         self.locations = {'param': list(self.contents['current'].keys())}
 
@@ -173,7 +175,7 @@ class ParamFileConfigModel(AbstractConfigModel):
             self.contents['asserts'].append(tree)
             return
 
-        # conditional parameters
+        # conditional parameters (LEGACY)
         m = re.match(r'^\s*([^|]+)\s*\|\s*(.+)$', line)
         if m:
             key = m.group(1).strip()
@@ -187,6 +189,59 @@ class ParamFileConfigModel(AbstractConfigModel):
                     msg = f'Unknown variable "{var}" in condition: "{line.strip()}"'
                     raise magpie.core.ScenarioError(msg)
             self.contents['conditionals'].append((key, tree))
+            return
+
+        # conditional parameters
+        m = re.match(r'^show\s+(.+?)\s+if\s+(.+)$', line)
+        if m:
+            key = m.group(1).strip()
+            try:
+                tree = magpie.utils.BoolTree(m.group(2).strip())
+            except (SyntaxError, TypeError) as e:
+                msg = f'Illegal assertion: "{line.strip()}"'
+                raise magpie.core.ScenarioError(msg) from e
+            for var in tree.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in condition: "{line.strip()}"'
+                    raise magpie.core.ScenarioError(msg)
+            self.contents['conditionals'].append((key, tree))
+            return
+
+        # conditional dynamic setting
+        m = re.match(r'^set\s+(.+?)=\s*(.+?)\s+if\s+(.+)$', line)
+        if m:
+            key = m.group(1).strip()
+            try:
+                tree1 = magpie.utils.ExprTree(m.group(2).strip())
+                tree2 = magpie.utils.BoolTree(m.group(3).strip())
+            except (SyntaxError, TypeError) as e:
+                msg = f'Illegal value setting: "{line.strip()}"'
+                raise magpie.core.ScenarioError(msg) from e
+            for var in tree1.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in value setting expression: "{line.strip()}"'
+                    raise magpie.core.ScenarioError(msg)
+            for var in tree2.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in value setting condition: "{line.strip()}"'
+                    raise magpie.core.ScenarioError(msg)
+            self.contents['dynamic'].append((key, tree1, tree2))
+            return
+
+        # general dynamic setting
+        m = re.match(r'^set\s+(.+?)=\s*(.+)$', line)
+        if m:
+            key = m.group(1).strip()
+            try:
+                tree1 = magpie.utils.ExprTree(m.group(2).strip())
+            except (SyntaxError, TypeError) as e:
+                msg = f'Illegal value setting: "{line.strip()}"'
+                raise magpie.core.ScenarioError(msg) from e
+            for var in tree1.variables:
+                if var not in self.contents['current']:
+                    msg = f'Unknown variable "{var}" in value setting expression: "{line.strip()}"'
+                    raise magpie.core.ScenarioError(msg)
+            self.contents['dynamic'].append((key, tree1, None))
             return
 
         # general assert
