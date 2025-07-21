@@ -93,6 +93,7 @@ KEYWORDS = {'and', 'or', 'not', 'in'}
 MULTI_CHAR_OPS = {'==', '!=', '<=', '>=', '**'}
 SINGLE_CHAR_OPS = {'+', '-', '*', '/', '<', '>', '!', '='}
 IDENTIFIERS_CHARS = {'_', '$', '@'}
+IDENTIFIERS_CHARS_NOLEAD = {'-'}
 
 def tokenize(s):
     tokens = []
@@ -136,7 +137,7 @@ def tokenize(s):
         # identifiers and keywords
         elif c.isidentifier() or c in IDENTIFIERS_CHARS:
             start = i
-            while i < len(s) and (s[i].isalnum() or s[i] in IDENTIFIERS_CHARS):
+            while i < len(s) and (s[i].isalnum() or s[i] in IDENTIFIERS_CHARS or s[i] in IDENTIFIERS_CHARS_NOLEAD):
                 i += 1
             word = s[start:i]
             if word in KEYWORDS:

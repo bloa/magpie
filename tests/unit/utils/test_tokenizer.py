@@ -97,3 +97,29 @@ def tokens_of(s):
 ])
 def test_tokenize(expr, expected):
     assert tokens_of(expr) == expected
+
+@pytest.mark.parametrize(('expr', 'expected'), [
+    ('-foo', [
+        ('OP', '-'),
+        ('VAR', 'foo'),
+    ]),
+    ('foo-1', [
+        ('VAR', 'foo-1'),
+    ]),
+    ('foo - 1', [
+        ('VAR', 'foo'),
+        ('OP', '-'),
+        ('NUMBER', 1),
+    ]),
+    ('foo--', [
+        ('VAR', 'foo--'),
+    ]),
+    ('foo- - 1', [
+        ('VAR', 'foo-'),
+        ('OP', '-'),
+        ('NUMBER', 1),
+    ]),
+])
+def test_tokenize_varwithhypens(expr, expected):
+    assert tokens_of(expr) == expected
+
