@@ -22,6 +22,9 @@ log_format_ratio = '{:.2%}'
 log_format_patchif = '\n --> {patch}'
 log_format_diffif = '\n{diff}'
 
+show_cmd_progress = True
+cmd_progress_maxlength = 70
+
 diff_method = 'unified' # unified / context
 
 trust_local_filesystem = True

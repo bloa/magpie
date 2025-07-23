@@ -8,6 +8,7 @@
 - add support for generalised expression trees for fitness
 - add support for generalised expression trees to the algorithm configuration model (conditionals, forbidden combinations, general assertions)
 - add support for automatically computed parameter values
+- add live command display during execution
 
 **Changed**
 

@@ -176,6 +176,13 @@ class AbstractSoftware(abc.ABC):
         env['MAGPIE_WORK_DIR'] = magpie.settings.work_dir
         env['MAGPIE_BASENAME'] = self.basename
         env['MAGPIE_TIMESTAMP'] = str(self.unix_timestamp)
+        if magpie.settings.show_cmd_progress:
+            display_str = '$ ' + ' '.join(cmd)
+            display_length = magpie.settings.cmd_progress_maxlength
+            tmp = display_str
+            if len(tmp) > display_length:
+                tmp = f'{display_str[:display_length-len(tmp)-5]}[...]'
+            print(tmp, end='\r', flush=True)
         try:
             is_posix = os.name == 'posix'
             with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env, start_new_session=is_posix) as sprocess:
@@ -188,6 +195,14 @@ class AbstractSoftware(abc.ABC):
                             _kill_proc_with_children(sprocess)
                             return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
                         a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
+                        if magpie.settings.show_cmd_progress:
+                            display_time = f'({int(end-start)}s ago)'
+                            tmp = f'{display_str} {display_time}'
+                            if len(tmp) > display_length:
+                                tmp = f'{display_str[:display_length-len(tmp)-5]}[...] {display_time}'
+                            else:
+                                tmp += (display_length-len(tmp))*' '
+                            print(tmp, end='\r', flush=True)
                         if sprocess.stdout in a:
                             for _ in range(1024):
                                 if not select.select([sprocess.stdout], [], [], 0)[0]:
@@ -219,6 +234,10 @@ class AbstractSoftware(abc.ABC):
                 return ExecResult(cmd, 'SUCCESS', sprocess.returncode, stdout, stderr, end-start, len(stdout)+len(stderr))
         except FileNotFoundError:
             return ExecResult(cmd, 'CLI_ERROR', -1, b'', b'', 0, 0)
+        finally:
+            if magpie.settings.show_cmd_progress:
+                print(' '*display_length, end='\r', flush=True)
+
 
     def clean_work_dir(self):
         with contextlib.suppress(FileNotFoundError):

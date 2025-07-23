@@ -12,6 +12,8 @@ default_scenario = {
         'default_timeout': 30,
         'default_lengthout': 1e4,
         'diff_method': 'unified',
+        'show_cmd_progress': True,
+        'cmd_progress_maxlength': 70,
         'trust_local_filesystem': True,
     },
 

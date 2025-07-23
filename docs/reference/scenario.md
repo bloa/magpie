@@ -21,6 +21,8 @@ Default values:
     default_timeout = 30
     default_lengthout = 1e4
     diff_method = 'unified'
+    show_cmd_progress = True
+    cmd_progress_maxlength = 70
     trust_local_filesystem = True
 
 - `import`: the path of an optional Python file to import
@@ -34,6 +36,8 @@ Default values:
 - `default_timeout`: maximum execution time Magpie waits before discarding a software variant (used if `init_timeout`, `setup_timeout`, `compile_timeout`, `test_timeout`, or `run_timeout` is not specified in `[software]`)
 - `default_lengthout`: maximum output file size Magpie records before discarding a software variant (used if `init_lengthout`, `setup_lengthout`, `compile_lengthout`, `test_lengthout`, or `run_lengthout` is not specified in `[software]`). Set to a negative value (e.g., `-1`) for unlimited output.
 - `diff_method`: type of diff format (either ["unified"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Unified.html) or ["context"](https://www.gnu.org/software/diffutils/manual/html_node/Example-Context.html))
+- `show_cmd_progress`: whether to display the currently running command and time elapsed during execution
+- `cmd_progress_maxlength`: the maximum length of the command display line shown when `show_cmd_progress` is enabled; longer commands are truncated
 - `trust_local_filesystem`: when the processed (i.e., after parsing and dump) version of an unmodified file is different to the one currently on disk, trusts that it is indeed semantically equivalent; otherwise, overwrite it. (useful to preserve incremental compilation)
 
 
