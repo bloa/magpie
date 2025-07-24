@@ -8,10 +8,9 @@ from magpie.models.line import LineModel
 
 from .util import assert_diff
 
-
 @pytest.fixture
 def line_model():
-    model = LineModel('triangle.py')
+    model = LineModel('triangle.py', None)
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model

@@ -7,8 +7,8 @@ from .validation import ValidSearch
 
 
 class AblationAnalysis(ValidSearch):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Ablation Analysis'
 
     def explore(self, current_patch, current_fitness):

@@ -14,19 +14,11 @@ from .variant import Variant
 
 
 class BasicAlgorithm(AbstractAlgorithm):
-    def __init__(self):
+    def __init__(self, config):
         self.eval_cache = BasicEvalCache()
         super().__init__()
-        self.config['warmup'] = 3
-        self.config['warmup_strategy'] = 'last'
-
-    def reset(self):
-        super().reset()
-        self.eval_cache.reset()
-
-    def setup(self, config):
         sec = config['search']
-        self.config['warmup'] = int(sec['warmup'])
+        self.config['warmup'] = magpie.utils.str_to_int_or_none(sec['warmup'])
         self.config['warmup_strategy'] = sec['warmup_strategy']
         self.stop['steps'] = int(val) if (val := sec['max_steps']) else None
         self.stop['wall'] = int(val) if (val := sec['max_time']) else None
@@ -61,25 +53,27 @@ class BasicAlgorithm(AbstractAlgorithm):
                     bins[-1].append(s)
         if len(bins) > 1 and not bins[-1]:
             bins.pop()
-        tmp = sec['batch_shuffle'].lower()
-        if tmp in ['true', 't', '1']:
-            for a in bins:
-                random.shuffle(a)
-        elif tmp in ['false', 'f', '0']:
-            pass
-        else:
+        try:
+            if magpie.utils.str_to_bool(sec['batch_shuffle']):
+                for a in bins:
+                    random.shuffle(a)
+        except ValueError as e:
             msg = '[search] batch_shuffle should be Boolean'
-            raise ScenarioError(msg)
-        tmp = sec['batch_bin_shuffle'].lower()
-        if tmp in ['true', 't', '1']:
-            random.shuffle(bins)
-        elif tmp in ['false', 'f', '0']:
-            pass
-        else:
+            raise ScenarioError(msg) from e
+        try:
+            if magpie.utils.str_to_bool(sec['batch_bin_shuffle']):
+                random.shuffle(bins)
+        except ValueError as e:
             msg = '[search] batch_bin_shuffle should be Boolean'
-            raise ScenarioError(msg)
+            raise ScenarioError(msg) from e
         self.config['batch_bins'] = bins
         self.config['batch_sample_size'] = int(sec['batch_sample_size'])
+
+    def reset(self):
+        super().reset()
+        self.stats['cache_hits'] = 0
+        self.stats['cache_misses'] = 0
+        self.eval_cache.reset()
 
     def hook_reset_batch(self):
         # resample instances

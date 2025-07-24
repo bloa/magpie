@@ -7,37 +7,24 @@ import magpie.utils
 
 
 class GeneticProgramming(magpie.core.BasicAlgorithm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Genetic Programming'
-        self.config['pop_size'] = 10
-        self.config['delete_prob'] = 0.5
-        self.config['offspring_elitism'] = 0.1
-        self.config['offspring_crossover'] = 0.5
-        self.config['offspring_mutation'] = 0.4
-        self.config['batch_reset'] = True
-
-    def reset(self):
-        super().reset()
-        self.stats['gen'] = 0
-
-    def setup(self, config):
-        super().setup(config)
         sec = config['search.gp']
         self.config['pop_size'] = int(sec['pop_size'])
         self.config['delete_prob'] = float(sec['delete_prob'])
         self.config['offspring_elitism'] = float(sec['offspring_elitism'])
         self.config['offspring_crossover'] = float(sec['offspring_crossover'])
         self.config['offspring_mutation'] = float(sec['offspring_mutation'])
-        self.config['uniform_rate'] = float(sec['uniform_rate'])
-        tmp = sec['batch_reset'].lower()
-        if tmp in ['true', 't', '1']:
-            self.config['batch_reset'] = True
-        elif tmp in ['false', 'f', '0']:
-            self.config['batch_reset'] = False
-        else:
+        try:
+            self.config['batch_reset'] = magpie.utils.str_to_bool(sec['batch_reset'])
+        except ValueError as e:
             msg = '[search.gp] batch_reset should be Boolean'
-            raise magpie.core.ScenarioError(msg)
+            raise magpie.core.ScenarioError(msg) from e
+
+    def reset(self):
+        super().reset()
+        self.stats['gen'] = 0
 
     def aux_log_counter(self):
         gen = self.stats['gen']
@@ -185,8 +172,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
 
 
 class GeneticProgrammingConcat(GeneticProgramming):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Genetic Programming (Concat)'
 
     def crossover(self, sol1, sol2):
@@ -199,8 +186,8 @@ magpie.utils.known_algos.append(GeneticProgrammingConcat)
 
 
 class GeneticProgramming1Point(GeneticProgramming):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Genetic Programming (1-point)'
 
     def crossover(self, sol1, sol2):
@@ -217,8 +204,8 @@ magpie.utils.known_algos.append(GeneticProgramming1Point)
 
 
 class GeneticProgramming2Point(GeneticProgramming):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Genetic Programming (2-point)'
 
     def crossover(self, sol1, sol2):
@@ -239,10 +226,10 @@ magpie.utils.known_algos.append(GeneticProgramming2Point)
 
 
 class GeneticProgrammingUniformConcat(GeneticProgramming):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Genetic Programming (uniform+concatenation)'
-        self.config['uniform_rate'] = 0.5
+        self.config['uniform_rate'] = float(config['search.gp']['uniform_rate'])
 
     def crossover(self, sol1, sol2):
         c = magpie.core.Patch()
@@ -264,10 +251,10 @@ magpie.utils.known_algos.append(GeneticProgrammingUniformConcat)
 
 
 class GeneticProgrammingUniformInter(GeneticProgramming):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Genetic Programming (uniform+interleaved)'
-        self.config['uniform_rate'] = 0.5
+        self.config['uniform_rate'] = float(config['search.gp']['uniform_rate'])
 
     def crossover(self, sol1, sol2):
         c = magpie.core.Patch()

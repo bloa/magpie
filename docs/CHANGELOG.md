@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] bloa_unstable
+
+**Changed**
+
+- refactored protocols and scenario management
+
+
 ## [1.2.2] bloa_stable
 
 **Fixed**

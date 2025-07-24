@@ -3,44 +3,31 @@ import magpie.core
 from .realms import Realm
 
 
-class AbstractConfigModel(magpie.core.BasicModel):
-    def __init__(self, filename):
-        super().__init__(filename)
+class AbstractConfigModel(magpie.core.AbstractModel):
+    def __init__(self, filename, software):
+        super().__init__(filename, software)
         self.indirect_locations = False
-        self.config = {
-            'timing': ['run'], # setup / compile / test / run
-            'cli_prefix': '--',
-            'cli_glue': '=',
-            'cli_boolean': 'show', # show ; hide ; prefix
-            'cli_boolean_prefix_true': '',
-            'cli_boolean_prefix_false': 'no-',
-            'cli_none': 'hide', # show ; hide
-            'silent_prefix': '@',
-            'silent_suffix': '$',
-        }
-
-    def setup(self, config, section_name):
-        super().setup(config, section_name)
-        for name in tuple({'paramconfig', section_name}):
-            config_section = config[name]
-            if (k := 'timing') in config_section:
-                tmp = config_section[k].split()
-                if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
-                    msg = f'Illegal timing value: [{name}] "{val}"'
-                    raise magpie.core.ScenarioError(msg)
-                self.config[k] = tmp
-            for k in [
-                    'cli_prefix',
-                    'cli_glue',
-                    'cli_boolean',
-                    'cli_boolean_prefix_true',
-                    'cli_boolean_prefix_false',
-                    'cli_none',
-                    'silent_prefix',
-                    'silent_suffix',
-            ]:
-                if k in config_section:
-                    self.config[k] = config_section[k]
+        config = software.config['paramconfig'].copy()
+        if sec := self._resolve_config_section(software, filename):
+            config.update(software.config[sec])
+        if (k := 'timing') in config:
+            tmp = config[k].split()
+            if any((val := timing) not in ['setup', 'compile', 'test', 'run'] for timing in tmp):
+                msg = f'Illegal timing value: [paramconfig] "{val}"'
+                raise magpie.core.ScenarioError(msg)
+            self.config[k] = tmp
+        for k in [
+                'cli_prefix',
+                'cli_glue',
+                'cli_boolean',
+                'cli_boolean_prefix_true',
+                'cli_boolean_prefix_false',
+                'cli_none',
+                'silent_prefix',
+                'silent_suffix',
+        ]:
+            if k in config:
+                self.config[k] = config[k]
 
     def resolve_dynamic_parameters(self, current):
         all_params = current.copy()

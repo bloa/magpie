@@ -6,7 +6,7 @@ import magpie.settings
 
 
 class AbstractModel(abc.ABC):
-    def __init__(self, filename):
+    def __init__(self, filename, software):
         self.filename = filename
         self.renamed_filename = filename
         self.contents = {}

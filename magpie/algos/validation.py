@@ -7,8 +7,8 @@ from .local_search import LocalSearch
 
 
 class ValidSearch(LocalSearch):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.debug_patch = None
 
     def hook_warmup(self):
@@ -53,8 +53,8 @@ class ValidSearch(LocalSearch):
 
 
 class ValidSingle(ValidSearch):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Validation Single'
 
     def explore(self, current_patch, current_fitness):
@@ -73,8 +73,8 @@ magpie.utils.known_algos.append(ValidSingle)
 
 
 class ValidTest(ValidSearch):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Validation Full'
 
     def explore(self, current_patch, current_fitness):
@@ -91,30 +91,20 @@ magpie.utils.known_algos.append(ValidTest)
 
 
 class ValidMinify(ValidSearch):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config):
+        super().__init__(config)
         self.name = 'Minify Patch'
-        self.config['do_cleanup'] = True
-        self.config['do_rebuild'] = True
-        self.config['do_simplify'] = True
-        self.config['round_robin_limit'] = -1
-
-    def setup(self, config):
-        super().setup(config)
         sec = config['search.minify']
         for key in [
                 'do_cleanup',
                 'do_rebuild',
                 'do_simplify',
         ]:
-            tmp = sec[key].lower()
-            if tmp in ['true', 't', '1']:
-                self.config[key] = True
-            elif tmp in ['false', 'f', '0']:
-                self.config[key] = False
-            else:
+            try:
+                self.config[key] = magpie.utils.str_to_bool(sec[key])
+            except ValueError as e:
                 msg = f'[search.minify] {key} should be Boolean'
-                raise magpie.core.ScenarioError(msg)
+                raise magpie.core.ScenarioError(msg) from e
         self.config['round_robin_limit'] = int(sec['round_robin_limit'])
 
     def explore(self, current_patch, current_fitness):

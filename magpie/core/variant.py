@@ -42,18 +42,11 @@ class Variant:
                     pattern == '*',
                     pattern.startswith('*') and target_file.endswith(pattern[1:]),
             ]):
-                model = magpie.utils.model_from_string(klass)(target_file)
+                model = magpie.utils.model_from_string(klass)(target_file, software)
                 break
         else:
             msg = f'Unknown model for target file "{target_file}"'
             raise RuntimeError(msg)
-        for (pattern, section_name) in software.model_config:
-            if any([target_file == pattern,
-                    pattern == '*',
-                    pattern.startswith('*') and target_file.endswith(pattern[1:]),
-            ]):
-                model.setup(software.config, section_name)
-                break
         model.init_contents()
         if model.indirect_locations:
             model.locations_names = {key: list(range(len(value))) for key, value in model.locations.items()}

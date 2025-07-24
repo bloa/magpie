@@ -1,15 +1,22 @@
 import contextlib
+import copy
 import pathlib
 
 import pytest
 
+import magpie.core
 from magpie.models.xml import SrcmlModel, XmlModel
 
 
 @pytest.fixture
 def xml_model():
-    model = XmlModel('triangle.c.xml')
+    class StubSoftware(magpie.core.BasicSoftware):
+        def __init__(self):
+            self.config = copy.deepcopy(magpie.default_scenario)
+            self.model_config = magpie.core.BasicSoftware._init_model_config(self.config['software']['model_config'])
+
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
+        model = XmlModel('triangle.c.xml', StubSoftware())
         model.init_contents()
     return model
 

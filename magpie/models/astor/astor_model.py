@@ -6,7 +6,7 @@ import magpie.core
 import magpie.utils
 
 
-class AstorModel(magpie.core.BasicModel):
+class AstorModel(magpie.core.AbstractModel):
     def init_contents(self):
         with pathlib.Path(self.filename).open('r') as target_file:
             self.contents = ast.parse(target_file.read()+'\n')

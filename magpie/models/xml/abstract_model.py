@@ -1,9 +1,9 @@
 import abc
 
-from magpie.core import BasicModel
+import magpie.core
 
 
-class AbstractXmlModel(BasicModel):
+class AbstractXmlModel(magpie.core.AbstractModel):
     @abc.abstractmethod
     def do_replace(self, ref_model, target_dest, target_orig):
         pass

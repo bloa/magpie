@@ -187,7 +187,6 @@ See the page on [algorithm configuration](paramconfig_model.md#magic-constants).
 Default values:
 
     [search]
-    protocol = BasicProtocol
     algorithm =
     warmup = 3
     warmup_strategy = last
@@ -201,7 +200,6 @@ Default values:
     batch_bin_shuffle = False
     batch_sample_size = 1
 
-- `protocol`: the name of the Protocol class; it needs to belong to `magpie.utils.known_protocols`
 - `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.utils.known_algos`
 - `warmup`: number of initial evaluation to consider
 - `warmup_strategy`: which warmup fitness value to use (possible: `last`, `min`, `max`, `mean`, `median`)

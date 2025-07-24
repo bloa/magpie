@@ -12,7 +12,7 @@ from .util import assert_diff
 
 @pytest.fixture
 def astor_model():
-    model = AstorModel('triangle.py')
+    model = AstorModel('triangle.py', None)
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model

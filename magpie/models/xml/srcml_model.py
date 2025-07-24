@@ -6,51 +6,33 @@ from .xml_model import XmlModel
 
 
 class SrcmlModel(XmlModel):
-    def __init__(self, filename):
-        super().__init__(filename)
+    def __init__(self, filename, software):
+        super().__init__(filename, software)
         self.renamed_filename = filename.split('.xml')[0]
-        self.config = {
-            'internodes': {'block'},
-            'tag_rename': {
-                'stmt': {'break', 'continue', 'decl_stmt', 'do', 'expr_stmt', 'for', 'goto', 'if', 'return', 'switch', 'while'},
-                'number': {'literal_number'},
-            },
-            'tag_focus': {'block', 'stmt', 'operator_comp', 'operator_arith', 'number'},
-            'process_pseudo_blocks': True,
-            'process_literals': True,
-            'process_operators': True,
-        }
-
-    def setup(self, config, section_name):
-        super().setup(config, section_name)
-        for name in tuple({'srcml', section_name}):
-            config_section = config[name]
-            for k in [
-                    'process_pseudo_blocks',
-                    'process_literals',
-                    'process_operators',
-            ]:
-                val = config_section[k]
-                if val.lower() in ['true', 't', '1']:
-                    self.config[k] = True
-                elif val.lower() in ['false', 'f', '0']:
-                    self.config[k] = False
-                else:
-                    msg = f'Invalid config file: "{name} {k}" should be Boolean'
-                    raise magpie.core.ScenarioError(msg)
-            if 'rename' in config_section:
-                h = {}
-                try:
-                    for rule in config_section['rename'].split('\n'):
-                        if rule.strip(): # discard potential initial empty line
-                            k, v = rule.split(':')
-                            h[k] = set(v.split())
-                except ValueError as e:
-                    msg = f'Badly formated rule: "{rule}"'
-                    raise magpie.core.ScenarioError(msg) from e
-                self.config['tag_rename'] = h
-            if 'focus' in config_section:
-                self.config['tag_focus'] = set(config_section['focus'].split())
+        config = software.config['srcml'].copy()
+        if sec := software._resolve_config_section(filename):
+            config.update(software.config[sec])
+        for k in [
+                'process_pseudo_blocks',
+                'process_literals',
+                'process_operators',
+        ]:
+            try:
+                self.config[k] = magpie.utils.str_to_bool(config[k])
+            except ValueError as e:
+                msg = f'Invalid config file: "[srcml] {k}" should be Boolean'
+                raise magpie.core.ScenarioError(msg) from e
+        h = {}
+        try:
+            for rule in config['rename'].split('\n'):
+                if rule.strip(): # discard potential initial empty line
+                    k, v = rule.split(':')
+                    h[k] = set(v.split())
+        except ValueError as e:
+            msg = f'Badly formated rule: "{rule}"'
+            raise magpie.core.ScenarioError(msg) from e
+        self.config['tag_rename'] = h
+        self.config['tag_focus'] = set(config['focus'].split())
 
     def process_tree(self, tree):
         if self.config['process_pseudo_blocks']:

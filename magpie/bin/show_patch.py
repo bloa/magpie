@@ -1,12 +1,46 @@
 import argparse
-import configparser
 import pathlib
 
 import magpie
 
-# ================================================================================
-# Main function
-# ================================================================================
+class ShowPatchProtocol(magpie.core.BasicProtocol):
+    def setup(self, patch, keep):
+        super().setup()
+
+        # recreate patch
+        if patch.endswith('.patch'):
+            with pathlib.Path(patch).open('r') as f:
+                patch = f.read().strip()
+        self.patch = magpie.core.Patch.from_string(patch)
+
+        # compute variant (which includes diff)
+        self.software = magpie.utils.software_from_string(self.config['software']['software'])(self.config)
+        self.variant = magpie.core.Variant(self.software, self.patch)
+
+        # to write artefact on disk
+        self.keep = args.keep
+
+    def run(self):
+        pass
+
+    def report(self):
+        fancy = magpie.settings.color_output
+        header = magpie.utils.format_header('PATCH', fancy)
+        self.software.logger.info('%s\n%s', header, self.patch)
+        if self.keep:
+            self.software.logger.info('')
+            header = magpie.utils.format_header('ARTEFACT', fancy)
+            self.software.logger.info('%s\n%s', self.software.work_dir)
+            self.software.write_variant(self.variant)
+        self.software.logger.info('')
+        header = magpie.utils.format_header('DIFF', fancy)
+        diff = magpie.utils.format_diff(self.variant.diff[:], fancy)
+        self.software.logger.info('%s\n%s', header, diff)
+
+    def cleanup(self):
+        if not self.keep:
+            self.software.clean_work_dir()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Magpie show patch')
@@ -15,35 +49,8 @@ if __name__ == '__main__':
     parser.add_argument('--keep', action='store_true')
     args = parser.parse_args()
 
-    # read scenario file
-    config = configparser.ConfigParser()
-    config.read_dict(magpie.core.default_scenario)
-    config.read(args.scenario)
-    magpie.core.pre_setup(config)
-
-    # recreate patch
-    if args.patch.endswith('.patch'):
-        with pathlib.Path(args.patch).open('r') as f:
-            args.patch = f.read().strip()
-    patch = magpie.core.Patch.from_string(args.patch)
-
-    # setup
-    magpie.core.setup(config)
-    software = magpie.utils.software_from_string(config['software']['software'])(config)
-    variant = magpie.core.Variant(software, patch)
-
-    # show patch
-    fancy = magpie.settings.color_output
-    header = magpie.utils.format_header('PATCH', fancy)
-    software.logger.info('%s\n%s', header, patch)
-    if args.keep:
-        software.logger.info('')
-        header = magpie.utils.format_header('ARTEFACT', fancy)
-        software.logger.info('%s\n%s', header, software.work_dir)
-        software.write_variant(variant)
-    software.logger.info('')
-    header = magpie.utils.format_header('DIFF', fancy)
-    diff = magpie.utils.format_diff(variant.diff, fancy)
-    software.logger.info('%s\n%s', header, diff)
-    if not args.keep:
-        software.clean_work_dir()
+    protocol = ShowPatchProtocol(args.scenario)
+    protocol.setup(patch=args.patch, keep=args.keep)
+    protocol.run()
+    protocol.report()
+    protocol.cleanup()
