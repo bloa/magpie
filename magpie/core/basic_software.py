@@ -36,34 +36,34 @@ class BasicSoftware(AbstractSoftware):
         if not self.fitness_trees:
             msg = 'Invalid config file: empty "[software] fitness"'
             raise ScenarioError(msg)
-        self.fitness_objectives = {s: magpie.utils.convert.fitness_from_string(s)(self) for tree in self.fitness_trees for s in tree.variables}
+        self.fitness_objectives = {s: magpie.utils.fitness_from_string(s)(self) for tree in self.fitness_trees for s in tree.variables}
 
         # init
         self.init_performed = False
-        self.init_cmd = self._str_to_str_or_none(config['software']['init_cmd'])
-        self.init_timeout = self._str_to_float_or_none(config['software']['init_timeout'])
-        self.init_lengthout = self._str_to_int_or_none(config['software']['init_lengthout'])
+        self.init_cmd = magpie.utils.str_to_str_or_none(config['software']['init_cmd'])
+        self.init_timeout = magpie.utils.str_to_float_or_none(config['software']['init_timeout'])
+        self.init_lengthout = magpie.utils.str_to_int_or_none(config['software']['init_lengthout'])
 
         # setup
         self.setup_performed = False
-        self.setup_cmd = self._str_to_str_or_none(config['software']['setup_cmd'])
-        self.setup_timeout = self._str_to_float_or_none(config['software']['setup_timeout'])
-        self.setup_lengthout = self._str_to_int_or_none(config['software']['setup_lengthout'])
+        self.setup_cmd = magpie.utils.str_to_str_or_none(config['software']['setup_cmd'])
+        self.setup_timeout = magpie.utils.str_to_float_or_none(config['software']['setup_timeout'])
+        self.setup_lengthout = magpie.utils.str_to_int_or_none(config['software']['setup_lengthout'])
 
         # compile
-        self.compile_cmd = self._str_to_str_or_none(config['software']['compile_cmd'])
-        self.compile_timeout = self._str_to_float_or_none(config['software']['compile_timeout'])
-        self.compile_lengthout = self._str_to_int_or_none(config['software']['compile_lengthout'])
+        self.compile_cmd = magpie.utils.str_to_str_or_none(config['software']['compile_cmd'])
+        self.compile_timeout = magpie.utils.str_to_float_or_none(config['software']['compile_timeout'])
+        self.compile_lengthout = magpie.utils.str_to_int_or_none(config['software']['compile_lengthout'])
 
         # test
-        self.test_cmd = self._str_to_str_or_none(config['software']['test_cmd'])
-        self.test_timeout = self._str_to_float_or_none(config['software']['test_timeout'])
-        self.test_lengthout = self._str_to_int_or_none(config['software']['test_lengthout'])
+        self.test_cmd = magpie.utils.str_to_str_or_none(config['software']['test_cmd'])
+        self.test_timeout = magpie.utils.str_to_float_or_none(config['software']['test_timeout'])
+        self.test_lengthout = magpie.utils.str_to_int_or_none(config['software']['test_lengthout'])
 
         # run
-        self.run_cmd = self._str_to_str_or_none(config['software']['run_cmd'])
-        self.run_timeout = self._str_to_float_or_none(config['software']['run_timeout'])
-        self.run_lengthout = self._str_to_int_or_none(config['software']['run_lengthout'])
+        self.run_cmd = magpie.utils.str_to_str_or_none(config['software']['run_cmd'])
+        self.run_timeout = magpie.utils.str_to_float_or_none(config['software']['run_timeout'])
+        self.run_lengthout = magpie.utils.str_to_int_or_none(config['software']['run_lengthout'])
 
         # batch parameters
         self.batch = [''] # default initial batch: single empty instance
@@ -79,8 +79,8 @@ class BasicSoftware(AbstractSoftware):
             tmp = '/'.join(known_strategies)
             msg = f'Invalid config file: "[software] batch_bin_fitness_strategy" key must be {tmp}'
             raise ScenarioError(msg)
-        self.batch_timeout = self._str_to_float_or_none(config['software']['batch_timeout'])
-        self.batch_lengthout = self._str_to_int_or_none(config['software']['batch_lengthout'])
+        self.batch_timeout = magpie.utils.str_to_float_or_none(config['software']['batch_timeout'])
+        self.batch_lengthout = magpie.utils.str_to_int_or_none(config['software']['batch_lengthout'])
 
         # reset everything
         self.reset_timestamp()
@@ -157,17 +157,14 @@ class BasicSoftware(AbstractSoftware):
             tree.rename(new, old)
         return [tree]
 
-    @staticmethod
-    def _str_to_int_or_none(s):
-        return None if s.strip().lower() in ['', 'none'] else int(float(s))
-
-    @staticmethod
-    def _str_to_float_or_none(s):
-        return None if s.strip().lower() in ['', 'none'] else float(s)
-
-    @staticmethod
-    def _str_to_str_or_none(s):
-        return None if s.strip().lower() in ['', 'none'] else s.strip()
+    def _resolve_config_section(self, filename):
+        for (pattern, section_name) in self.model_config:
+            if any([filename == pattern,
+                    pattern == '*',
+                    pattern.startswith('*') and filename.endswith(pattern[1:]),
+            ]):
+                return section_name
+        return None
 
     def reset_contents(self):
         if not self.init_performed:

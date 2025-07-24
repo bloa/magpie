@@ -1,9 +1,11 @@
-import magpie.core
+import copy
+
+import magpie
 
 
 class StubSoftware(magpie.core.BasicSoftware):
     def __init__(self):
-        config = magpie.core.default_scenario.copy()
+        config = copy.deepcopy(magpie.default_scenario)
         config['software'].update({
             'path': 'foo',
             'target_files': 'foo/bar',

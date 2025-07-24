@@ -9,17 +9,13 @@ from .abstract_model import AbstractXmlModel
 
 
 class XmlModel(AbstractXmlModel):
-    def __init__(self, filename):
-        super().__init__(filename)
-        self.config = {
-            'internodes': [],
-        }
-
-    def setup(self, config, section_name):
-        super().setup(config, section_name)
-        config_section = config[section_name]
-        if (k := 'internodes') in config_section:
-            self.config[k] = set(config_section[k].split())
+    def __init__(self, filename, software):
+        super().__init__(filename, software)
+        config = software.config['xml'].copy()
+        if sec := software._resolve_config_section(filename):
+            config.update(software.config[sec])
+        self.config = {}
+        self.config['internodes'] = set(config['internodes'].split())
 
     def init_contents(self):
         with pathlib.Path(self.filename).open('r') as target_file:

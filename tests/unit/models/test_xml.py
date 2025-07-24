@@ -4,6 +4,7 @@ import pathlib
 
 import pytest
 
+import magpie.core
 from magpie.models.xml import XmlModel
 
 from .util import assert_diff
@@ -11,7 +12,12 @@ from .util import assert_diff
 
 @pytest.fixture
 def xml_model():
-    model = XmlModel('Triangle.java.xml')
+    class StubSoftware(magpie.core.BasicSoftware):
+        def __init__(self):
+            self.config = copy.deepcopy(magpie.default_scenario)
+            self.model_config = magpie.core.BasicSoftware._init_model_config(self.config['software']['model_config'])
+
+    model = XmlModel('Triangle.java.xml', StubSoftware())
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model.init_contents()
     return model
