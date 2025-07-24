@@ -2,7 +2,7 @@ import abc
 import re
 
 
-class AbstractEdit:
+class AbstractEdit(abc.ABC):
     def __init__(self, target, *args):
         self.target = target
         self.data = list(args)
