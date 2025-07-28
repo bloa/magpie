@@ -46,8 +46,41 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
     (b'2 fails', 'PARSE_ERROR', None),
     (b'3 errors', 'PARSE_ERROR', None),
 ])
-def test_process_test_repair(my_software, my_runresult, stdout, status, fitness):
+def test_process_test_repair_stdout(my_software, my_runresult, stdout, status, fitness):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
+    klass = magpie.utils.convert.fitness_from_string('repair')
+    klass(my_software).process_test_exec(my_runresult, exec_result)
+    assert my_runresult.status == status
+    assert my_runresult.fitness == fitness
+
+@pytest.mark.parametrize(('stderr', 'status', 'fitness'), [
+    # SUCCESS when both failed/passed on stderr
+    (b'10 tests completed, 6 failed', 'SUCCESS', 60.0),
+    # PARSE_ERROR on everything else
+    (b'', 'PARSE_ERROR', None),
+    (b'0 fail', 'PARSE_ERROR', None),
+    (b'1 failed', 'PARSE_ERROR', None),
+    (b'2 fails', 'PARSE_ERROR', None),
+    (b'3 errors', 'PARSE_ERROR', None),
+])
+def test_process_test_repair_stderr(my_software, my_runresult, stderr, status, fitness):
+    exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, b'', stderr, 1, 0)
+    klass = magpie.utils.convert.fitness_from_string('repair')
+    klass(my_software).process_test_exec(my_runresult, exec_result)
+    assert my_runresult.status == status
+    assert my_runresult.fitness == fitness
+
+@pytest.mark.parametrize(('stdout', 'return_code', 'status', 'fitness'), [
+    # SUCCESS when good return code and known key phrase on stdout
+    (b'BUILD SUCCESSFUL', 0, 'SUCCESS', 0.0),
+    # PARSE_ERROR on everything else
+    (b'', 0, 'PARSE_ERROR', None),
+    (b'foo', 0, 'PARSE_ERROR', None),
+    (b'', 1, 'PARSE_ERROR', None),
+    (b'BUILD SUCCESSFUL', 1, 'PARSE_ERROR', None),
+])
+def test_process_test_badoutput(my_software, my_runresult, stdout, return_code, status, fitness):
+    exec_result = ExecResult(['(empty)'], 'SUCCESS', return_code, stdout, b'', 1, 0)
     klass = magpie.utils.convert.fitness_from_string('repair')
     klass(my_software).process_test_exec(my_runresult, exec_result)
     assert my_runresult.status == status
