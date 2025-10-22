@@ -75,17 +75,17 @@ def test_init_model_config_fail(value):
         BasicSoftware._init_model_config(value)
 
 @pytest.mark.parametrize(('expr', 'ref'), [
-    ('time', [{'time'}]),
-    ('-time', [{'time'}]),
-    ('repair ; time', [{'repair'}, {'time'}]),
-    ('(repair + time)/2', [{'repair', 'time'}]),
-    ('repair  ;  time', [{'repair'}, {'time'}]),
+    ('time', [['time']]),
+    ('-time', [['time']]),
+    ('repair ; time', [['repair'], ['time']]),
+    ('(repair + time)/2', [['repair', 'time']]),
+    ('repair  ;  time', [['repair'], ['time']]),
     ("""
     repair
-    time""", [{'repair'}, {'time'}]),
-    ('perf<foo>', [{'perf<foo>'}]),
-    ('perf<foo> ; time', [{'perf<foo>'}, {'time'}]),
-    ('perf<foo bar> ; -perf<bar baz>', [{'perf<foo bar>'}, {'perf<bar baz>'}]),
+    time""", [['repair'], ['time']]),
+    ('perf<foo>', [['perf<foo>']]),
+    ('perf<foo> ; time', [['perf<foo>'], ['time']]),
+    ('perf<foo bar> ; -perf<bar baz>', [['perf<foo bar>'], ['perf<bar baz>']]),
 ])
 def test_init_model_fitness(expr, ref):
     trees = BasicSoftware._init_model_fitness(expr)

@@ -1,6 +1,19 @@
 import pytest
 
-from magpie.utils import BoolTree, ExprTree, MathTree
+from magpie.parsing import BoolTree, ExprTree, MathTree
+
+
+## Syntax errors
+
+@pytest.mark.parametrize(('expr', 'expected'), [
+    ('not', SyntaxError),
+    ('1 and', SyntaxError),
+    ('x y', SyntaxError),
+    ('+ 2', SyntaxError),
+])
+def test_expr_tree_syntax_error(expr, expected):
+    with pytest.raises(expected):
+        ExprTree.from_string(expr)
 
 
 ## Typing errors
@@ -12,12 +25,15 @@ from magpie.utils import BoolTree, ExprTree, MathTree
     ('1 and (x + y)', TypeError),
     ('1 + (x or y)', TypeError),
     ('1 + (!x)', TypeError),
+    ('True ** 2', TypeError),
+    ('3 ** False', TypeError),
+    ('(x or y) ** (1 + 1)', TypeError),
     ('x in 1', TypeError),
     ('x in y', TypeError),
 ])
 def test_expr_tree_typing_error(expr, expected):
     with pytest.raises(expected):
-        ExprTree(expr)
+        ExprTree.from_string(expr)
 
 @pytest.mark.parametrize(('expr', 'expected'), [
     ('True', TypeError),
@@ -28,7 +44,7 @@ def test_expr_tree_typing_error(expr, expected):
 ])
 def test_math_tree_typing_error(expr, expected):
     with pytest.raises(expected):
-        MathTree(expr)
+        MathTree.from_string(expr)
 
 @pytest.mark.parametrize(('expr', 'expected'), [
     ('1', TypeError),
@@ -36,7 +52,8 @@ def test_math_tree_typing_error(expr, expected):
 ])
 def test_bool_tree_typing_error(expr, expected):
     with pytest.raises(expected):
-        BoolTree(expr)
+        BoolTree.from_string(expr)
+
 
 ## Runtime
 
@@ -46,10 +63,17 @@ def test_bool_tree_typing_error(expr, expected):
     ('1 + 2', {}, 3),
     ('-1 + 2', {}, 1),
     ('-(-1)', {}, 1),
+    ('2*x', {'x':3}, 6),
+    ('2x', {'x':3}, 6),
+    ('2 x1', {'x1':3}, 6),
+    ('2x * y', {'x':3, 'y':5}, 30),
     ('-(((-(-(1)))))', {}, -1),
     ('1.2 + 2.5', {}, 3.7),
     ('(2 + x) * y', {'x': 2, 'y': 3}, 12),
     ('2 + x * y', {'x': 2, 'y': 3}, 8),
+    ('2 ** -1', {}, 0.5),
+    ('2 ** 0', {}, 1),
+    ('2 ** 1', {}, 2),
     ('2 ** 3', {}, 8),
     ('foo < 0 or foo >= 10', {'foo': -1}, True),
     ('foo < 0 or foo >= 10', {'foo': 0}, False),
@@ -68,7 +92,8 @@ def test_bool_tree_typing_error(expr, expected):
     ('True in [x, y]', {'x': None, 'y': False}, False),
 ])
 def test_expr_tree_runtime(expr, context, expected):
-    assert ExprTree(expr).evaluate(context) == expected
+    print(ExprTree.from_string(expr))
+    assert ExprTree.from_string(expr).evaluate(context) == expected
 
 
 ## Runtime errors
@@ -81,4 +106,4 @@ def test_expr_tree_runtime(expr, context, expected):
 ])
 def test_expr_tree_runtime_error(expr, context, expected):
     with pytest.raises(expected):
-        ExprTree(expr).evaluate(context)
+        ExprTree.from_string(expr).evaluate(context)

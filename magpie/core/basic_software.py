@@ -4,7 +4,7 @@ import re
 import shlex
 
 import magpie.settings
-from magpie.utils import MathTree
+from magpie.parsing import MathTree
 
 from .abstract_software import AbstractSoftware
 from .errors import ScenarioError
@@ -144,7 +144,7 @@ class BasicSoftware(AbstractSoftware):
         new_expr = pattern.sub(replacer, expr)
         # parse expression
         try:
-            tree = MathTree(new_expr)
+            tree = MathTree.from_string(new_expr)
         except SyntaxError as e:
             msg = 'Invalid config file: unable to parse "[software] fitness"'
             raise ScenarioError(msg) from e

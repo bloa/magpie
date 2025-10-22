@@ -13,5 +13,3 @@ from .known import edits as known_edits
 from .known import models as known_models
 from .known import protocols as known_protocols
 from .known import software as known_software
-
-from .expr_tree import BoolTree, ExprTree, MathTree
