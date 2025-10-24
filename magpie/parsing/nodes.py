@@ -68,11 +68,10 @@ class UnaryOp(Expr):
 
     def evaluate(self, context):
         val = self.right.evaluate(context)
-        match self.op:
-            case '-':
-                return -val
-            case 'not':
-                return not val
+        if self.op == '-':
+            return -val
+        elif self.op == 'not':
+            return not val
         msg = f'Unknown unary operator: {self.op}'
         raise ValueError(msg)
 
@@ -121,43 +120,42 @@ class BinaryOp(Expr):
     def evaluate(self, context):
         lval = self.left.evaluate(context)
         rval = self.right.evaluate(context)
-        match self.op:
-            case '+':
-                return lval + rval
-            case '-':
-                return lval - rval
-            case '*':
-                return lval * rval
-            case '**':
-                return lval ** rval
-            case '<':
-                return lval < rval
-            case '>':
-                return lval > rval
-            case '/':
-                return lval / rval
-            case '==':
-                return lval == rval
-            case '!=':
-                return lval != rval
-            case '<=':
-                return lval <= rval
-            case '>=':
-                return lval >= rval
-            case 'and':
-                return lval and rval
-            case 'or':
-                return lval or rval
-            case 'xor':
-                return lval != rval
-            case 'if':
-                return lval or (not rval)
-            case 'iif':
-                return lval == rval
-            case 'in':
-                return lval in rval
-            case 'not in':
-                return lval not in rval
+        if self.op == '+':
+            return lval + rval
+        elif self.op == '-':
+            return lval - rval
+        elif self.op == '*':
+            return lval * rval
+        elif self.op == '**':
+            return lval ** rval
+        elif self.op == '<':
+            return lval < rval
+        elif self.op == '>':
+            return lval > rval
+        elif self.op == '/':
+            return lval / rval
+        elif self.op == '==':
+            return lval == rval
+        elif self.op == '!=':
+            return lval != rval
+        elif self.op == '<=':
+            return lval <= rval
+        elif self.op == '>=':
+            return lval >= rval
+        elif self.op == 'and':
+            return lval and rval
+        elif self.op == 'or':
+            return lval or rval
+        elif self.op == 'xor':
+            return lval != rval
+        elif self.op == 'if':
+            return lval or (not rval)
+        elif self.op == 'iif':
+            return lval == rval
+        elif self.op == 'in':
+            return lval in rval
+        elif self.op == 'not in':
+            return lval not in rval
         msg = f'Unknown binary operator: {self.op}'
         raise ValueError(msg)
 

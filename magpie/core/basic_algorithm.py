@@ -276,22 +276,21 @@ class BasicAlgorithm(AbstractAlgorithm):
     @classmethod
     def _aggregate_warmup(cls, warmup_values, strategy):
         def aux(values):
-            match strategy:
-                case 'last':
-                    return values[-1]
-                case 'min':
-                    return min(values)
-                case 'max':
-                    return max(values)
-                case 'mean':
-                    return sum(values)/len(values)
-                case 'median':
-                    tmp = sorted(values)
-                    k = len(values)//2
-                    return tmp[k] if len(tmp)%2 == 1 else (tmp[k-1]+tmp[k])/2
-                case _:
-                    msg = f'Unknown warmup strategy "{strategy}"'
-                    raise ValueError(msg)
+            if strategy == 'last':
+                return values[-1]
+            elif strategy == 'min':
+                return min(values)
+            elif strategy == 'max':
+                return max(values)
+            elif strategy == 'mean':
+                return sum(values)/len(values)
+            elif strategy == 'median':
+                tmp = sorted(values)
+                k = len(values)//2
+                return tmp[k] if len(tmp)%2 == 1 else (tmp[k-1]+tmp[k])/2
+            else:
+                msg = f'Unknown warmup strategy "{strategy}"'
+                raise ValueError(msg)
         if isinstance(warmup_values[0], list):
             return [aux(values) for values in list(zip(*warmup_values))]
         else:
