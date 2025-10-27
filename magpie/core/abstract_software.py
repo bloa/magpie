@@ -34,7 +34,7 @@ class AbstractSoftware(abc.ABC):
             self.reset_contents()
 
     def reset_timestamp(self):
-        # ensures a unique timestamp unique
+        # ensures a unique timestamp
         self.unix_timestamp = int(time.time())
         with contextlib.suppress(FileExistsError):
             pathlib.Path(magpie.settings.work_dir).mkdir(parents=True)
