@@ -274,6 +274,13 @@ class XmlModel(AbstractXmlModel):
         target.tail = old_tail
         return True
 
+    def do_get_text(self, target):
+        d_f, d_t, d_i = target # file name, tag, xpath index
+        if d_f != self.filename:
+            raise ValueError
+        target = self.contents.find(self.locations[d_t][d_i])
+        return target.text
+
     def do_set_text(self, target, value):
         d_f, d_t, d_i = target # file name, tag, xpath index
         if d_f != self.filename:

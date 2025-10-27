@@ -17,7 +17,11 @@ from .xml_edits import (
     XmlNodeDeletionTemplatedEdit,
     XmlNodeInsertionTemplatedEdit,
     XmlNodeReplacementTemplatedEdit,
+    XmlNodeMoveInsertionTemplatedEdit,
+    XmlNodeMoveReplacementTemplatedEdit,
+    XmlNodeSwapTemplatedEdit,
     XmlTextSettingTemplatedEdit,
+    XmlTextSwapTemplatedEdit,
     XmlTextWrappingTemplatedEdit,
 )
 from .xml_model import XmlModel
