@@ -108,19 +108,21 @@ class BasicAlgorithm(AbstractAlgorithm):
         # reset reference fitness
         patch = Patch([])
         variant = Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter='REF'):
+            run = self.evaluate_variant(variant)
+            self.hook_warmup_evaluation('REF', patch, run)
         self.report['reference_fitness'] = run.fitness
         self.report['best_fitness'] = run.fitness
-        self.hook_warmup_evaluation('REF', patch, run)
         if run.status != 'SUCCESS':
             msg = 'Reference software evaluation failed'
             raise RuntimeError(msg)
         # update best patch
         if self.report['best_patch'] and self.report['best_patch'].edits:
             variant = Variant(self.software, self.report['best_patch'])
-            run = self.evaluate_variant(variant)
-            best = self.dominates(run.fitness, self.report['best_fitness'])
-            self.hook_batch_evaluation('BEST', self.report['best_patch'], run, best)
+            with self.software.add_to_env(counter='BEST', patch=self.report['best_patch']):
+                run = self.evaluate_variant(variant)
+                best = self.dominates(run.fitness, self.report['best_fitness'])
+                self.hook_batch_evaluation('BEST', self.report['best_patch'], run, best)
             if run.status == 'SUCCESS' and best:
                 self.report['best_fitness'] = run.fitness
             else:
@@ -244,8 +246,9 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.report['reference_patch'] = patch
         warmup_values = []
         for _ in range(max(self.config['warmup'] or 1, 1), 0, -1):
-            run = self.evaluate_variant(variant, force=True)
-            self.hook_warmup_evaluation('WARM', patch, run)
+            with self.software.add_to_env(counter='WARM'):
+                run = self.evaluate_variant(variant, force=True)
+                self.hook_warmup_evaluation('WARM', patch, run)
             if run.status != 'SUCCESS':
                 step = run.status.split('_')[0].lower()
                 self.report['stop'] = f'failed to {step} target software'
@@ -261,8 +264,9 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.report['best_patch'] = patch
         else:
             variant = Variant(self.software, self.report['best_patch'])
-            run = self.evaluate_variant(variant, force=True)
-            self.hook_warmup_evaluation('BEST', patch, run)
+            with self.software.add_to_env(counter='BEST', patch=self.report['best_patch']):
+                run = self.evaluate_variant(variant, force=True)
+                self.hook_warmup_evaluation('BEST', patch, run)
             if self.dominates(run.fitness, current_fitness):
                 self.report['best_fitness'] = run.fitness
             else:

@@ -80,7 +80,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
             local_best_fitness = None
             for sol in offsprings:
                 variant = magpie.core.Variant(self.software, sol)
-                run = self.evaluate_variant(variant)
+                with self.software.add_to_env(counter=self.aux_log_counter(), patch=sol):
+                    run = self.evaluate_variant(variant)
                 accept = best = False
                 if run.status == 'SUCCESS':
                     if self.dominates(run.fitness, local_best_fitness):
@@ -135,7 +136,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                     if self.stopping_condition():
                         break
                     variant = magpie.core.Variant(self.software, sol)
-                    run = self.evaluate_variant(variant)
+                    with self.software.add_to_env(counter=self.aux_log_counter(), patch=sol):
+                        run = self.evaluate_variant(variant)
                     accept = best = False
                     if run.status == 'SUCCESS':
                         if self.dominates(run.fitness, local_best_fitness):

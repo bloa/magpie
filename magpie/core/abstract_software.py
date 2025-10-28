@@ -27,6 +27,8 @@ class AbstractSoftware(abc.ABC):
         self.ingredient_files = []
         self.noop_variant = None
         self.work_dir = None
+        self.env_counter = None
+        self.env_patch = None
 
         if reset:
             self.reset_timestamp()
@@ -168,6 +170,16 @@ class AbstractSoftware(abc.ABC):
                 shutil.copyfile(original_entry, target_entry)
             # else: appears in both (already handled)
 
+    @contextlib.contextmanager
+    def add_to_env(self, counter=None, patch=None):
+        try:
+            self.env_counter = str(counter or '')
+            self.env_patch = str(patch or '')
+            yield
+        finally:
+            self.env_counter = None
+            self.env_patch = None
+
     def exec_cmd(self, cmd, timeout=15, env=None, shell=False, lengthout=1e6):
         # 1e6 bytes is 1Mb
         sprocess = None
@@ -181,6 +193,8 @@ class AbstractSoftware(abc.ABC):
         env['MAGPIE_WORK_DIR'] = magpie.settings.work_dir
         env['MAGPIE_BASENAME'] = self.basename
         env['MAGPIE_TIMESTAMP'] = str(self.unix_timestamp)
+        env['MAGPIE_COUNTER'] = self.env_counter or ''
+        env['MAGPIE_PATCH'] = self.env_patch or ''
         if magpie.settings.show_cmd_progress:
             display_str = '$ ' + ' '.join(cmd)
             display_length = magpie.settings.cmd_progress_maxlength

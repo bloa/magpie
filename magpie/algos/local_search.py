@@ -103,7 +103,8 @@ class DebugSearch(LocalSearch):
 
             # compare
             variant = magpie.core.Variant(self.software, patch)
-            run = self.evaluate_variant(variant)
+            with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+                run = self.evaluate_variant(variant)
             accept = best = False
             if run.status == 'SUCCESS':
                 accept = True
@@ -136,7 +137,8 @@ class RandomSearch(LocalSearch):
 
         # compare
         variant = magpie.core.Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+            run = self.evaluate_variant(variant)
         best = False
         if run.status == 'SUCCESS':
             if self.dominates(run.fitness, self.report['best_fitness']):
@@ -172,7 +174,8 @@ class RandomWalk(LocalSearch):
 
         # compare
         variant = magpie.core.Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+            run = self.evaluate_variant(variant)
         accept = self.config['accept_fail']
         best = False
         if run.status == 'SUCCESS':
@@ -217,7 +220,8 @@ class FirstImprovement(LocalSearch):
 
         # compare
         variant = magpie.core.Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+            run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(current_fitness, run.fitness):
@@ -268,7 +272,8 @@ class BestImprovement(LocalSearch):
 
         # compare
         variant = magpie.core.Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+            run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(current_fitness, run.fitness):
@@ -327,7 +332,8 @@ class WorstImprovement(LocalSearch):
 
         # compare
         variant = magpie.core.Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+            run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(current_fitness, run.fitness):
@@ -390,7 +396,8 @@ class TabuSearch(BestImprovement):
 
         # compare
         variant = magpie.core.Variant(self.software, patch)
-        run = self.evaluate_variant(variant)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+            run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
             if not self.dominates(self.local_best_fitness, run.fitness):

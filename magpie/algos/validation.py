@@ -62,8 +62,9 @@ class ValidSingle(ValidSearch):
         for edit in current_patch.edits:
             patch = magpie.core.Patch([edit])
             variant = magpie.core.Variant(self.software, patch)
-            run = self.evaluate_variant(variant)
-            self.hook_evaluation(variant, run)
+            with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+                run = self.evaluate_variant(variant)
+                self.hook_evaluation(variant, run)
 
         self.report['stop'] = 'validation end'
         return self.report['best_patch'], self.report['best_fitness']
@@ -79,8 +80,9 @@ class ValidTest(ValidSearch):
     def explore(self, current_patch, current_fitness):
         # full patch only
         variant = magpie.core.Variant(self.software, current_patch)
-        run = self.evaluate_variant(variant)
-        self.hook_evaluation(variant, run)
+        with self.software.add_to_env(counter=self.aux_log_counter(), patch=current_patch):
+            run = self.evaluate_variant(variant)
+            self.hook_evaluation(variant, run)
 
         self.report['stop'] = 'validation end'
         return self.report['best_patch'], self.report['best_fitness']
@@ -127,8 +129,9 @@ class ValidMinify(ValidSearch):
         # full patch first
         self.software.logger.info('---- initial patch ----')
         if variant.patch.edits:
-            run = self.evaluate_variant(variant)
-            self.hook_evaluation(variant, run)
+            with self.software.add_to_env(counter=self.aux_log_counter(), patch=variant.patch):
+                run = self.evaluate_variant(variant)
+                self.hook_evaluation(variant, run)
         else:
             self.report['stop'] = 'validation end (empty patch)'
             return self.report['best_patch'], self.report['best_fitness']
@@ -141,8 +144,9 @@ class ValidMinify(ValidSearch):
             for edit in variant.patch.edits:
                 patch = magpie.core.Patch([edit])
                 tmp = magpie.core.Variant(self.software, patch)
-                run = self.evaluate_variant(tmp)
-                self.hook_evaluation(tmp, run)
+                with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+                    run = self.evaluate_variant(tmp)
+                    self.hook_evaluation(tmp, run)
                 ranking.append((edit, run.fitness))
             ranking.sort(key=lambda c: c[1] or ref_fit)
 
@@ -155,8 +159,9 @@ class ValidMinify(ValidSearch):
                     patch = copy.deepcopy(rebuild)
                     patch.edits.append(edit)
                     tmp = magpie.core.Variant(self.software, patch)
-                    run = self.evaluate_variant(tmp)
-                    self.hook_evaluation(tmp, run)
+                    with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+                        run = self.evaluate_variant(tmp)
+                        self.hook_evaluation(tmp, run)
                     if run.status == 'SUCCESS' and self.dominates(run.fitness, rebuild_fitness):
                         rebuild_fitness = run.fitness
                         rebuild.edits.append(edit)
@@ -178,8 +183,9 @@ class ValidMinify(ValidSearch):
                         rr_limit -= 1
                     patch = magpie.core.Patch([e for (j, e) in enumerate(self.report['best_patch'].edits) if (j+last_i)%n != i])
                     tmp = magpie.core.Variant(self.software, patch)
-                    run = self.evaluate_variant(tmp)
-                    self.hook_evaluation(tmp, run)
+                    with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
+                        run = self.evaluate_variant(tmp)
+                        self.hook_evaluation(tmp, run)
                     if run.status == 'SUCCESS' and self.dominates_or_equal(run.fitness, rebuild_fitness):
                         self.report['best_patch'] = patch # accept because smaller
                         rebuild_fitness = run.fitness

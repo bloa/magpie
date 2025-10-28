@@ -11,6 +11,7 @@
 - add live command display during execution
 - add support for Gradle test suites
 - add support for read-only ingredient files (`ingredient_files`)
+- add more ENV data (counter, patch under evaluation)
 
 **Changed**
 
