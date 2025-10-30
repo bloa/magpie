@@ -15,12 +15,29 @@ default_timeout = 30
 default_lengthout = 1e4 # 1e6 bytes is 1Mb
 
 color_output = True
-log_format_info = '{counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}'
-log_format_debug = 'patch({counter})="{patch}"{diffifbest}'
+log_format_info = {
+    'summary': '{counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}',
+}
+log_format_debug = {
+    'patch': 'patch({counter})="{patch}"',
+    'status': 'status({counter})="{status}"',
+    'fitness': 'fitness({counter})="{rawfitness}"',
+    'diff': 'diff({counter})={diff}',
+    'lastcmd': 'lastcmd({counter})={lastcmd}',
+    'stdout': 'stdout({counter})={stdout}',
+    'stderr': 'stderr({counter})={stderr}',
+}
 log_format_fitness = '{:.2f}'
 log_format_ratio = '{:.2%}'
-log_format_patchif = '\n --> {patch}'
-log_format_diffif = '\n{diff}'
+log_capture = {
+    'patch': 'always',
+    'status': 'always',
+    'fitness': 'always',
+    'diff': 'best',
+    'lastcmd': 'never',
+    'stdout': 'never',
+    'stderr': 'never',
+}
 
 show_cmd_progress = True
 cmd_progress_maxlength = 70

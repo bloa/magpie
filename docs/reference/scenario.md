@@ -47,21 +47,38 @@ Default values:
 
     [magpie.log]
     color_output = True
-    format_info = {counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}
-    format_debug = patch({counter})="{patch}"{diffifbest}
-    format_fitness = {:.4f}
+    format_info_summary = {counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}
+    format_debug_patch = patch({counter})="{patch}"
+    format_debug_fitness = fitness({counter})="{rawfitness}"
+    format_debug_diff = diff({counter})={diff}
+    format_debug_lastcmd = lastcmd({counter})={lastcmd}
+    format_debug_stdout = stdout({counter})={stdout}
+    format_debug_stderr = stderr({counter})={stderr}
+    format_fitness = {:.2f}
     format_ratio = {:.2%%}
-    format_patchif = \n --> {patch}
-    format_diffif = \n{diff}
+    capture_patch = always
+    capture_fitness = always
+    capture_diff = best
+    capture_lastcmd = never
+    capture_stdout = never
+    capture_stderr = never
 
 - `color_output`: colourise Magpie's output in the terminal
-- `format_info`: the [format string](https://docs.python.org/3/tutorial/inputoutput.html) used every evaluation, show both in the terminal and file logs; available keys include `counter` (e.g., "WARM" during warmup, or the variant index), `status` (e.g., "SUCCESS" or "COMPILE\_CODE\_ERROR"), `best` (a single character: "*" when the best fitness value so far is improved, "+" for repeated best fitness values, " " otherwise), `fitness` (one or more fitness values, formatted using `format_fitness`), `ratio` (likewise, for ratios using the reference fitness value), `size` (the number of edits of the related patch), `cached` (either the string "[cached]" when the evaluation was bypassed, "[part.cached]" when using instance batches when only some were cached, empty otherwise), `patch`, `patchifaccept`, `patchifbest`, `diff`, `diffifaccept`, `diffifbest`, (formatted when necessary with `format_patchif` and `format_diffif`), and `log` (for additional data reported by the search algorithm)
-- `format_debug`: similar to `format_info`, but only used in file logs
-- `format_fitness`: the format string used when formatting fitness values
-- `format_ratio`: the format string used when formatting fitness values _ratios_
-- `format_patchif`: the format string used when formatting `patchifaccept` and `patchifbest`
-- `format_diffif`: the format string used when formatting `diffifaccept` and `diffifbest`
-
+- `format_info_summary`: the [format string](https://docs.python.org/3/tutorial/inputoutput.html) used every evaluation, show both in the terminal and file logs; available keys include `counter` (e.g., "WARM" during warmup, or the variant index), `status` (e.g., "SUCCESS" or "COMPILE\_CODE\_ERROR"), `best` (a single character: "*" when the best fitness value so far is improved, "+" for repeated best fitness values, " " otherwise), `fitness` (one or more fitness values, formatted using `format_fitness`), `ratio` (likewise, for ratios using the reference fitness value), `size` (the number of edits of the related patch), `cached` (either the string "[cached]" when the evaluation was bypassed, "[part.cached]" when using instance batches when only some were cached, empty otherwise), and `log` (for additional data reported by the search algorithm)
+- `format_debug_patch`: similar to `format_info_summary`, but only used in file logs to show patch in full
+- `format_debug_fitness`: similar to `format_debug_patch`
+- `format_debug_diff`: similar to `format_debug_patch`
+- `format_debug_lastcmd`: similar to `format_debug_patch`
+- `format_debug_stdout`: similar to `format_debug_patch`
+- `format_debug_stderr`: similar to `format_debug_patch`
+- `format_fitness`: the format string used when formatting individual fitness _values_
+- `format_ratio`: the format string used when formatting individual fitness _values ratios_
+- `capture_patch`: specify when to log `format_debug_patch` (valid values: "never", "crash", "accept", "best", "always")
+- `capture_fitness`: similar to `capture_patch`
+- `capture_diff`: similar to `capture_patch`
+- `capture_lastcmd`: similar to `capture_patch`
+- `capture_stdout`: similar to `capture_patch`
+- `capture_stderr`: similar to `capture_patch`
 
 ## `[software]`
 

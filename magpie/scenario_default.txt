@@ -16,14 +16,23 @@ trust_local_filesystem = True
 
 [magpie.log]
 color_output = True
-format_info = {counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}
-format_debug = patch({counter})="{patch}" fitness({counter})="{rawfitness}"{diffifbest}
+format_info_summary = {counter:<7} {status:<20} {best}{fitness} ({ratio}) [{size}] {cached} {log}
+format_debug_patch = patch({counter})="{patch}"
+format_debug_status = status({counter})="{status}"
+format_debug_fitness = fitness({counter})="{rawfitness}"
+format_debug_diff = diff({counter})={diff}
+format_debug_lastcmd = lastcmd({counter})={lastcmd}
+format_debug_stdout = stdout({counter})={stdout}
+format_debug_stderr = stderr({counter})={stderr}
 format_fitness = {:.2f}
 format_ratio = {:.2%%}
-format_patchif = 
-	 --> {patch}
-format_diffif = 
-	{diff}
+capture_patch = always
+capture_status = always
+capture_fitness = always
+capture_diff = best
+capture_lastcmd = never
+capture_stdout = never
+capture_stderr = never
 
 [software]
 path = 
