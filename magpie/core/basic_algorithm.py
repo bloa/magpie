@@ -175,11 +175,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         data['extra'] = 'extra'
         data['log'] = run.log or ''
         data['patch'] = str(patch)
-        data['patchifaccept'] = magpie.settings.log_format_patchif.format(patch=data['patch']) if accept else ''
-        data['patchifbest'] = magpie.settings.log_format_patchif.format(patch=data['patch']) if best else ''
         data['diff'] = run.variant.diff
-        data['diffifaccept'] = magpie.settings.log_format_diffif.format(diff=data['diff']) if accept else ''
-        data['diffifbest'] = magpie.settings.log_format_diffif.format(diff=data['diff']) if best else ''
         data['size'] = f'{len(patch.edits) if patch else 0} edit(s)'
         data['cached'] = ''
         if run.cached:
@@ -187,17 +183,36 @@ class BasicAlgorithm(AbstractAlgorithm):
                 data['cached'] = '[part.cached]'
             else:
                 data['cached'] = '[cached]'
+        encoding = magpie.settings.output_encoding
+        data['lastcmd'] = run.last_exec.cmd
+        try:
+            data['stdout'] = run.last_exec.stdout.decode(encoding, errors='strict')
+        except UnicodeDecodeError:
+            data['stdout'] = run.last_exec.stdout.decode(encoding, errors='replace')
+        try:
+            data['stderr'] = run.last_exec.stderr.decode(encoding, errors='strict')
+        except UnicodeDecodeError:
+            data['stderr'] = run.last_exec.stderr.decode(encoding, errors='replace')
+        for key in ['diff', 'stdout', 'stderr']:
+            data[key] = f'<<{key.upper()}\n{data[key]}\n{key.upper()}' if data[key] else '""'
         return data
 
     def aux_log_print(self, data, run, accept, best):
-        if magpie.settings.log_format_info:
-            msg = magpie.settings.log_format_info.format(**data)
-            if magpie.settings.color_output:
-                msg = self.aux_log_color(msg, run, accept=accept, best=best)
-            self.software.logger.info(msg)
-        if magpie.settings.log_format_debug:
-            msg = magpie.settings.log_format_debug.format(**data)
-            self.software.logger.debug(msg)
+        def aux(val):
+            return any([
+                val == 'always',
+                val == 'error' and run.status != 'SUCCESS',
+                val == 'accept' and accept,
+                val == 'best' and best,
+            ])
+        msg = magpie.settings.log_format_info_summary.format(**data)
+        if magpie.settings.color_output:
+            msg = self.aux_log_color(msg, run, accept=accept, best=best)
+        self.software.logger.info(msg)
+        for key in magpie.settings.log_format_debug.keys():
+            if aux(magpie.settings.log_capture[key]):
+                msg = magpie.settings.log_format_debug[key].format(**data)
+                self.software.logger.debug(msg)
 
     def aux_log_color(self, msg, run, accept=False, best=False):
         if magpie.settings.color_output is False:

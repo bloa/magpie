@@ -5,6 +5,7 @@
 **Changed**
 
 - refactored protocols and scenario management
+- refactored formatting options for better parsing and granularity
 
 
 ## [1.2.2] bloa_stable
