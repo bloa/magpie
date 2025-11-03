@@ -62,6 +62,10 @@ Default values:
     capture_lastcmd = never
     capture_stdout = never
     capture_stderr = never
+    maxlength_diff = 2000
+    maxlength_stdout = 2000
+    maxlength_stderr = 2000
+    allow_very_large_output = false
 
 - `color_output`: colourise Magpie's output in the terminal
 - `format_info_summary`: the [format string](https://docs.python.org/3/tutorial/inputoutput.html) used every evaluation, show both in the terminal and file logs; available keys include `counter` (e.g., "WARM" during warmup, or the variant index), `status` (e.g., "SUCCESS" or "COMPILE\_CODE\_ERROR"), `best` (a single character: "*" when the best fitness value so far is improved, "+" for repeated best fitness values, " " otherwise), `fitness` (one or more fitness values, formatted using `format_fitness`), `ratio` (likewise, for ratios using the reference fitness value), `size` (the number of edits of the related patch), `cached` (either the string "[cached]" when the evaluation was bypassed, "[part.cached]" when using instance batches when only some were cached, empty otherwise), and `log` (for additional data reported by the search algorithm)
@@ -79,6 +83,10 @@ Default values:
 - `capture_lastcmd`: similar to `capture_patch`
 - `capture_stdout`: similar to `capture_patch`
 - `capture_stderr`: similar to `capture_patch`
+- `maxlength_diff`: the maximum length of a diff before it is truncated in the log file; set to `-1` for unlimited length
+- `maxlength_stdout`: similar to `maxlength_diff`
+- `maxlength_stderr`: similar to `maxlength_diff`
+- `allow_very_large_output`: used as a safety measure to enable setting some `format_...` options to `always` or `maxlength_...` options to `-1`
 
 ## `[software]`
 

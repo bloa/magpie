@@ -38,6 +38,12 @@ log_capture = {
     'stdout': 'never',
     'stderr': 'never',
 }
+log_maxlength = {
+    'diff': 2000,
+    'stdout': 2000,
+    'stderr': 2000,
+}
+allow_very_large_output = False
 
 show_cmd_progress = True
 cmd_progress_maxlength = 70

@@ -194,7 +194,13 @@ class BasicAlgorithm(AbstractAlgorithm):
         except UnicodeDecodeError:
             data['stderr'] = run.last_exec.stderr.decode(encoding, errors='replace')
         for key in ['diff', 'stdout', 'stderr']:
-            data[key] = f'<<{key.upper()}\n{data[key]}\n{key.upper()}' if data[key] else '""'
+            if data[key]:
+                k = magpie.settings.log_maxlength[key]
+                if len(data[key]) > k:
+                    data[key] = f'{data[key][:k//2]}\n[... truncated ...]\n{data[key][-k//2:]}'
+                data[key] = f'<<{key.upper()}\n{data[key]}\n{key.upper()}'
+            else:
+                data[key] = '""'
         return data
 
     def aux_log_print(self, data, run, accept, best):
