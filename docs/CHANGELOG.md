@@ -2,6 +2,11 @@
 
 ## [1.3.0] bloa_unstable
 
+**Added**
+
+- added safety measures for formatting options
+- added support for renaming edits directly from the configuration file
+
 **Changed**
 
 - refactored protocols and scenario management
@@ -32,6 +37,7 @@
 - add support for Gradle test suites
 - add support for read-only ingredient files (`ingredient_files`)
 - add more ENV data (counter, patch under evaluation)
+- add support for renaming edits directly from the configuration file
 
 **Changed**
 

@@ -99,3 +99,25 @@ class BasicProtocol(AbstractProtocol):
                 msg = f'[magpie.log] invalid value "{sec[ckey]}" for {ckey}'
                 raise ScenarioError(msg)
             magpie.settings.log_capture[key] = sec[ckey]
+        try:
+            magpie.settings.allow_very_large_output = magpie.utils.str_to_bool(sec['allow_very_large_output'])
+        except ValueError as e:
+            msg = '[magpie] allow_very_large_output should be Boolean'
+            raise ScenarioError(msg) from e
+        for key in ['diff', 'stdout', 'stderr']:
+            ckey = f'maxlength_{key}'
+            magpie.settings.log_maxlength[key] = int(float(sec[ckey]))
+            if magpie.settings.log_maxlength[key] == -1:
+                if not magpie.settings.allow_very_large_output:
+                    msg = f'[magpie.log] please set allow_very_large_output to "true" to enable setting {ckey} to "{sec[ckey]}"'
+                    raise ScenarioError(msg)
+            elif magpie.settings.log_maxlength[key] <= 0:
+                msg = f'[magpie.log] {ckey} should be strictly positive, or "-1" for unbounded'
+                raise ScenarioError(msg)
+        if not magpie.settings.allow_very_large_output:
+            for key in ['diff', 'stdout', 'stderr']:
+                ckey = f'capture_{key}'
+                if sec[ckey] == 'always':
+                    msg = f'[magpie.log] please set allow_very_large_output to "true" to enable setting {ckey} to "{sec[ckey]}"'
+                    raise ScenarioError(msg)
+                ckey = f'maxlength_{key}'

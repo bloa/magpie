@@ -33,6 +33,10 @@ capture_diff = best
 capture_lastcmd = never
 capture_stdout = never
 capture_stderr = never
+maxlength_diff = 2000
+maxlength_stdout = 2000
+maxlength_stderr = 2000
+allow_very_large_output = false
 
 [software]
 path = 
