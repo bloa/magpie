@@ -8,7 +8,7 @@ from .abstract_model import AbstractXmlModel
 class XmlNodeDeletionTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AbstractXmlModel).random_target(cls.TEMPLATE[0])
+        target = ref.random_model(AbstractXmlModel, writable=True).random_target(cls.TEMPLATE[0])
         if not target:
             return None
         return cls(target)
@@ -23,7 +23,8 @@ magpie.utils.known_edits.append(XmlNodeDeletionTemplatedEdit)
 class XmlNodeReplacementTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AbstractXmlModel, cls.TEMPLATE[0], cls.TEMPLATE[0])
+        target = ref.random_model(AbstractXmlModel, writable=True).random_target(cls.TEMPLATE[0])
+        ingredient = ref.random_model(AbstractXmlModel, writable=False).random_target(cls.TEMPLATE[0])
         if not (target and ingredient):
             return None
         return cls(target, ingredient)
@@ -40,7 +41,8 @@ magpie.utils.known_edits.append(XmlNodeReplacementTemplatedEdit)
 class XmlNodeInsertionTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AbstractXmlModel, f'_inter_{cls.TEMPLATE[1]}', cls.TEMPLATE[0])
+        target = ref.random_model(AbstractXmlModel, writable=True).random_target(f'_inter_{cls.TEMPLATE[1]}')
+        ingredient = ref.random_model(AbstractXmlModel, writable=False).random_target(cls.TEMPLATE[0])
         if not (target and ingredient):
             return None
         return cls(target, ingredient)
@@ -57,7 +59,7 @@ magpie.utils.known_edits.append(XmlNodeInsertionTemplatedEdit)
 class XmlTextSettingTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AbstractXmlModel).random_target(cls.TEMPLATE[0])
+        target = ref.random_model(AbstractXmlModel, writable=True).random_target(cls.TEMPLATE[0])
         ingredient = random.choice(cls.TEMPLATE[1:])
         if not target:
             return None
@@ -74,7 +76,7 @@ magpie.utils.known_edits.append(XmlTextSettingTemplatedEdit)
 class XmlTextWrappingTemplatedEdit(magpie.core.TemplatedEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AbstractXmlModel).random_target(cls.TEMPLATE[0])
+        target = ref.random_model(AbstractXmlModel, writable=True).random_target(cls.TEMPLATE[0])
         i = random.randrange(1, len(cls.TEMPLATE)//2)
         ingredient = (cls.TEMPLATE[2*i-1], cls.TEMPLATE[2*i])
         if not target:

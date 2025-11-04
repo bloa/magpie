@@ -17,23 +17,24 @@ class Variant:
                 raise AssertionError
             with contextlib.chdir(software.path):
                 for filename in software.target_files:
-                    self.models[filename] = self._init_model(software, filename)
+                    model = self._init_model(software, filename)
+                    self.models[filename] = model
+                for filename in software.ingredient_files:
+                    model = self._init_model(software, filename)
+                    model.readonly = True
+                    self.models[filename] = model
         self.patch = patch
         if patch:
             for edit in patch.edits:
                 edit.apply(software.noop_variant, self)
         self.diff = self._diff(software.noop_variant or self, magpie.settings.diff_method)
 
-    def random_model(self, klass):
-        tmp = [model for model in self.models.values() if isinstance(model, klass)]
+    def random_model(self, klass, writable):
+        tmp = [model for model in self.models.values() if isinstance(model, klass) and not (model.readonly and writable)]
         if tmp:
             return random.choice(tmp)
         msg = f'No compatible target file for model "{klass.__name__}"'
         raise RuntimeError(msg)
-
-    def random_targets(self, klass, *args):
-        klass = self.random_model(klass).__class__
-        return [self.random_model(klass).random_target(tag) for tag in args]
 
     def _init_model(self, software, target_file):
         for (pattern, klass) in software.model_rules:

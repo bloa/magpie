@@ -7,7 +7,8 @@ from .astor_model import AstorModel
 class AstorStmtReplacementEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AstorModel, 'stmt', 'stmt')
+        target = ref.random_model(AstorModel, writable=True).random_target('stmt')
+        ingredient = ref.random_model(AstorModel, writable=False).random_target('stmt')
         if not (target and ingredient):
             return None
         return cls(target, ingredient)
@@ -24,7 +25,8 @@ magpie.utils.known_edits.append(AstorStmtReplacementEdit)
 class AstorStmtInsertionEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AstorModel, '_inter_block', 'stmt')
+        target = ref.random_model(AstorModel, writable=True).random_target('_inter_block')
+        ingredient = ref.random_model(AstorModel, writable=False).random_target('stmt')
         if not (target and ingredient):
             return None
         return cls(target, ingredient)
@@ -41,7 +43,7 @@ magpie.utils.known_edits.append(AstorStmtInsertionEdit)
 class AstorStmtDeletionEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
-        target = ref.random_model(AstorModel).random_target('stmt')
+        target = ref.random_model(AstorModel, writable=True).random_target('stmt')
         if not target:
             return None
         return cls(target)
@@ -56,7 +58,8 @@ magpie.utils.known_edits.append(AstorStmtDeletionEdit)
 class AstorStmtMovingEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
-        target, ingredient = ref.random_targets(AstorModel, 'stmt', 'stmt')
+        target = ref.random_model(AstorModel, writable=True).random_target('stmt')
+        ingredient = ref.random_model(AstorModel, writable=True).random_target('stmt')
         if not (target and ingredient):
             return None
         return cls(target, ingredient)

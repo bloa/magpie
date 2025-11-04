@@ -70,6 +70,7 @@ Default values:
     [software]
     path =
     target_files =
+    ingredient_files =
     software = BasicSoftware
     model_rules =
         *.params : ParamFileConfigModel
@@ -101,6 +102,7 @@ Default values:
 
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
+- `ingredient_files`: an additional list of read-only files considered when mutating target files
 - `software`: the name of the Software class; it needs to belong to `magpie.bin.softwares`
 - `model_rules`: the list of rules used to determine how target files are internally represented; model classes need to belong to `magpie.models.known_models`
 - `model_config`: the list of rules used to determine which section of the scenario file gets used to configure the model of the associated files
@@ -125,7 +127,7 @@ Default values:
 - `batch_bin_fitness_strategy`: the population parameter for fitness values inside a bin (possible: `aggregate`, `sum`, `average`, `median`, and `q10`, `q25`, `q75`, `q90` for quartiles)
 - `batch_fitness_strategy`: the population parameter for bin fitness values (possible: `sum`, `average`, `median`)
 
-Note that both `target_files` and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, any subsequent line must start with a space.
+Note that all `target_files`, `ingredient_files`, and `possible edits` lists are newline-separated; the first line (after the `=`) may be empty, and any subsequent line must start with a space.
 Typical examples:
 
     possible_edits =

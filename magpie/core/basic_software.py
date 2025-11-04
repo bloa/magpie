@@ -17,6 +17,7 @@ class BasicSoftware(AbstractSoftware):
 
         super().__init__(config['software']['path'], reset=False)
         self.target_files = config['software']['target_files'].split()
+        self.ingredient_files = config['software']['ingredient_files'].split()
 
         # model rules
         self.model_rules = self._init_model_rules(config['software']['model_rules'])
@@ -253,6 +254,12 @@ class BasicSoftware(AbstractSoftware):
 
                 # sync work directory
                 self.sync_folder(self.path, work_path)
+
+            # make sure ingredient files are unmodified
+            for filename in self.ingredient_files:
+                model = variant.models[filename]
+                if model.dump() != model.cached_dump:
+                    raise AssertionError
 
             # run "[software] compile_cmd" if provided
             if self.compile_cmd:

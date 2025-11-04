@@ -16,6 +16,7 @@ class AbstractModel(abc.ABC):
         self.weights = {}
         self.trust_local = magpie.settings.trust_local_filesystem
         self.cached_dump = None
+        self.readonly = False
 
     @abc.abstractmethod
     def init_contents(self):
@@ -32,6 +33,9 @@ class AbstractModel(abc.ABC):
         return msg
 
     def write_to_file(self):
+        # silently ignore readonly models
+        if self.readonly:
+            return
         # compute dump
         dump = self.dump()
         # skip writing if file is (or should be) untouched

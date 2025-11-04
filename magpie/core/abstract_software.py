@@ -24,6 +24,7 @@ class AbstractSoftware(abc.ABC):
         self.path = pathlib.Path(path.strip()).resolve()
         self.basename = self.path.name
         self.target_files = []
+        self.ingredient_files = []
         self.noop_variant = None
         self.work_dir = None
 
@@ -106,6 +107,10 @@ class AbstractSoftware(abc.ABC):
         if any('*' in f for f in self.target_files):
             tmp = [sorted(self.path.glob(f)) if '*' in f else [f] for f in self.target_files]
             self.target_files = [str(f.relative_to(self.path)) for fl in tmp for f in fl]
+        if any('*' in f for f in self.ingredient_files):
+            tmp = [sorted(self.path.glob(f)) if '*' in f else [f] for f in self.ingredient_files]
+            self.ingredient_files = [str(f.relative_to(self.path)) for fl in tmp for f in fl]
+        self.ingredient_files = [f for f in self.ingredient_files if f not in self.target_files]
 
         # reset noop variant
         self.noop_variant = Variant(self)

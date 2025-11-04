@@ -32,6 +32,7 @@ default_scenario = {
     'software': {
         'path': '',
         'target_files': '',
+        'ingredient_files': '',
         'software': 'BasicSoftware',
         'model_rules': """
 *.params : ParamFileConfigModel

@@ -26,7 +26,7 @@ if __name__ == '__main__':
     software = magpie.utils.software_from_string(config['software']['software'])(config)
 
     # show locations
-    for filename in software.target_files:
+    for filename in [*software.target_files, *software.ingredient_files]:
         if args.filename is not None and args.filename != filename:
             continue
         msg = f'==== {filename} ===='

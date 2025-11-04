@@ -7,7 +7,7 @@ from .abstract_model import AbstractConfigModel
 class ParamSettingEdit(magpie.core.AbstractEdit):
     @classmethod
     def auto_create(cls, ref):
-        model = ref.random_model(AbstractConfigModel)
+        model = ref.random_model(AbstractConfigModel, writable=True)
         target = model.random_target('param')
         if not target:
             return None
