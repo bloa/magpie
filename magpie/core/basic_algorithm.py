@@ -1,6 +1,7 @@
 import math
 import pathlib
 import random
+import re
 import time
 
 import magpie.settings
@@ -26,11 +27,25 @@ class BasicAlgorithm(AbstractAlgorithm):
 
         self.config['possible_edits'] = []
         try:
-            for edit in sec['possible_edits'].split():
-                self.config['possible_edits'].append(magpie.utils.edit_from_string(edit))
+            for s in re.split(r' ; |\n', sec['possible_edits']):
+                if not s:
+                    continue # initial empty line
+                m = re.search(r'(.+?)\s+as\s+(.+)', s)
+                if m:
+                    base = m.group(1)
+                    rename = m.group(2)
+                    edit = magpie.utils.edit_from_string(m.group(1), f'{m.group(2)}Edit')
+                else:
+                    base = s
+                    rename = None
+                    edit = magpie.utils.edit_from_string(base)
+                self.config['possible_edits'].append(edit)
         except RuntimeError:
-            msg = f'Invalid config file: unknown edit type "{edit}" in "[software] possible_edits"'
+            msg = f'Invalid config file: unknown edit type "{base}" in "[search] possible_edits"'
             raise ScenarioError(msg) from None
+        except TypeError as e:
+            msg = f'Invalid config file: invalid edit rename "{rename}" for "{base} in "[search] possible_edits"'
+            raise ScenarioError(msg) from e
         if self.config['possible_edits'] == []:
             msg = 'Invalid config file: "[search] possible_edits" must be non-empty!'
             raise ScenarioError(msg)
