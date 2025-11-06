@@ -14,15 +14,33 @@ def model_from_string(s):
     msg = f'Unknown model class "{s}"'
     raise RuntimeError(msg)
 
-def edit_from_string(s):
+def edit_from_string(s, rename=None):
     s2 = s.lower().replace('_', '') + 'edit'
+    if rename:
+        renamed_klass = None
+        for klass in known_edits:
+            if klass.__name__ == rename:
+                renamed_klass = klass
+                break
     for klass in known_edits:
         if klass.__name__.lower() == s2:
+            if rename:
+                if renamed_klass and not issubclass(renamed_klass, klass):
+                    msg = f'Invalid class hierarchy between {renamed_klass} and {klass}'
+                    raise TypeError(msg)
+                new_klass = type(rename, (klass, ), {})
+                known_edits.append(new_klass)
+                return new_klass
             return klass
     m = re.search(r'(<.+>)', s)
     if m:
         klass = edit_from_string(s.replace(m.group(1), 'Templated'))
-        return klass.template(m.group(1))
+        new_klass = klass.template(m.group(1), rename)
+        if rename:
+            if renamed_klass and not issubclass(renamed_klass, klass):
+                msg = f'Invalid class hierarchy between {renamed_klass} and {klass}'
+                raise TypeError(msg)
+        return new_klass
     msg = f'Unknown edit class "{s}Edit"'
     raise RuntimeError(msg)
 

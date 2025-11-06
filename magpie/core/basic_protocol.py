@@ -2,6 +2,7 @@ import configparser
 import importlib
 import pathlib
 import random
+import re
 
 import magpie.settings
 
@@ -121,3 +122,19 @@ class BasicProtocol(AbstractProtocol):
                     msg = f'[magpie.log] please set allow_very_large_output to "true" to enable setting {ckey} to "{sec[ckey]}"'
                     raise ScenarioError(msg)
                 ckey = f'maxlength_{key}'
+
+        # peek at [search] section
+        sec = self.config['search']
+        try:
+            for s in re.split(r' ; |\n', sec['possible_edits']):
+                m = re.search(r'(.+?)\s+as\s+(.+)', s)
+                if m:
+                    base = m.group(1)
+                    rename = m.group(2)
+                    magpie.utils.edit_from_string(base, f'{rename}Edit')
+        except RuntimeError:
+            msg = f'Invalid config file: unknown edit type "{base}" in "[search] possible_edits"'
+            raise ScenarioError(msg) from None
+        except TypeError as e:
+            msg = f'Invalid config file: invalid edit rename "{rename}" for "{base} in "[search] possible_edits"'
+            raise ScenarioError(msg) from e
