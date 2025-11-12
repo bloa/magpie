@@ -17,7 +17,7 @@ class AblationAnalysis(ValidSearch):
         # cleanup
         self.software.logger.info('---- cleanup ----')
         variant = self.do_cleanup(variant)
-        self.report['best_patch'] = variant.patch
+        self.report['best_solution']['patch'] = variant.patch
 
         # full patch first
         self.software.logger.info('---- exploration ----')
@@ -63,6 +63,6 @@ class AblationAnalysis(ValidSearch):
                 self.hook_evaluation(tmp, run)
 
         self.report['stop'] = 'ablation end'
-        return self.report['best_patch'], self.report['best_fitness']
+        return self.report['best_solution']['patch'], self.report['best_solution']['fitness']
 
 magpie.utils.known_algos.append(AblationAnalysis)

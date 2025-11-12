@@ -20,6 +20,12 @@ from .display import (
     format_subheader,
 )
 
+from .fitness import (
+    dominates,
+    dominates_or_equal,
+    pareto,
+)
+
 # "final" classes only
 from .known import algos as known_algos
 from .known import edits as known_edits

@@ -108,7 +108,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         batch = [b for b in batch if b] # discards empty bins
         self.software.batch = batch if any(batch) else [['']] # single empty instance when no batch
         # early exit before warmup
-        if self.report['reference_fitness'] is None:
+        if self.report['reference_solution']['fitness'] is None:
             return
         # reset reference fitness
         patch = Patch([])
@@ -116,22 +116,27 @@ class BasicAlgorithm(AbstractAlgorithm):
         with self.software.add_to_env(counter='REF'):
             run = self.evaluate_variant(variant)
             self.hook_warmup_evaluation('REF', patch, run)
-        self.report['reference_fitness'] = run.fitness
-        self.report['best_fitness'] = run.fitness
+        self.report['reference_solution']['fitness'] = run.fitness
         if run.status != 'SUCCESS':
             msg = 'Reference software evaluation failed'
             raise RuntimeError(msg)
         # update best patch
-        if self.report['best_patch'] and self.report['best_patch'].edits:
-            variant = Variant(self.software, self.report['best_patch'])
-            with self.software.add_to_env(counter='BEST', patch=self.report['best_patch']):
+        solution = self.report['best_solution']
+        if solution['patch'] and solution['patch'].edits:
+            variant = Variant(self.software, solution['patch'])
+            with self.software.add_to_env(counter='BEST', patch=solution['patch']):
                 run = self.evaluate_variant(variant)
-                best = self.dominates(run.fitness, self.report['best_fitness'])
-                self.hook_batch_evaluation('BEST', self.report['best_patch'], run, best)
+                best = magpie.utils.dominates(run.fitness, solution['fitness'])
+                self.hook_batch_evaluation('BEST', solution['patch'], run, best)
             if run.status == 'SUCCESS' and best:
-                self.report['best_fitness'] = run.fitness
+                self.report['best_solution']['fitness'] = run.fitness
             else:
-                self.report['best_patch'] = patch
+                self.report['best_solution'] = self.report['reference_solution'].copy()
+        if self.report['best_solutions']:
+            pop = self.report['best_solutions']
+            pop.append(self.report['reference_solution'].copy())
+            self.report['best_solutions'] = magpie.utils.pareto(pop)
+        # TODO: split two subclasses?
 
     def hook_warmup(self):
         self.hook_reset_batch()
@@ -146,7 +151,7 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.software.diagnose_error(run)
 
     def hook_batch_evaluation(self, counter, patch, run, best=False):
-        data = self.aux_log_data(patch, run, counter, self.report['reference_fitness'], False, best)
+        data = self.aux_log_data(patch, run, counter, self.report['reference_solution']['fitness'], False, best)
         self.aux_log_print(data, run, False, best)
 
     def hook_start(self):
@@ -163,7 +168,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         pass
 
     def hook_evaluation(self, variant, run, accept=False, best=False):
-        data = self.aux_log_data(variant.patch, run, self.aux_log_counter(), self.report['reference_fitness'], accept, best)
+        data = self.aux_log_data(variant.patch, run, self.aux_log_counter(), self.report['reference_solution']['fitness'], accept, best)
         self.aux_log_print(data, run, accept, best)
 
     def aux_log_counter(self):
@@ -251,19 +256,22 @@ class BasicAlgorithm(AbstractAlgorithm):
     def hook_end(self):
         self.stats['wallclock_end'] = time.time()
         self.stats['wallclock_total'] = self.stats['wallclock_end'] - self.stats['wallclock_start']
-        if self.report['best_patch']:
-            variant = Variant(self.software, self.report['best_patch'])
-            self.report['diff'] = variant.diff
+        solution = self.report['best_solution']
+        if solution['patch']:
+            variant = Variant(self.software, solution['patch'])
+            solution['diff'] = variant.diff
+        for solution in self.report['best_solutions']:
+            if solution['patch']:
+                variant = Variant(self.software, solution['patch'])
+                solution['diff'] = variant.diff
         header = magpie.utils.format_subheader('END', magpie.settings.color_output)
         self.software.logger.info(header)
 
     def warmup(self):
         patch = Patch([])
         variant = Variant(self.software, patch)
-        if self.report['initial_patch'] is None:
-            self.report['initial_patch'] = patch
-        if self.report['reference_patch'] is None:
-            self.report['reference_patch'] = patch
+        if self.report['reference_solution']['patch'] is None:
+            self.report['reference_solution']['patch'] = patch
         warmup_values = []
         for _ in range(max(self.config['warmup'] or 1, 1), 0, -1):
             with self.software.add_to_env(counter='WARM'):
@@ -278,20 +286,19 @@ class BasicAlgorithm(AbstractAlgorithm):
         run.fitness = current_fitness
         self.eval_cache.update(variant.diff, run)
         self.hook_warmup_evaluation('REF', patch, run)
-        self.report['reference_fitness'] = current_fitness
-        if self.report['best_patch'] is None:
-            self.report['best_fitness'] = current_fitness
-            self.report['best_patch'] = patch
-        else:
-            variant = Variant(self.software, self.report['best_patch'])
-            with self.software.add_to_env(counter='BEST', patch=self.report['best_patch']):
+        self.report['reference_solution']['fitness'] = current_fitness
+        solution = self.report['best_solution']
+        if solution['patch']:
+            variant = Variant(self.software, solution['patch'])
+            with self.software.add_to_env(counter='BEST', patch=solution['patch']):
                 run = self.evaluate_variant(variant, force=True)
                 self.hook_warmup_evaluation('BEST', patch, run)
-            if self.dominates(run.fitness, current_fitness):
-                self.report['best_fitness'] = run.fitness
+            if magpie.utils.dominates(run.fitness, current_fitness):
+                self.report['best_solution']['fitness'] = run.fitness
             else:
-                self.report['best_patch'] = patch
-                self.report['best_fitness'] = current_fitness
+                self.report['best_solution'] = {'patch': patch, 'fitness': current_fitness, 'diff': None}
+        else:
+            self.report['best_solution'] = {'patch': patch, 'fitness': current_fitness, 'diff': None}
 
     @classmethod
     def _aggregate_warmup(cls, warmup_values, strategy):

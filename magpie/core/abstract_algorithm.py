@@ -23,11 +23,9 @@ class AbstractAlgorithm(abc.ABC):
         self.stats['steps'] = 0
         self.stats['wallclock_start'] = time.time() # dummy
         self.report = {}
-        self.report['initial_patch'] = None
-        self.report['reference_patch'] = None
-        self.report['reference_fitness'] = None
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = None
+        self.report['reference_solution'] = {'patch': None, 'fitness': None, 'diff': None}
+        self.report['best_solution'] = {'patch': None, 'fitness': None, 'diff': None}
+        self.report['best_solutions'] = []
         self.report['stop'] = None
 
     @abc.abstractmethod
@@ -45,18 +43,6 @@ class AbstractAlgorithm(abc.ABC):
                 raise RuntimeError(msg)
         return edit
 
-    def dominates(self, fit1, fit2):
-        if fit1 is None:
-            return False
-        if fit2 is None:
-            return True
-        if isinstance(fit1, list):
-            return any(x < y for (x, y) in zip(fit1, fit2))
-        return fit1 < fit2
-
-    def dominates_or_equal(self, fit1, fit2):
-        return self.dominates(fit1, fit2) or fit1 == fit2
-
     def stopping_condition(self):
         if self.report['stop'] is not None:
             return True
@@ -73,8 +59,8 @@ class AbstractAlgorithm(abc.ABC):
             if self.stats['steps'] >= self.stop['steps']:
                 self.report['stop'] = 'step budget'
                 return True
-        if self.stop['fitness'] and self.report['best_fitness']:
-            if self.dominates_or_equal(self.report['best_fitness'], self.stop['fitness']):
+        if self.stop['fitness'] and self.report['best_solution']['fitness']:
+            if magpie.utils.dominates_or_equal(self.report['best_solution']['fitness'], self.stop['fitness']):
                 self.report['stop'] = 'target fitness reached'
                 return True
         return False

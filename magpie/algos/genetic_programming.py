@@ -71,12 +71,11 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                     run = self.evaluate_variant(variant)
                 accept = best = False
                 if run.status == 'SUCCESS':
-                    if self.dominates(run.fitness, local_best_fitness):
+                    if magpie.utils.dominates(run.fitness, local_best_fitness):
                         local_best_fitness = run.fitness
                         accept = True
-                        if self.dominates(run.fitness, self.report['best_fitness']):
-                            self.report['best_fitness'] = run.fitness
-                            self.report['best_patch'] = sol
+                        if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                            self.report['best_solution'] = {'patch': sol, 'fitness': run.fitness, 'diff': None}
                             best = True
                 self.hook_evaluation(variant, run, accept, best)
                 pop[sol] = run
@@ -127,12 +126,11 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                         run = self.evaluate_variant(variant)
                     accept = best = False
                     if run.status == 'SUCCESS':
-                        if self.dominates(run.fitness, local_best_fitness):
+                        if magpie.utils.dominates(run.fitness, local_best_fitness):
                             local_best_fitness = run.fitness
                             accept = True
-                            if self.dominates(run.fitness, self.report['best_fitness']):
-                                self.report['best_fitness'] = run.fitness
-                                self.report['best_patch'] = sol
+                            if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                                self.report['best_solution'] = {'patch': sol, 'fitness': run.fitness, 'diff': None}
                                 best = True
                     self.hook_evaluation(variant, run, accept, best)
                     pop[sol] = run
