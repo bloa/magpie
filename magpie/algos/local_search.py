@@ -33,8 +33,8 @@ class LocalSearch(magpie.core.BasicAlgorithm):
             self.hook_start()
 
             # main loop
-            current_patch = self.report['best_patch']
-            current_fitness = self.report['best_fitness']
+            current_patch = self.report['best_solution']['patch']
+            current_fitness = self.report['best_solution']['fitness']
             while not self.stopping_condition():
                 self.hook_main_loop()
                 current_patch, current_fitness = self.explore(current_patch, current_fitness)
@@ -102,9 +102,8 @@ class DebugSearch(LocalSearch):
             accept = best = False
             if run.status == 'SUCCESS':
                 accept = True
-                if self.dominates(run.fitness, self.report['best_fitness']):
-                    self.report['best_fitness'] = run.fitness
-                    self.report['best_patch'] = patch
+                if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                    self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                     best = True
 
             # hook
@@ -135,9 +134,8 @@ class RandomSearch(LocalSearch):
             run = self.evaluate_variant(variant)
         best = False
         if run.status == 'SUCCESS':
-            if self.dominates(run.fitness, self.report['best_fitness']):
-                self.report['best_fitness'] = run.fitness
-                self.report['best_patch'] = patch
+            if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                 best = True
 
         # hook
@@ -170,9 +168,8 @@ class RandomWalk(LocalSearch):
         best = False
         if run.status == 'SUCCESS':
             accept = True
-            if self.dominates(run.fitness, self.report['best_fitness']):
-                self.report['best_fitness'] = run.fitness
-                self.report['best_patch'] = patch
+            if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                 best = True
 
         # accept
@@ -214,11 +211,10 @@ class FirstImprovement(LocalSearch):
             run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
-            if not self.dominates(current_fitness, run.fitness):
+            if not magpie.utils.dominates(current_fitness, run.fitness):
                 accept = True
-                if self.dominates(run.fitness, self.report['best_fitness']):
-                    self.report['best_fitness'] = run.fitness
-                    self.report['best_patch'] = patch
+                if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                    self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                     best = True
 
         # accept
@@ -266,13 +262,12 @@ class BestImprovement(LocalSearch):
             run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
-            if not self.dominates(current_fitness, run.fitness):
-                if not self.dominates(self.local_best_fitness, run.fitness):
+            if not magpie.utils.dominates(current_fitness, run.fitness):
+                if not magpie.utils.dominates(self.local_best_fitness, run.fitness):
                     self.local_best_patch = patch
                     self.local_best_fitness = run.fitness
-                    if self.dominates(run.fitness, self.report['best_fitness']):
-                        self.report['best_fitness'] = run.fitness
-                        self.report['best_patch'] = patch
+                    if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                        self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                         best = True
 
         # accept
@@ -326,13 +321,12 @@ class WorstImprovement(LocalSearch):
             run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
-            if not self.dominates(current_fitness, run.fitness):
-                if not self.dominates(self.local_worst_fitness, run.fitness):
+            if not magpie.utils.dominates(current_fitness, run.fitness):
+                if not magpie.utils.dominates(self.local_worst_fitness, run.fitness):
                     self.local_worst_patch = patch
                     self.local_worst_fitness = run.fitness
-                if self.dominates(run.fitness, self.report['best_fitness']):
-                    self.report['best_fitness'] = run.fitness
-                    self.report['best_patch'] = patch
+                if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                    self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                     best = True
 
         # accept
@@ -386,12 +380,11 @@ class TabuSearch(BestImprovement):
             run = self.evaluate_variant(variant)
         accept = best = False
         if run.status == 'SUCCESS':
-            if not self.dominates(self.local_best_fitness, run.fitness):
+            if not magpie.utils.dominates(self.local_best_fitness, run.fitness):
                 self.local_best_patch = patch
                 self.local_best_fitness = run.fitness
-            if self.dominates(run.fitness, self.report['best_fitness']):
-                self.report['best_fitness'] = run.fitness
-                self.report['best_patch'] = patch
+            if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
+                self.report['best_solution'] = {'patch': patch, 'fitness': run.fitness, 'diff': None}
                 best = True
 
         # accept

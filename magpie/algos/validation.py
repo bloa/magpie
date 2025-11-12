@@ -18,18 +18,17 @@ class ValidSearch(LocalSearch):
 
     def hook_start(self):
         super().hook_start()
-        self.report['best_fitness'] = None
-        self.report['best_patch'] = self.debug_patch
+        self.report['best_solution'] = {'patch': self.debug_patch, 'fitness': None, 'diff': None}
 
     def hook_evaluation(self, variant, run, accept=False, best=False):
         # accept
         accept = best = False
         if run.status == 'SUCCESS':
-            best = self.dominates(run.fitness, self.report['best_fitness']) or (run.fitness == self.report['best_fitness'] and len(variant.patch.edits) < len(self.report['best_patch'].edits))
-            accept = best or run.fitness == self.report['best_fitness']
+            solution = self.report['best_solution']
+            best = magpie.utils.dominates(run.fitness, solution['fitness']) or (run.fitness == solution['fitness'] and len(variant.patch.edits) < len(solution['patch'].edits))
+            accept = best or run.fitness == solution['fitness']
             if best:
-                self.report['best_fitness'] = run.fitness
-                self.report['best_patch'] = variant.patch
+                self.report['best_solution'] = {'patch': variant.patch, 'fitness': run.fitness, 'diff': None}
 
         super().hook_evaluation(variant, run, accept, best)
 
@@ -67,7 +66,7 @@ class ValidSingle(ValidSearch):
                 self.hook_evaluation(variant, run)
 
         self.report['stop'] = 'validation end'
-        return self.report['best_patch'], self.report['best_fitness']
+        return self.report['best_solution']['patch'], self.report['best_solution']['fitness']
 
 magpie.utils.known_algos.append(ValidSingle)
 
@@ -85,7 +84,7 @@ class ValidTest(ValidSearch):
             self.hook_evaluation(variant, run)
 
         self.report['stop'] = 'validation end'
-        return self.report['best_patch'], self.report['best_fitness']
+        return self.report['best_solution']['patch'], self.report['best_solution']['fitness']
 
 magpie.utils.known_algos.append(ValidTest)
 
@@ -114,7 +113,7 @@ class ValidMinify(ValidSearch):
         if self.config['do_cleanup']:
             self.software.logger.info('---- cleanup ----')
             variant = self.do_cleanup(variant)
-            self.report['best_patch'] = variant.patch
+            self.report['best_solution']['patch'] = variant.patch
 
         # full patch first
         self.software.logger.info('---- initial patch ----')
@@ -124,7 +123,7 @@ class ValidMinify(ValidSearch):
                 self.hook_evaluation(variant, run)
         else:
             self.report['stop'] = 'validation end (empty patch)'
-            return self.report['best_patch'], self.report['best_fitness']
+            return self.report['best_solution']['patch'], self.report['best_solution']['fitness']
 
         if self.config['do_rebuild']:
             # ranking
@@ -141,7 +140,7 @@ class ValidMinify(ValidSearch):
             ranking.sort(key=lambda c: c[1] or ref_fit)
 
             # rebuild
-            if ranking[0][1] < self.report['reference_fitness']:
+            if ranking[0][1] < self.report['reference_solution']['fitness']:
                 self.software.logger.info('---- rebuild ----')
                 rebuild = magpie.core.Patch([ranking[0][0]])
                 rebuild_fitness = ranking[0][1]
@@ -152,37 +151,37 @@ class ValidMinify(ValidSearch):
                     with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                         run = self.evaluate_variant(tmp)
                         self.hook_evaluation(tmp, run)
-                    if run.status == 'SUCCESS' and self.dominates(run.fitness, rebuild_fitness):
+                    if run.status == 'SUCCESS' and magpie.utils.dominates(run.fitness, rebuild_fitness):
                         rebuild_fitness = run.fitness
                         rebuild.edits.append(edit)
-            elif self.report['best_fitness'] > self.report['reference_fitness']:
+            elif self.report['best_solution']['fitness'] > self.report['reference_solution']['fitness']:
                 self.report['stop'] = 'validation end (all bad)'
-                return self.report['best_patch'], self.report['best_fitness']
+                return self.report['best_solution']['patch'], self.report['best_solution']['fitness']
 
         # round robin simplify
-        rebuild_fitness = self.report['best_fitness']
+        rebuild_fitness = self.report['best_solution']['fitness']
         if self.config['do_simplify']:
             self.software.logger.info('---- simplify ----')
-            n = len(self.report['best_patch'].edits)+1
+            n = len(self.report['best_solution']['patch'].edits)+1
             rr_limit = self.config['round_robin_limit']
             last_i = 0
-            while n > len(self.report['best_patch'].edits) and rr_limit != 0:
-                n = len(self.report['best_patch'].edits)
+            while n > len(self.report['best_solution']['patch'].edits) and rr_limit != 0:
+                n = len(self.report['best_solution']['patch'].edits)
                 for i in range(n):
                     if i == n-1:
                         rr_limit -= 1
-                    patch = magpie.core.Patch([e for (j, e) in enumerate(self.report['best_patch'].edits) if (j+last_i)%n != i])
+                    patch = magpie.core.Patch([e for (j, e) in enumerate(self.report['best_solution']['patch'].edits) if (j+last_i)%n != i])
                     tmp = magpie.core.Variant(self.software, patch)
                     with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                         run = self.evaluate_variant(tmp)
                         self.hook_evaluation(tmp, run)
-                    if run.status == 'SUCCESS' and self.dominates_or_equal(run.fitness, rebuild_fitness):
-                        self.report['best_patch'] = patch # accept because smaller
+                    if run.status == 'SUCCESS' and magpie.utils.dominates_or_equal(run.fitness, rebuild_fitness):
+                        self.report['best_solution']['patch'] = patch # accept because smaller
                         rebuild_fitness = run.fitness
                         last_i = i # round robin
                         break
 
         self.report['stop'] = 'validation end'
-        return self.report['best_patch'], self.report['best_fitness']
+        return self.report['best_solution']['patch'], self.report['best_solution']['fitness']
 
 magpie.utils.known_algos.append(ValidMinify)
