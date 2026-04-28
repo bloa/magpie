@@ -1,5 +1,6 @@
 import argparse
 import ast
+import _ast_unparse
 import pathlib
 import sys
 from contextlib import contextmanager
@@ -18,10 +19,9 @@ def unparse_xml(root, filename=''):
 </unit>
 """
 
-
-# mostly lifted from cpython/Lib/ast.py
+# mostly lifted from cpython/Lib/_ast_unparse.py
 # see https://docs.python.org/3/library/ast.html#abstract-grammar
-class XmlUnparser(ast._Unparser):
+class XmlUnparser(_ast_unparse.Unparser):
 
     @contextmanager
     def add_xml(self, tag):
@@ -48,11 +48,6 @@ class XmlUnparser(ast._Unparser):
     def write_raw(self, *text):
         """Add new source parts, but unsanitized"""
         super().write(*text)
-
-    def fill(self, text=''):
-        """Indent a piece of text and append it, according to the current indentation level"""
-        super().fill()
-        self.write(text)
 
     def traverse(self, node):
         if isinstance(node, ast.stmt):
@@ -111,8 +106,8 @@ class XmlUnparser(ast._Unparser):
                 self.traverse(node.orelse)
 
     def visit_Compare(self, node):
-        with self.require_parens(ast._Precedence.CMP, node):
-            self.set_precedence(ast._Precedence.CMP.next(), node.left, *node.comparators)
+        with self.require_parens(_ast_unparse._Precedence.CMP, node):
+            self.set_precedence(_ast_unparse._Precedence.CMP.next(), node.left, *node.comparators)
             self.traverse(node.left)
             for o, e in zip(node.ops, node.comparators):
                 self.write(' ')
@@ -129,7 +124,7 @@ class XmlUnparser(ast._Unparser):
                 self.write(operator)
             # factor prefixes (+, -, ~) shouldn't be separated
             # from the value they belong, (e.g: +1 instead of + 1)
-            if operator_precedence is not ast._Precedence.FACTOR:
+            if operator_precedence is not _ast_unparse._Precedence.FACTOR:
                 self.write(' ')
             self.set_precedence(operator_precedence, node.operand)
             self.traverse(node.operand)
@@ -173,21 +168,17 @@ class XmlUnparser(ast._Unparser):
                 self.write(' ')
             self.interleave(tmp, increasing_level_traverse, node.values)
 
-    def visit_JoinedStr(self, node):
-        self.write('f')
+    def _write_str_avoiding_backslashes(self, string, *, quote_types=_ast_unparse._ALL_QUOTES):
+        """Write string literal value with a best effort attempt to avoid backslashes."""
+        string, quote_types = self._str_literal_helper(string, quote_types=quote_types)
+        quote_type = quote_types[0]
+        self.write_raw(f"{quote_type}{string}{quote_type}")
 
-        fstring_parts = []
-        for value in node.values:
-            with self.buffered() as buffer:
-                self._write_fstring_inner(value)
-            fstring_parts.append(
-                (''.join(buffer), isinstance(value, ast.Constant)),
-            )
-
-        new_fstring_parts = []
-        quote_types = list(ast._ALL_QUOTES)
+    def _ftstring_helper(self, parts):
+        new_parts = []
+        quote_types = list(_ast_unparse._ALL_QUOTES)
         fallback_to_repr = False
-        for value, is_constant in fstring_parts:
+        for value, is_constant in parts:
             if is_constant:
                 value, new_quote_types = self._str_literal_helper(
                     value,
@@ -200,51 +191,49 @@ class XmlUnparser(ast._Unparser):
                 quote_types = new_quote_types
             else:
                 if "\n" in value:
-                    quote_types = [q for q in quote_types if q in ast._MULTI_QUOTES]
+                    quote_types = [q for q in quote_types if q in _ast_unparse._MULTI_QUOTES]
                     assert quote_types
 
                 new_quote_types = [q for q in quote_types if q not in value]
                 if new_quote_types:
                     quote_types = new_quote_types
-            new_fstring_parts.append(value)
+            new_parts.append(value)
 
         if fallback_to_repr:
             # If we weren't able to find a quote type that works for all parts
             # of the JoinedStr, fallback to using repr and triple single quotes.
             quote_types = ["'''"]
-            new_fstring_parts.clear()
-            for value, is_constant in fstring_parts:
+            new_parts.clear()
+            for value, is_constant in parts:
                 if is_constant:
                     value = repr('"' + value)  # force repr to use single quotes
                     expected_prefix = "'\""
                     assert value.startswith(expected_prefix), repr(value)
                     value = value[len(expected_prefix):-1]
-                new_fstring_parts.append(value)
+                new_parts.append(value)
 
-        value = ''.join(new_fstring_parts)
+        value = "".join(new_parts)
         quote_type = quote_types[0]
-        self.write_raw(f'{quote_type}{value}{quote_type}')
+        self.write_raw(f"{quote_type}{value}{quote_type}")
 
-    def visit_FormattedValue(self, node):
-        def unparse_inner(inner):
-            unparser = type(self)()
-            unparser.set_precedence(ast._Precedence.TEST.next(), inner)
-            return unparser.visit(inner)
-
-        with self.delimit('{', '}'):
-            expr = unparse_inner(node.value)
-            if expr.startswith('{'):
+    def _write_interpolation(self, node, use_str_attr=False):
+        with self.delimit("{", "}"):
+            if use_str_attr:
+                expr = node.str
+            else:
+                expr = self._unparse_interpolation_value(node.value)
+            if expr.startswith("{"):
                 # Separate pair of opening brackets as "{ {"
-                self.write(' ')
+                self.write(" ")
             self.write_raw(expr)
             if node.conversion != -1:
-                self.write(f'!{chr(node.conversion)}')
+                self.write(f"!{chr(node.conversion)}")
             if node.format_spec:
-                self.write(':')
-                self._write_fstring_inner(node.format_spec, is_format_spec=True)
+                self.write(":")
+                self._write_ftstring_inner(node.format_spec, is_format_spec=True)
 
     def visit_Lambda(self, node):
-        with self.require_parens(ast._Precedence.TEST, node):
+        with self.require_parens(_ast_unparse._Precedence.TEST, node):
             self.write('lambda')
             with self.buffered() as buffer:
                 self.traverse(node.args)
@@ -252,7 +241,7 @@ class XmlUnparser(ast._Unparser):
                 self.write(' ')
                 self.write_raw(*buffer)
             self.write(': ')
-            self.set_precedence(ast._Precedence.TEST, node.body)
+            self.set_precedence(_ast_unparse._Precedence.TEST, node.body)
             self.traverse(node.body)
 
 
