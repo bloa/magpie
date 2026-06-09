@@ -164,7 +164,7 @@ class ParamFileConfigModel(AbstractConfigModel):
         if m:
             tmp = ' and '.join(m.group(1).split(','))
             try:
-                tree = magpie.utils.BoolTree.from_string(f'not ({tmp})')
+                tree = magpie.parsing.BoolTree.from_string(f'not ({tmp})')
             except (SyntaxError, TypeError) as e:
                 msg = f'Illegal assertion: "{line.strip()}"'
                 raise magpie.core.ScenarioError(msg) from e
@@ -180,7 +180,7 @@ class ParamFileConfigModel(AbstractConfigModel):
         if m:
             key = m.group(1).strip()
             try:
-                tree = magpie.utils.BoolTree.from_string(m.group(2).strip())
+                tree = magpie.parsing.BoolTree.from_string(m.group(2).strip())
             except (SyntaxError, TypeError) as e:
                 msg = f'Illegal assertion: "{line.strip()}"'
                 raise magpie.core.ScenarioError(msg) from e
@@ -196,7 +196,7 @@ class ParamFileConfigModel(AbstractConfigModel):
         if m:
             key = m.group(1).strip()
             try:
-                tree = magpie.utils.BoolTree.from_string(m.group(2).strip())
+                tree = magpie.parsing.BoolTree.from_string(m.group(2).strip())
             except (SyntaxError, TypeError) as e:
                 msg = f'Illegal assertion: "{line.strip()}"'
                 raise magpie.core.ScenarioError(msg) from e
@@ -212,8 +212,8 @@ class ParamFileConfigModel(AbstractConfigModel):
         if m:
             key = m.group(1).strip()
             try:
-                tree1 = magpie.utils.ExprTree.from_string(m.group(2).strip())
-                tree2 = magpie.utils.BoolTree.from_string(m.group(3).strip())
+                tree1 = magpie.parsing.ExprTree.from_string(m.group(2).strip())
+                tree2 = magpie.parsing.BoolTree.from_string(m.group(3).strip())
             except (SyntaxError, TypeError) as e:
                 msg = f'Illegal value setting: "{line.strip()}"'
                 raise magpie.core.ScenarioError(msg) from e
@@ -233,7 +233,7 @@ class ParamFileConfigModel(AbstractConfigModel):
         if m:
             key = m.group(1).strip()
             try:
-                tree1 = magpie.utils.ExprTree.from_string(m.group(2).strip())
+                tree1 = magpie.parsing.ExprTree.from_string(m.group(2).strip())
             except (SyntaxError, TypeError) as e:
                 msg = f'Illegal value setting: "{line.strip()}"'
                 raise magpie.core.ScenarioError(msg) from e
@@ -248,7 +248,7 @@ class ParamFileConfigModel(AbstractConfigModel):
         m = re.match(r'^assert\s+(.+)$', line)
         if m:
             try:
-                tree = magpie.utils.BoolTree.from_string(m.group(1).strip())
+                tree = magpie.parsing.BoolTree.from_string(m.group(1).strip())
             except (SyntaxError, TypeError) as e:
                 msg = f'Illegal assertion: "{line.strip()}"'
                 raise magpie.core.ScenarioError(msg) from e
