@@ -67,7 +67,6 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
 ])
 def test_process_test_repair(my_software, my_runresult, stdout, status, fitness):
     exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, stdout, b'', 1, 0)
-    klass = magpie.utils.convert.fitness_from_string('repair')
-    klass(my_software).process_test_exec(my_runresult, exec_result)
+    CustomFitness(my_software).process_test_exec(my_runresult, exec_result)
     assert my_runresult.status == status
     assert my_runresult.fitness == fitness

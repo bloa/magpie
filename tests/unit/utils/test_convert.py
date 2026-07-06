@@ -2,6 +2,113 @@ import pytest
 
 import magpie
 
+
+@pytest.mark.parametrize('s', [
+    'LineModel',
+    'ParamFileConfigModel',
+    'XmlModel',
+    'SrcmlModel',
+    'AstorModel',
+])
+def test_model_from_string(s):
+    model = magpie.utils.model_from_string(s)
+    assert model.__name__ == s
+
+@pytest.mark.parametrize('s', [
+    'foo',
+    'Line',
+    'linemodel',
+])
+def test_model_from_string_unknown(s):
+    with pytest.raises(RuntimeError):
+        magpie.utils.model_from_string(s)
+
+@pytest.mark.parametrize(('s', 'expected'), [
+    ('Dummy', 'DummyEdit'),
+    ('Dummy<foo>', 'DummyTemplatedEdit<foo>'),
+    ('dummy', 'DummyEdit'),
+    ('dummy<foo>', 'DummyTemplatedEdit<foo>'),
+    ('Du_mmy', 'DummyEdit'),
+])
+def test_edit_from_string(s, expected):
+    model = magpie.utils.edit_from_string(s)
+    assert model.__name__ == expected
+
+@pytest.mark.parametrize(('s', 'renamed'), [
+    ('Dummy', 'AEdit'),
+    ('Dummy<foo>', 'BEdit'),
+    ('dummy', 'AEdit'),
+    ('dummy<foo>', 'BEdit'),
+])
+def test_edit_from_string_renamed(s, renamed):
+    model = magpie.utils.edit_from_string(s, rename=renamed)
+    print(magpie.utils.known_edits)
+    assert model.__name__ == renamed
+    assert magpie.utils.edit_from_string(renamed[:-4]).__name__ == renamed
+
+@pytest.mark.parametrize(('s', 'renamed'), [
+    ('Dummy', 'BEdit'),
+    ('Dummy<bar>', 'AEdit'),
+])
+def test_edit_from_string_bad_rename(s, renamed):
+    with pytest.raises(TypeError):
+        magpie.utils.edit_from_string(s, rename=renamed)
+
+@pytest.mark.parametrize('s', [
+    'foo',
+    'DummyEdit',
+    'dummy<foo',
+])
+def test_edit_from_string_unknown(s):
+    with pytest.raises(RuntimeError):
+        magpie.utils.edit_from_string(s)
+
+@pytest.mark.parametrize(('s', 'expected'), [
+    ('time', 'TimeFitness'),
+    ('Time', 'TimeFitness'),
+    ('perf<foo>', 'PerfTemplatedFitness<foo>'),
+])
+def test_fitness_from_string(s, expected):
+    fit = magpie.utils.fitness_from_string(s)
+    assert fit.__name__ == expected
+
+@pytest.mark.parametrize('s', [
+    'foo',
+])
+def test_fitness_from_string_unknown(s):
+    with pytest.raises(RuntimeError):
+        magpie.utils.fitness_from_string(s)
+
+@pytest.mark.parametrize(('s', 'expected'), [
+    ('BasicSoftware', 'BasicSoftware'),
+    ('basic_software', 'BasicSoftware'),
+])
+def test_software_from_string(s, expected):
+    soft = magpie.utils.software_from_string(s)
+    assert soft.__name__ == expected
+
+@pytest.mark.parametrize('s', [
+    'foo',
+])
+def test_software_from_string_unknown(s):
+    with pytest.raises(RuntimeError):
+        magpie.utils.software_from_string(s)
+
+@pytest.mark.parametrize(('s', 'expected'), [
+    ('DummySearch', 'DummySearch'),
+    ('dummy_search', 'DummySearch'),
+])
+def test_algo_from_string(s, expected):
+    model = magpie.utils.algo_from_string(s)
+    assert model.__name__ == expected
+
+@pytest.mark.parametrize('s', [
+    'foo',
+])
+def test_algo_from_string_unknown(s):
+    with pytest.raises(RuntimeError):
+        magpie.utils.algo_from_string(s)
+
 @pytest.mark.parametrize(('s', 'ref'), [
     ('', None),
     ('   ', None),
