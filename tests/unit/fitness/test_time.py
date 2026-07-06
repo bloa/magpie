@@ -28,6 +28,24 @@ def test_process_inherit(my_software, my_runresult, return_code, status):
     klass = magpie.utils.convert.fitness_from_string('time')
     klass(my_software).process_init_exec(my_runresult, exec_result)
     assert my_runresult.status == status, my_runresult
+    klass(my_software).process_setup_exec(my_runresult, exec_result)
+    assert my_runresult.status == status, my_runresult
+    klass(my_software).process_compile_exec(my_runresult, exec_result)
+    assert my_runresult.status == status, my_runresult
+    klass(my_software).process_test_exec(my_runresult, exec_result)
+    assert my_runresult.status == status, my_runresult
+    klass(my_software).process_run_exec(my_runresult, exec_result)
+    assert my_runresult.status == status, my_runresult
+
+@pytest.mark.parametrize('duration', [
+    0, 1, 1.1, 1.0001,
+])
+def test_process_run_time(my_software, my_runresult, duration):
+    exec_result = ExecResult(['(empty)'], 'SUCCESS', 0, b'', b'', duration, 0)
+    klass = magpie.utils.convert.fitness_from_string('time')
+    klass(my_software).process_run_exec(my_runresult, exec_result)
+    assert my_runresult.status == 'SUCCESS'
+    assert abs(duration - my_runresult.fitness) < 0.01
 
 @pytest.mark.parametrize(('stderr', 'status', 'fitness'), [
     # SUCCESS on POSIX output

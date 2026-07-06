@@ -15,8 +15,6 @@ class Patch:
             klass = magpie.utils.edit_from_string(m.group(1))
             args = ast.literal_eval(f'[{m.group(2)}]')
             patch.edits.append(klass(*args))
-        if str(patch) != s:
-            raise AssertionError
         return patch
 
     def __init__(self, edits=None):

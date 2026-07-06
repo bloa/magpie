@@ -15,32 +15,36 @@ def model_from_string(s):
     raise RuntimeError(msg)
 
 def edit_from_string(s, rename=None):
-    s2 = s.lower().replace('_', '') + 'edit'
+    m = re.search(r'(.+)(<.+>)', s)
+    s2 = (m.group(1) if m else s).lower().replace('_', '') + (m.group(2) if m else '') + 'edit'
     if rename:
         renamed_klass = None
         for klass in known_edits:
             if klass.__name__ == rename:
                 renamed_klass = klass
                 break
+    if m:
+        klass = edit_from_string(s.replace(m.group(2), 'Templated'))
+        if rename and renamed_klass:
+            if issubclass(renamed_klass, klass):
+                return renamed_klass
+            msg = f'Invalid class hierarchy between {renamed_klass} and {klass}'
+            raise TypeError(msg)
+        new_klass = klass.template(m.group(2), rename)
+        known_edits.append(new_klass)
+        return new_klass
     for klass in known_edits:
         if klass.__name__.lower() == s2:
             if rename:
-                if renamed_klass and not issubclass(renamed_klass, klass):
+                if renamed_klass:
+                    if issubclass(renamed_klass, klass):
+                        return renamed_klass
                     msg = f'Invalid class hierarchy between {renamed_klass} and {klass}'
                     raise TypeError(msg)
                 new_klass = type(rename, (klass, ), {})
                 known_edits.append(new_klass)
                 return new_klass
             return klass
-    m = re.search(r'(<.+>)', s)
-    if m:
-        klass = edit_from_string(s.replace(m.group(1), 'Templated'))
-        new_klass = klass.template(m.group(1), rename)
-        if rename:
-            if renamed_klass and not issubclass(renamed_klass, klass):
-                msg = f'Invalid class hierarchy between {renamed_klass} and {klass}'
-                raise TypeError(msg)
-        return new_klass
     msg = f'Unknown edit class "{s}Edit"'
     raise RuntimeError(msg)
 
@@ -57,15 +61,17 @@ def fitness_from_string(s):
     raise RuntimeError(msg)
 
 def software_from_string(s):
+    s2 = s.lower().replace('_', '')
     for klass in known_software:
-        if klass.__name__ == s:
+        if klass.__name__.lower() == s2:
             return klass
     msg = f'Unknown software class "{s}"'
     raise RuntimeError(msg)
 
 def algo_from_string(s):
+    s2 = s.lower().replace('_', '')
     for klass in known_algos:
-        if klass.__name__ == s:
+        if klass.__name__.lower() == s2:
             return klass
     msg = f'Unknown algorithm class "{s}"'
     raise RuntimeError(msg)

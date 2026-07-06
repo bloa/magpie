@@ -1,3 +1,5 @@
+import magpie
+
 from magpie.core import AbstractEdit, TemplatedEdit
 
 class DummyEdit(AbstractEdit):
@@ -7,12 +9,17 @@ class DummyEdit(AbstractEdit):
     def auto_create(cls, ref):
         pass
 
+magpie.utils.known_edits.append(DummyEdit)
+
 class DummyTemplatedEdit(TemplatedEdit):
     def apply(self, ref, variant):
         pass
     @classmethod
     def auto_create(cls, ref):
         pass
+
+magpie.utils.known_edits.append(DummyTemplatedEdit)
+
 
 def test_str_no_data():
     e = DummyEdit('target_file')

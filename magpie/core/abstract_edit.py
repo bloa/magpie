@@ -18,7 +18,7 @@ class AbstractEdit(abc.ABC):
 
     def __eq__(self, other):
         return (
-            self.__class__ == other.__class__ and
+            self.__class__.__name__ == other.__class__.__name__ and
             self.target == other.target and
             self.data == other.data
         )
