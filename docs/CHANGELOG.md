@@ -9,6 +9,7 @@
 **Changed**
 
 - refactored output formatting functions to utils folder
+- refactored evaluation cache to separate class
 
 
 ## [1.2.1] 2026-04-28

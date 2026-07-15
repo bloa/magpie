@@ -7,6 +7,7 @@ import magpie.settings
 import magpie.utils
 
 from .abstract_algorithm import AbstractAlgorithm
+from .basic_evalcache import BasicEvalCache
 from .errors import ScenarioError
 from .patch import Patch
 from .variant import Variant
@@ -14,17 +15,14 @@ from .variant import Variant
 
 class BasicAlgorithm(AbstractAlgorithm):
     def __init__(self):
+        self.eval_cache = BasicEvalCache()
         super().__init__()
         self.config['warmup'] = 3
         self.config['warmup_strategy'] = 'last'
-        self.config['cache_maxsize'] = 40
-        self.config['cache_keep'] = 0.2
 
     def reset(self):
         super().reset()
-        self.stats['cache_hits'] = 0
-        self.stats['cache_misses'] = 0
-        self.cache_reset()
+        self.eval_cache.reset()
 
     def setup(self, config):
         sec = config['search']
@@ -33,8 +31,6 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stop['steps'] = int(val) if (val := sec['max_steps']) else None
         self.stop['wall'] = int(val) if (val := sec['max_time']) else None
         self.stop['fitness'] = [float(s) for s in val.split('s')] if (val := sec['target_fitness']) else None
-        self.config['cache_maxsize'] = int(val) if (val := sec['cache_maxsize']) else 0
-        self.config['cache_keep'] = float(sec['cache_keep'])
 
         self.config['possible_edits'] = []
         try:
@@ -250,7 +246,7 @@ class BasicAlgorithm(AbstractAlgorithm):
             warmup_values.append(run.fitness)
         current_fitness = self._aggregate_warmup(warmup_values, self.config['warmup_strategy'])
         run.fitness = current_fitness
-        self.cache_set(variant.diff, run)
+        self.eval_cache.update(variant.diff, run)
         self.hook_warmup_evaluation('REF', patch, run)
         self.report['reference_fitness'] = current_fitness
         if self.report['best_patch'] is None:
@@ -293,44 +289,9 @@ class BasicAlgorithm(AbstractAlgorithm):
 
     def evaluate_variant(self, variant, force=False):
         cached_run = None
-        if self.config['cache_maxsize'] > 0 and not force:
-            cached_run = self.cache_get(variant.diff) # potentially partial
+        if not force:
+            cached_run = self.eval_cache.get(variant.diff) # potentially partial
         run = self.software.evaluate_variant(variant, cached_run)
-        if self.config['cache_maxsize'] > 0:
-            self.cache_set(variant.diff, run)
+        self.eval_cache.update(variant.diff, run)
         self.stats['budget'] += getattr(run, 'budget', 0) or 0
         return run
-
-    def cache_get(self, diff):
-        try:
-            run = self.cache[diff]
-        except KeyError:
-            self.stats['cache_misses'] += 1
-            return None
-        else:
-            self.stats['cache_hits'] += 1
-            if self.config['cache_maxsize'] > 0:
-                self.cache_hits[diff] += 1
-            run.cached = True
-            run.updated = False
-            return run
-
-    def cache_set(self, diff, run):
-        msize = self.config['cache_maxsize']
-        if 0 < msize < len(self.cache_hits):
-            keep = self.config['cache_keep']
-            hits = sorted(self.cache.keys(), key=lambda k: 999 if len(k) == 0 else self.cache_hits[k])
-            for k in hits[:int(msize*(1-keep))]:
-                del self.cache[k]
-            self.cache_hits = dict.fromkeys(self.cache, 0)
-        if diff not in self.cache:
-            self.cache_hits[diff] = 0
-        self.cache[diff] = run
-
-    def cache_copy(self, algo):
-        self.cache = algo.cache
-        self.cache_hits = algo.cache_hits
-
-    def cache_reset(self):
-        self.cache = {}
-        self.cache_hits = {}
