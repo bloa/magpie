@@ -77,6 +77,10 @@ class AbstractSoftware(abc.ABC):
         def color_stripper(record):
             if isinstance(record.msg, str):
                 record.msg = re.sub(r'\033\[[0-9;]*m', '', record.msg)
+            if isinstance(record.args, tuple):
+                record.args = tuple(
+                    re.sub(r'\033\[[0-9;]*m', '', arg) if isinstance(arg, str) else arg
+                    for arg in record.args)
             return True
 
         # add file logging
