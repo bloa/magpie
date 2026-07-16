@@ -131,10 +131,8 @@ class BasicAlgorithm(AbstractAlgorithm):
     def hook_warmup(self):
         self.hook_reset_batch()
         self.stats['wallclock_start'] = self.stats['wallclock_warmup'] = time.time()
-        msg = '~~~~ WARMUP ~~~~'
-        if magpie.settings.color_output:
-            msg = f'\033[1m{msg}\033[0m'
-        self.software.logger.info(msg)
+        header = magpie.utils.format_subheader('WARMUP', magpie.settings.color_output)
+        self.software.logger.info(header)
 
     def hook_warmup_evaluation(self, counter, patch, run):
         data = self.aux_log_data(patch, run, counter, None, False, False)
@@ -153,10 +151,8 @@ class BasicAlgorithm(AbstractAlgorithm):
         # TODO: check that every possible edit can be created and simplify create_edit
         self.stats['wallclock_start'] = time.time() # discards warmup time
         self.software.logger.info('')
-        msg = '~~~~ START ~~~~'
-        if magpie.settings.color_output:
-            msg = f'\033[1m{msg}\033[0m'
-        self.software.logger.info(msg)
+        header = magpie.utils.format_subheader('START', magpie.settings.color_output)
+        self.software.logger.info(header)
 
     def hook_main_loop(self):
         pass
@@ -232,10 +228,8 @@ class BasicAlgorithm(AbstractAlgorithm):
         if self.report['best_patch']:
             variant = Variant(self.software, self.report['best_patch'])
             self.report['diff'] = variant.diff
-        msg = '~~~~ END ~~~~'
-        if magpie.settings.color_output:
-            msg = f'\033[1m{msg}\033[0m'
-        self.software.logger.info(msg)
+        header = magpie.utils.format_subheader('END', magpie.settings.color_output)
+        self.software.logger.info(header)
 
     def warmup(self):
         patch = Patch([])

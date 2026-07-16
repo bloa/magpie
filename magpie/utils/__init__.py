@@ -7,6 +7,13 @@ from .convert import (
     software_from_string,
 )
 
+from .display import (
+    format_bold,
+    format_diff,
+    format_header,
+    format_subheader,
+)
+
 # "final" classes only
 from .known import algos as known_algos
 from .known import edits as known_edits

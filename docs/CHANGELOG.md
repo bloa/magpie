@@ -6,6 +6,10 @@
 
 - fix colour stripping in log files
 
+**Changed**
+
+- refactored output formatting functions to utils folder
+
 
 ## [1.2.1] 2026-04-28
 

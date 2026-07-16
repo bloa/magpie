@@ -1,6 +1,6 @@
 import pytest
 
-from magpie.core import BasicProtocol
+import magpie
 
 
 @pytest.mark.parametrize(('diff', 'ref'), [
@@ -49,5 +49,32 @@ from magpie.core import BasicProtocol
 \033[33m! hamster\033[0m
   guido"""),
 ])
-def test_color_diff(diff, ref):
-    assert BasicProtocol.color_diff(diff) == ref
+def test_format_diff(diff, ref):
+    assert magpie.utils.format_diff(diff, False) == diff
+    assert magpie.utils.format_diff(diff, True) == ref
+
+@pytest.mark.parametrize('arg', [
+    '',
+    'foo',
+])
+def test_format_bold(arg):
+    assert '\033' not in arg
+    assert '\033' in magpie.utils.format_bold(arg)
+
+@pytest.mark.parametrize('arg', [
+    '',
+    'foo',
+])
+def test_format_header(arg):
+    assert '\033' not in arg
+    assert '\033' not in magpie.utils.format_header(arg, False)
+    assert '\033' in magpie.utils.format_header(arg, True)
+
+@pytest.mark.parametrize('arg', [
+    '',
+    'foo',
+])
+def test_format_subheader(arg):
+    assert '\033' not in arg
+    assert '\033' not in magpie.utils.format_subheader(arg, False)
+    assert '\033' in magpie.utils.format_subheader(arg, True)

@@ -1,9 +1,7 @@
 import io
 import pathlib
-import re
 
-import magpie.settings
-import magpie.utils.known
+import magpie
 
 
 class BasicProtocol:
@@ -22,14 +20,15 @@ class BasicProtocol:
         # setup search
         self.search.setup(config)
 
+        # control ANSI characters in output
+        fancy = magpie.settings.color_output
+
         # log config just in case
         with io.StringIO() as ss:
             config.write(ss)
             ss.seek(0)
-            msg = '==== CONFIG ====\n%s'
-            if magpie.settings.color_output:
-                msg = f'\033[1m{msg}\033[0m'
-            self.software.logger.debug(msg, ss.read())
+            header = magpie.utils.format_header('CONFIG', fancy)
+            self.software.logger.debug('%s\n%s', header, ss.read())
 
         # init final result dict
         result = {'stop': None, 'best_patch': None}
@@ -40,20 +39,15 @@ class BasicProtocol:
         logger = self.software.logger
 
         # run the algorithm a single time
-        logger.debug('') # because CONFIG above is also debug
-        msg = '==== SEARCH: %s ===='
-        if magpie.settings.color_output:
-            msg = f'\033[1m{msg}\033[0m'
-        logger.info(msg, self.search.__class__.__name__)
+        header = magpie.utils.format_header(f'SEARCH: {self.search.__class__.__name__}', fancy)
+        logger.info(header)
         self.search.run()
         result.update(self.search.report)
 
         # print the report
         logger.info('')
-        msg = '==== REPORT ===='
-        if magpie.settings.color_output:
-            msg = f'\033[1m{msg}\033[0m'
-        logger.info(msg)
+        header = magpie.utils.format_header('REPORT', fancy)
+        logger.info(header)
         logger.info('Termination: %s', result['stop'])
         for handler in logger.handlers:
             if handler.__class__.__name__ == 'FileHandler':
@@ -76,18 +70,13 @@ class BasicProtocol:
             logger.debug('Raw best fitness: %s', ' '.join([str(x) for x in tmp]))
 
             logger.info('')
-            msg = '==== BEST PATCH ====\n%s'
-            if magpie.settings.color_output:
-                msg = '\033[1m==== BEST PATCH ====\033[0m\n%s'
-            logger.info(msg, result['best_patch'])
+            header = magpie.utils.format_header('BEST PATCH', fancy)
+            logger.info('%s\n%s', header, result['best_patch'])
 
             logger.info('')
-            msg = '==== DIFF ====\n%s'
-            diff = result['diff']
-            if magpie.settings.color_output:
-                msg = '\033[1m==== DIFF ====\033[0m\n%s'
-                diff = self.color_diff(diff)
-            logger.info(msg, diff)
+            header = magpie.utils.format_header('DIFF', fancy)
+            diff = magpie.utils.format_diff(result['diff'], fancy)
+            logger.info('%s\n%s', header, diff)
 
             # for convenience, save best patch and diff to separate files
             with pathlib.Path(patch_file).open('w') as f:
@@ -97,21 +86,5 @@ class BasicProtocol:
 
         # cleanup temporary software copies
         self.software.clean_work_dir()
-
-    @staticmethod
-    def color_diff(diff):
-        out = diff[:]
-        for patt, repl in [
-                (r'^(\*\*\*\*.*)$', r'\033[36m\1\033[0m'),
-                (r'^(--- .* ----)$', r'\033[36m\1\033[0m'),
-                (r'^(\*\*\* .* \*\*\*\*)$', r'\033[36m\1\033[0m'),
-                (r'^((?:---|\+\+\+|\*\*\*) .*)$', r'\033[1m\1\033[0m'),
-                (r'^(-.*)$', r'\033[31m\1\033[0m'),
-                (r'^(\+.*)$', r'\033[32m\1\033[0m'),
-                (r'^(!.*)$', r'\033[33m\1\033[0m'),
-                (r'^(@@ .* @@)', r'\033[36m\1\033[0m'),
-        ]:
-            out = re.sub(patt, repl, out, flags=re.MULTILINE)
-        return out
 
 magpie.utils.known_protocols.append(BasicProtocol)
