@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2] bloa_stable
+
+**Fixed**
+
+- fix colour stripping in log files
+
+
 ## [1.2.1] 2026-04-28
 
 **Added**
