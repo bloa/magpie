@@ -77,10 +77,8 @@ class BasicProtocol:
 
             logger.info('')
             msg = '==== BEST PATCH ====\n%s'
-            diff = result['diff']
             if magpie.settings.color_output:
                 msg = '\033[1m==== BEST PATCH ====\033[0m\n%s'
-                diff = self.color_diff(diff)
             logger.info(msg, result['best_patch'])
 
             logger.info('')
