@@ -103,10 +103,10 @@ Default values:
 - `path`: the original software folder cloned during execution
 - `target_files`: the list of files (relatively to `path`) targeted by Magpie
 - `ingredient_files`: an additional list of read-only files considered when mutating target files
-- `software`: the name of the Software class; it needs to belong to `magpie.bin.softwares`
-- `model_rules`: the list of rules used to determine how target files are internally represented; model classes need to belong to `magpie.models.known_models`
+- `software`: the name of the Software class; it needs to belong to `magpie.utils.known_software`
+- `model_rules`: the list of rules used to determine how target files are internally represented; model classes need to belong to `magpie.utils.known_models`
 - `model_config`: the list of rules used to determine which section of the scenario file gets used to configure the model of the associated files
-- `possible_edits`: the list of edits available to the search process; they need to belong to `magpie.models.known_edits`
+- `possible_edits`: the list of edits available to the search process; they need to belong to `magpie.utils.known_edits`
 - `init_cmd`: command line to execute during the init step (or "", in which case it is skipped)
 - `init_timeout`: maximum execution time during the init step (or "", in which case `default_timeout` from `[magpie]` is used)
 - `init_lengthout`: maximum output file size during the init step (or "", in which case `default_lengthout` from `[magpie]` is used)
@@ -201,8 +201,8 @@ Default values:
     batch_bin_shuffle = False
     batch_sample_size = 1
 
-- `protocol`: the name of the Protocol class; it needs to belong to `magpie.bin.known_protocols`
-- `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.algos.known_algos`
+- `protocol`: the name of the Protocol class; it needs to belong to `magpie.utils.known_protocols`
+- `algorithm`: the name of the Algorithm class; it needs to belong to `magpie.utils.known_algos`
 - `warmup`: number of initial evaluation to consider
 - `warmup_strategy`: which warmup fitness value to use (possible: `last`, `min`, `max`, `mean`, `median`)
 - `max_steps`: maximum number of steps before Magpie terminates
