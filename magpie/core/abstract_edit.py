@@ -3,9 +3,8 @@ import re
 
 
 class AbstractEdit(abc.ABC):
-    def __init__(self, target, *args):
-        self.target = target
-        self.data = list(args)
+    # target
+    # data
 
     @classmethod
     @abc.abstractmethod

@@ -3,12 +3,14 @@ import copy
 import difflib
 import random
 
-import magpie.settings
-import magpie.utils
+import magpie
+
+from .abstract_variant import AbstractVariant
 
 
-class Variant:
+class BasicVariant(AbstractVariant):
     def __init__(self, software, patch=None):
+        self.software = software
         self.models = {}
         if software.noop_variant:
             self.models = copy.deepcopy(software.noop_variant.models)
@@ -25,9 +27,14 @@ class Variant:
                     self.models[filename] = model
         self.patch = patch
         if patch:
-            for edit in patch.edits:
-                edit.apply(software.noop_variant, self)
+            patch.apply(software.noop_variant, self)
         self.diff = self._diff(software.noop_variant or self, magpie.settings.diff_method)
+
+    def cli(self, step):
+        cli = ''
+        for target in self.software.target_files:
+            self.models[target].update_cli(self, cli, step)
+        return cli
 
     def random_model(self, klass, writable):
         tmp = [model for model in self.models.values() if isinstance(model, klass) and not (model.readonly and writable)]
@@ -48,11 +55,7 @@ class Variant:
             msg = f'Unknown model for target file "{target_file}"'
             raise RuntimeError(msg)
         model.init_contents()
-        if model.indirect_locations:
-            model.locations_names = {key: list(range(len(value))) for key, value in model.locations.items()}
-        else:
-            model.locations_names = model.locations
-        model.cached_dump = model.dump()
+        model.init_other()
         return model
 
     def _diff(self, other, method='unified'):

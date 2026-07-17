@@ -1,10 +1,11 @@
 import magpie
 
-from magpie.core import AbstractEdit, TemplatedEdit
+from magpie.core import BasicEdit, TemplatedEdit
 
-class DummyEdit(AbstractEdit):
+class DummyEdit(BasicEdit):
     def apply(self, ref, variant):
         pass
+
     @classmethod
     def auto_create(cls, ref):
         pass
@@ -14,6 +15,7 @@ magpie.utils.known_edits.append(DummyEdit)
 class DummyTemplatedEdit(TemplatedEdit):
     def apply(self, ref, variant):
         pass
+
     @classmethod
     def auto_create(cls, ref):
         pass

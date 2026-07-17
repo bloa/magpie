@@ -4,7 +4,7 @@ import pathlib
 import random
 import re
 
-import magpie.settings
+import magpie
 
 from .errors import ScenarioError
 from .abstract_protocol import AbstractProtocol

@@ -1,10 +1,10 @@
-from magpie.core import AbstractEdit
+from magpie.core import BasicEdit
 import magpie.utils
 
 from .abstract_model import AbstractLineModel
 
 
-class LineDeletionEdit(AbstractEdit):
+class LineDeletionEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AbstractLineModel, writable=True).random_target('line')
@@ -19,7 +19,7 @@ class LineDeletionEdit(AbstractEdit):
 magpie.utils.known_edits.append(LineDeletionEdit)
 
 
-class LineReplacementEdit(AbstractEdit):
+class LineReplacementEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AbstractLineModel, writable=True).random_target('line')
@@ -37,7 +37,7 @@ class LineReplacementEdit(AbstractEdit):
 magpie.utils.known_edits.append(LineReplacementEdit)
 
 
-class LineInsertionEdit(AbstractEdit):
+class LineInsertionEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AbstractLineModel, writable=True).random_target('_inter_line')
@@ -55,7 +55,7 @@ class LineInsertionEdit(AbstractEdit):
 magpie.utils.known_edits.append(LineInsertionEdit)
 
 
-class LineMoveReplacementEdit(AbstractEdit):
+class LineMoveReplacementEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AbstractLineModel, writable=True).random_target('line')
@@ -75,7 +75,7 @@ class LineMoveReplacementEdit(AbstractEdit):
 magpie.utils.known_edits.append(LineMoveReplacementEdit)
 
 
-class LineMoveInsertionEdit(AbstractEdit):
+class LineMoveInsertionEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AbstractLineModel, writable=True).random_target('_inter_line')
@@ -95,7 +95,7 @@ class LineMoveInsertionEdit(AbstractEdit):
 magpie.utils.known_edits.append(LineMoveInsertionEdit)
 
 
-class LineSwapEdit(AbstractEdit):
+class LineSwapEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AbstractLineModel, writable=True).random_target('line')

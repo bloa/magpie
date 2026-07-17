@@ -15,7 +15,7 @@ class ShowPatchProtocol(magpie.core.BasicProtocol):
 
         # compute variant (which includes diff)
         self.software = magpie.utils.software_from_string(self.config['software']['software'])(self.config)
-        self.variant = magpie.core.Variant(self.software, self.patch)
+        self.variant = magpie.core.BasicVariant(self.software, self.patch)
 
         # to write artefact on disk
         self.keep = args.keep

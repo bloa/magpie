@@ -96,7 +96,7 @@ class DebugSearch(LocalSearch):
             patch = magpie.core.Patch([edit])
 
             # compare
-            variant = magpie.core.Variant(self.software, patch)
+            variant = magpie.core.BasicVariant(self.software, patch)
             with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                 run = self.evaluate_variant(variant)
             accept = best = False
@@ -129,7 +129,7 @@ class RandomSearch(LocalSearch):
         self.mutate(patch)
 
         # compare
-        variant = magpie.core.Variant(self.software, patch)
+        variant = magpie.core.BasicVariant(self.software, patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
             run = self.evaluate_variant(variant)
         best = False
@@ -161,7 +161,7 @@ class RandomWalk(LocalSearch):
         self.mutate(patch)
 
         # compare
-        variant = magpie.core.Variant(self.software, patch)
+        variant = magpie.core.BasicVariant(self.software, patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
             run = self.evaluate_variant(variant)
         accept = self.config['accept_fail']
@@ -206,7 +206,7 @@ class FirstImprovement(LocalSearch):
                 break
 
         # compare
-        variant = magpie.core.Variant(self.software, patch)
+        variant = magpie.core.BasicVariant(self.software, patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
             run = self.evaluate_variant(variant)
         accept = best = False
@@ -257,7 +257,7 @@ class BestImprovement(LocalSearch):
                 break
 
         # compare
-        variant = magpie.core.Variant(self.software, patch)
+        variant = magpie.core.BasicVariant(self.software, patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
             run = self.evaluate_variant(variant)
         accept = best = False
@@ -316,7 +316,7 @@ class WorstImprovement(LocalSearch):
                 break
 
         # compare
-        variant = magpie.core.Variant(self.software, patch)
+        variant = magpie.core.BasicVariant(self.software, patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
             run = self.evaluate_variant(variant)
         accept = best = False
@@ -375,7 +375,7 @@ class TabuSearch(BestImprovement):
                 break
 
         # compare
-        variant = magpie.core.Variant(self.software, patch)
+        variant = magpie.core.BasicVariant(self.software, patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
             run = self.evaluate_variant(variant)
         accept = best = False

@@ -2,15 +2,15 @@ import abc
 
 
 class AbstractEvalCache(abc.ABC):
-    def __init__(self):
-        self.config = {}
-        self.config['maxsize'] = 0
-        self.reset()
+    # config
 
+    @abc.abstractmethod
     def reset(self):
-        self.stats = {}
-        self.stats['hits'] = 0
-        self.stats['misses'] = 0
+        pass
+
+    @abc.abstractmethod
+    def setup(self, config):
+        pass
 
     @abc.abstractmethod
     def get(self, diff):

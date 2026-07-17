@@ -2,6 +2,8 @@ import abc
 
 
 class AbstractProtocol(abc.ABC):
+    # self.config
+
     @abc.abstractmethod
     def setup(self):
         pass

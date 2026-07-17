@@ -1,9 +1,9 @@
 import re
 
-from .abstract_edit import AbstractEdit
+from .basic_edit import BasicEdit
 
 
-class TemplatedEdit(AbstractEdit):
+class TemplatedEdit(BasicEdit):
     @classmethod
     def template(cls, template, rename=None):
         args = [s.strip() for s in re.findall(r'"[^"]*?"|[^,]+', template[1:-1])]

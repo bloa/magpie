@@ -40,7 +40,7 @@ class ValidSearch(LocalSearch):
         for k in reversed(range(len(variant.patch.edits))):
             patch = copy.deepcopy(cleaned.patch)
             del patch.edits[k]
-            tmp = magpie.core.Variant(self.software, patch)
+            tmp = magpie.core.BasicVariant(self.software, patch)
             if tmp.diff == variant.diff:
                 self.software.logger.info('removed %s', cleaned.patch.edits[k])
                 cleaned = tmp
@@ -60,7 +60,7 @@ class ValidSingle(ValidSearch):
         # eval every single patch
         for edit in current_patch.edits:
             patch = magpie.core.Patch([edit])
-            variant = magpie.core.Variant(self.software, patch)
+            variant = magpie.core.BasicVariant(self.software, patch)
             with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                 run = self.evaluate_variant(variant)
                 self.hook_evaluation(variant, run)
@@ -78,7 +78,7 @@ class ValidTest(ValidSearch):
 
     def explore(self, current_patch, current_fitness):
         # full patch only
-        variant = magpie.core.Variant(self.software, current_patch)
+        variant = magpie.core.BasicVariant(self.software, current_patch)
         with self.software.add_to_env(counter=self.aux_log_counter(), patch=current_patch):
             run = self.evaluate_variant(variant)
             self.hook_evaluation(variant, run)
@@ -107,7 +107,7 @@ class ValidMinify(ValidSearch):
         self.config['round_robin_limit'] = int(sec['round_robin_limit'])
 
     def explore(self, current_patch, current_fitness):
-        variant = magpie.core.Variant(self.software, current_patch)
+        variant = magpie.core.BasicVariant(self.software, current_patch)
 
         # cleanup
         if self.config['do_cleanup']:
@@ -132,7 +132,7 @@ class ValidMinify(ValidSearch):
             ref_fit = [float('inf') for f in self.software.fitness_trees]
             for edit in variant.patch.edits:
                 patch = magpie.core.Patch([edit])
-                tmp = magpie.core.Variant(self.software, patch)
+                tmp = magpie.core.BasicVariant(self.software, patch)
                 with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                     run = self.evaluate_variant(tmp)
                     self.hook_evaluation(tmp, run)
@@ -147,7 +147,7 @@ class ValidMinify(ValidSearch):
                 for (edit, _) in ranking[1:]:
                     patch = copy.deepcopy(rebuild)
                     patch.edits.append(edit)
-                    tmp = magpie.core.Variant(self.software, patch)
+                    tmp = magpie.core.BasicVariant(self.software, patch)
                     with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                         run = self.evaluate_variant(tmp)
                         self.hook_evaluation(tmp, run)
@@ -171,7 +171,7 @@ class ValidMinify(ValidSearch):
                     if i == n-1:
                         rr_limit -= 1
                     patch = magpie.core.Patch([e for (j, e) in enumerate(self.report['best_solution']['patch'].edits) if (j+last_i)%n != i])
-                    tmp = magpie.core.Variant(self.software, patch)
+                    tmp = magpie.core.BasicVariant(self.software, patch)
                     with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                         run = self.evaluate_variant(tmp)
                         self.hook_evaluation(tmp, run)

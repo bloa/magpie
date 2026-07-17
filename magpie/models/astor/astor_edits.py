@@ -1,10 +1,10 @@
-from magpie.core import AbstractEdit
+from magpie.core import BasicEdit
 import magpie.utils
 
 from .astor_model import AstorModel
 
 
-class AstorStmtReplacementEdit(AbstractEdit):
+class AstorStmtReplacementEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel, writable=True).random_target('stmt')
@@ -22,7 +22,7 @@ class AstorStmtReplacementEdit(AbstractEdit):
 magpie.utils.known_edits.append(AstorStmtReplacementEdit)
 
 
-class AstorStmtInsertionEdit(AbstractEdit):
+class AstorStmtInsertionEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel, writable=True).random_target('_inter_block')
@@ -40,7 +40,7 @@ class AstorStmtInsertionEdit(AbstractEdit):
 magpie.utils.known_edits.append(AstorStmtInsertionEdit)
 
 
-class AstorStmtDeletionEdit(AbstractEdit):
+class AstorStmtDeletionEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel, writable=True).random_target('stmt')
@@ -55,7 +55,7 @@ class AstorStmtDeletionEdit(AbstractEdit):
 magpie.utils.known_edits.append(AstorStmtDeletionEdit)
 
 
-class AstorStmtMoveReplacementEdit(AbstractEdit):
+class AstorStmtMoveReplacementEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel, writable=True).random_target('stmt')
@@ -75,7 +75,7 @@ class AstorStmtMoveReplacementEdit(AbstractEdit):
 magpie.utils.known_edits.append(AstorStmtMoveReplacementEdit)
 
 
-class AstorStmtMoveInsertionEdit(AbstractEdit):
+class AstorStmtMoveInsertionEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel, writable=True).random_target('stmt')
@@ -95,7 +95,7 @@ class AstorStmtMoveInsertionEdit(AbstractEdit):
 magpie.utils.known_edits.append(AstorStmtMoveInsertionEdit)
 
 
-class AstorStmtSwapEdit(AbstractEdit):
+class AstorStmtSwapEdit(BasicEdit):
     @classmethod
     def auto_create(cls, ref):
         target = ref.random_model(AstorModel, writable=True).random_target('stmt')

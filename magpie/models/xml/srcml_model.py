@@ -10,7 +10,7 @@ class SrcmlModel(XmlModel):
         super().__init__(filename, software)
         self.renamed_filename = filename.split('.xml')[0]
         config = software.config['srcml'].copy()
-        if sec := software._resolve_config_section(filename):
+        if sec := self._resolve_config_section(software, filename):
             config.update(software.config[sec])
         for k in [
                 'process_pseudo_blocks',

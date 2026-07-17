@@ -5,11 +5,15 @@ from .abstract_fitness import AbstractFitness
 from .abstract_model import AbstractModel
 from .abstract_protocol import AbstractProtocol
 from .abstract_software import AbstractSoftware
+from .abstract_variant import AbstractVariant
 from .basic_algorithm import BasicAlgorithm
+from .basic_edit import BasicEdit
 from .basic_evalcache import BasicEvalCache
 from .basic_fitness import BasicFitness
+from .basic_model import BasicModel
 from .basic_protocol import BasicProtocol
 from .basic_software import BasicSoftware
+from .basic_variant import BasicVariant
 from .errors import ScenarioError
 from .execresult import ExecResult
 from .patch import Patch
@@ -17,4 +21,3 @@ from .runresult import RunResult
 from .search_protocol import SearchProtocol, SearchPatchProtocol
 from .templated_edit import TemplatedEdit
 from .templated_fitness import TemplatedFitness
-from .variant import Variant

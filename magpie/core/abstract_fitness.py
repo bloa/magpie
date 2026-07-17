@@ -2,8 +2,7 @@ import abc
 
 
 class AbstractFitness(abc.ABC):
-    def __init__(self, software):
-        self.software = software
+    # software
 
     @abc.abstractmethod
     def process_init_exec(self, run_result, exec_result):

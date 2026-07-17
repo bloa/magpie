@@ -3,12 +3,16 @@ from .abstract_evalcache import AbstractEvalCache
 
 class BasicEvalCache(AbstractEvalCache):
     def __init__(self):
-        super().__init__()
-        self.config['maxsize'] = 40
-        self.config['keep'] = 0.2
+        self.config = {}
+        self.config['maxsize'] = 0
+        self.config['keep'] = 0
+
+        self.reset
 
     def reset(self):
-        super().reset()
+        self.stats = {}
+        self.stats['hits'] = 0
+        self.stats['misses'] = 0
         self.cache = {}
         self.cache_hits = {}
 

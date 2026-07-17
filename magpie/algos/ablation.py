@@ -12,7 +12,7 @@ class AblationAnalysis(ValidSearch):
         self.name = 'Ablation Analysis'
 
     def explore(self, current_patch, current_fitness):
-        variant = magpie.core.Variant(self.software, current_patch)
+        variant = magpie.core.BasicVariant(self.software, current_patch)
 
         # cleanup
         self.software.logger.info('---- cleanup ----')
@@ -38,7 +38,7 @@ class AblationAnalysis(ValidSearch):
             for k, _ in enumerate(rebuild.edits):
                 patch = copy.deepcopy(rebuild)
                 del patch.edits[k]
-                tmp = magpie.core.Variant(self.software, patch)
+                tmp = magpie.core.BasicVariant(self.software, patch)
                 with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                     run = self.evaluate_variant(tmp)
                     self.hook_evaluation(tmp, run)
@@ -56,7 +56,7 @@ class AblationAnalysis(ValidSearch):
         patch = copy.deepcopy(variant.patch)
         for i in removed:
             edit = patch.edits.pop(i) # modify in-place
-            tmp = magpie.core.Variant(self.software, patch)
+            tmp = magpie.core.BasicVariant(self.software, patch)
             with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
                 run = self.evaluate_variant(tmp) # should be already cached
                 run.log = f'removing {edit}'

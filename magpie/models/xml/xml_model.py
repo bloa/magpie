@@ -12,7 +12,7 @@ class XmlModel(AbstractXmlModel):
     def __init__(self, filename, software):
         super().__init__(filename, software)
         config = software.config['xml'].copy()
-        if sec := software._resolve_config_section(filename):
+        if sec := self._resolve_config_section(software, filename):
             config.update(software.config[sec])
         self.config = {}
         self.config['internodes'] = set(config['internodes'].split())

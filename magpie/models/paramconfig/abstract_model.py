@@ -3,7 +3,7 @@ import magpie.core
 from .realms import Realm
 
 
-class AbstractConfigModel(magpie.core.AbstractModel):
+class AbstractConfigModel(magpie.core.BasicModel):
     def __init__(self, filename, software):
         super().__init__(filename, software)
         self.indirect_locations = False

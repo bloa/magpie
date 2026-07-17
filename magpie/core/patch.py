@@ -32,6 +32,10 @@ class Patch:
     def __hash__(self):
         return hash(str(self))
 
+    def apply(self, ref, variant):
+        for edit in self.edits:
+            edit.apply(ref, variant)
+
     def raw(self):
         return [{
             'type': edit.__class__.__name__,
