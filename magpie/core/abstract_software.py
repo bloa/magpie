@@ -1,8 +1,8 @@
 import abc
-import contextlib
 
 
 class AbstractSoftware(abc.ABC):
+    # config
     # logger
     # path
     # basename
@@ -11,22 +11,15 @@ class AbstractSoftware(abc.ABC):
     # noop_variant
     # model_config
     # model_rules
-    # work_dir
-    # run_label
+    # fitness_trees
+    # noop_variant
+    # init_...
+    # setup_...
+    # compile_...
+    # test_...
+    # run_...
+    # batch_...
 
     @abc.abstractmethod
-    def evaluate_variant(self, variant, cached_run=None):
-        pass
-
-    @abc.abstractmethod
-    def write_variant(self, variant):
-        pass
-
-    @abc.abstractmethod
-    @contextlib.contextmanager
-    def add_to_env(self, counter=None, patch=None):
-        pass
-
-    @abc.abstractmethod
-    def clean_work_dir(self):
+    def setup(self):
         pass

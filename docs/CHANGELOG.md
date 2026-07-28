@@ -12,6 +12,7 @@
 - refactored protocols and scenario management
 - refactored formatting options for better parsing and granularity
 - changed output to uniform between single- and multi-objective
+- refactored evaluation/execution pipeline
 
 
 ## [1.2.2] bloa_stable

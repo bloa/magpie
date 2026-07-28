@@ -13,8 +13,13 @@ class ShowPatchProtocol(magpie.core.BasicProtocol):
                 patch = f.read().strip()
         self.patch = magpie.core.Patch.from_string(patch)
 
-        # compute variant (which includes diff)
+        # setup magpie
         self.software = magpie.utils.software_from_string(self.config['software']['software'])(self.config)
+        self.exec_manager = magpie.core.BasicExecManager(self.software)
+        self.software.setup()
+        self.exec_manager.setup()
+
+        # compute variant (which includes diff)
         self.variant = magpie.core.BasicVariant(self.software, self.patch)
 
         # to write artefact on disk
@@ -24,22 +29,25 @@ class ShowPatchProtocol(magpie.core.BasicProtocol):
         pass
 
     def report(self):
+        # control ANSI characters in output
         fancy = magpie.settings.color_output
+        logger = self.software.logger
+
         header = magpie.utils.format_header('PATCH', fancy)
-        self.software.logger.info('%s\n%s', header, self.patch)
+        logger.info('%s\n%s', header, self.patch)
         if self.keep:
-            self.software.logger.info('')
+            logger.info('')
             header = magpie.utils.format_header('ARTEFACT', fancy)
-            self.software.logger.info('%s\n%s', self.software.work_dir)
-            self.software.write_variant(self.variant)
-        self.software.logger.info('')
+            logger.info('%s\n%s', self.software.work_dir)
+            self.exec_manager.write_variant(self.variant)
+        logger.info('')
         header = magpie.utils.format_header('DIFF', fancy)
         diff = magpie.utils.format_diff(self.variant.diff[:], fancy)
-        self.software.logger.info('%s\n%s', header, diff)
+        logger.info('%s\n%s', header, diff)
 
     def cleanup(self):
         if not self.keep:
-            self.software.clean_work_dir()
+            self.exec_manager.clean_work_dir()
 
 
 if __name__ == '__main__':

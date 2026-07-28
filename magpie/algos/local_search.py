@@ -7,12 +7,15 @@ import magpie.utils
 
 
 class LocalSearch(magpie.core.BasicAlgorithm):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Local Search'
-        sec = config['search.ls']
+
+    def setup(self):
+        super().setup()
+        sec = self.software.config['search.ls']
         self.config['delete_prob'] = float(sec['delete_prob'])
-        self.config['max_neighbours'] = int(val) if (val := sec['max_neighbours']) else None
+        self.config['max_neighbours'] = int(val) if (val := sec['max_neighbours']) else 999999
         self.config['when_trapped'] = sec['when_trapped']
 
     def reset(self):
@@ -73,8 +76,8 @@ class LocalSearch(magpie.core.BasicAlgorithm):
 
 
 class DummySearch(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Dummy Search'
 
     def explore(self, current_patch, current_fitness):
@@ -85,8 +88,8 @@ magpie.utils.known_algos.append(DummySearch)
 
 
 class DebugSearch(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Debug Search'
 
     def explore(self, current_patch, current_fitness):
@@ -97,8 +100,7 @@ class DebugSearch(LocalSearch):
 
             # compare
             variant = magpie.core.BasicVariant(self.software, patch)
-            with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-                run = self.evaluate_variant(variant)
+            run = self.evaluate_variant(variant, counter=self.aux_log_counter())
             accept = best = False
             if run.status == 'SUCCESS':
                 accept = True
@@ -119,8 +121,8 @@ magpie.utils.known_algos.append(DebugSearch)
 
 
 class RandomSearch(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Random Search'
 
     def explore(self, current_patch, current_fitness):
@@ -130,8 +132,7 @@ class RandomSearch(LocalSearch):
 
         # compare
         variant = magpie.core.BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-            run = self.evaluate_variant(variant)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter())
         best = False
         if run.status == 'SUCCESS':
             if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
@@ -149,10 +150,13 @@ magpie.utils.known_algos.append(RandomSearch)
 
 
 class RandomWalk(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Random Walk'
-        sec = config['search.ls']
+
+    def setup(self):
+        super().setup()
+        sec = self.software.config['search.ls']
         self.config['accept_fail'] = sec['accept_fail']
 
     def explore(self, current_patch, current_fitness):
@@ -162,8 +166,7 @@ class RandomWalk(LocalSearch):
 
         # compare
         variant = magpie.core.BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-            run = self.evaluate_variant(variant)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter())
         accept = self.config['accept_fail']
         best = False
         if run.status == 'SUCCESS':
@@ -192,9 +195,12 @@ magpie.utils.known_algos.append(RandomWalk)
 
 
 class FirstImprovement(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'First Improvement'
+
+    def reset(self):
+        super().reset()
         self.local_tabu = set()
 
     def explore(self, current_patch, current_fitness):
@@ -207,8 +213,7 @@ class FirstImprovement(LocalSearch):
 
         # compare
         variant = magpie.core.BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-            run = self.evaluate_variant(variant)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter())
         accept = best = False
         if run.status == 'SUCCESS':
             if not magpie.utils.dominates(current_fitness, run.fitness):
@@ -240,10 +245,12 @@ magpie.utils.known_algos.append(FirstImprovement)
 
 
 class BestImprovement(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Best Improvement'
-        self.config['max_neighbours'] = 20
+
+    def reset(self):
+        super().reset()
         self.local_best_patch = None
         self.local_best_fitness = None
         self.local_tabu = set()
@@ -258,8 +265,7 @@ class BestImprovement(LocalSearch):
 
         # compare
         variant = magpie.core.BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-            run = self.evaluate_variant(variant)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter())
         accept = best = False
         if run.status == 'SUCCESS':
             if not magpie.utils.dominates(current_fitness, run.fitness):
@@ -299,10 +305,12 @@ magpie.utils.known_algos.append(BestImprovement)
 
 
 class WorstImprovement(LocalSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Worst Improvement'
-        self.config['max_neighbours'] = 20
+
+    def reset(self):
+        super().reset()
         self.local_worst_patch = None
         self.local_worst_fitness = None
         self.local_tabu = set()
@@ -317,8 +325,7 @@ class WorstImprovement(LocalSearch):
 
         # compare
         variant = magpie.core.BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-            run = self.evaluate_variant(variant)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter())
         accept = best = False
         if run.status == 'SUCCESS':
             if not magpie.utils.dominates(current_fitness, run.fitness):
@@ -358,11 +365,17 @@ magpie.utils.known_algos.append(WorstImprovement)
 
 
 class TabuSearch(BestImprovement):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Tabu Search'
-        sec = config['search.ls']
+
+    def setup(self):
+        super().setup()
+        sec = self.software.config['search.ls']
         self.config['tabu_length'] = sec['tabu_length']
+
+    def reset(self):
+        super().reset()
         self.tabu_list = [magpie.core.Patch()] # queues are not iterable
         self.local_tabu = set()
 
@@ -376,8 +389,7 @@ class TabuSearch(BestImprovement):
 
         # compare
         variant = magpie.core.BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-            run = self.evaluate_variant(variant)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter())
         accept = best = False
         if run.status == 'SUCCESS':
             if not magpie.utils.dominates(self.local_best_fitness, run.fitness):

@@ -10,29 +10,35 @@ class ShowLocationsProtocol(magpie.core.BasicProtocol):
         self.filename = filename
         self.tag = tag
         self.software = magpie.utils.software_from_string(self.config['software']['software'])(self.config)
+        self.exec_manager = magpie.core.BasicExecManager(self.software)
+        self.software.setup()
+        self.exec_manager.setup()
 
     def run(self):
+        # control ANSI characters in output
         fancy = magpie.settings.color_output
+        logger = self.software.logger
+
         for filename in [*self.software.target_files, *self.software.ingredient_files]:
             if self.filename is not None and self.filename != filename:
                 continue
             header = magpie.utils.format_header(filename, fancy)
-            self.software.logger.info(header)
+            logger.info(header)
             model = self.software.noop_variant.models[filename]
             for tag in model.locations:
                 if self.tag is not None and self.tag != tag:
                     continue
                 header = magpie.utils.format_subheader(tag, fancy)
-                self.software.logger.info(header)
+                logger.info(header)
                 for loc in model.locations_names[tag]:
-                    self.software.logger.info(model.show_location(tag, loc))
-                self.software.logger.info('')
+                    logger.info(model.show_location(tag, loc))
+                logger.info('')
 
     def report(self):
         pass
 
     def cleanup(self):
-        self.software.clean_work_dir()
+        self.exec_manager.clean_work_dir()
 
 
 if __name__ == '__main__':

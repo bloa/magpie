@@ -7,8 +7,8 @@ from .validation import ValidSearch
 
 
 class AblationAnalysis(ValidSearch):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Ablation Analysis'
 
     def explore(self, current_patch, current_fitness):
@@ -22,9 +22,8 @@ class AblationAnalysis(ValidSearch):
         # full patch first
         self.software.logger.info('---- exploration ----')
         if variant.patch.edits:
-            with self.software.add_to_env(counter=self.aux_log_counter(), patch=variant.patch):
-                run = self.evaluate_variant(variant)
-                self.hook_evaluation(variant, run)
+            run = self.evaluate_variant(variant, counter=self.aux_log_counter())
+            self.hook_evaluation(variant, run)
         else:
             self.report['stop'] = 'ablation end (empty patch)'
             return variant.patch, current_fitness
@@ -39,9 +38,8 @@ class AblationAnalysis(ValidSearch):
                 patch = copy.deepcopy(rebuild)
                 del patch.edits[k]
                 tmp = magpie.core.BasicVariant(self.software, patch)
-                with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-                    run = self.evaluate_variant(tmp)
-                    self.hook_evaluation(tmp, run)
+                run = self.evaluate_variant(tmp, counter=self.aux_log_counter())
+                self.hook_evaluation(tmp, run)
                 ranking.append((k, run.fitness))
             ranking.sort(key=lambda c: c[1] or ref_fit)
             best_edit_id = ranking[0][0]
@@ -50,17 +48,15 @@ class AblationAnalysis(ValidSearch):
 
         # analysis
         self.software.logger.info('---- backtrack ----')
-        with self.software.add_to_env(counter=self.aux_log_counter(), patch=variant.patch):
-            run = self.evaluate_variant(variant) # should be already cached (initial)
-            self.hook_evaluation(variant, run)
+        run = self.evaluate_variant(variant, counter=self.aux_log_counter()) # should be already cached (initial)
+        self.hook_evaluation(variant, run)
         patch = copy.deepcopy(variant.patch)
         for i in removed:
             edit = patch.edits.pop(i) # modify in-place
             tmp = magpie.core.BasicVariant(self.software, patch)
-            with self.software.add_to_env(counter=self.aux_log_counter(), patch=patch):
-                run = self.evaluate_variant(tmp) # should be already cached
-                run.log = f'removing {edit}'
-                self.hook_evaluation(tmp, run)
+            run = self.evaluate_variant(tmp, counter=self.aux_log_counter()) # should be already cached
+            run.log = f'removing {edit}'
+            self.hook_evaluation(tmp, run)
 
         self.report['stop'] = 'ablation end'
         return self.report['best_solution']['patch'], self.report['best_solution']['fitness']

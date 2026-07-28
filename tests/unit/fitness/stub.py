@@ -5,15 +5,15 @@ import magpie
 
 class StubSoftware(magpie.core.BasicSoftware):
     def __init__(self):
-        config = copy.deepcopy(magpie.default_scenario)
-        config['software'].update({
+        super().__init__(copy.deepcopy(magpie.default_scenario))
+        self.config['software'].update({
             'path': 'foo',
             'target_files': 'foo/bar',
             'possible_edits': 'LineDeletion',
             'fitness': 'output',
         })
-        super().__init__(config)
 
+class StubExecManager(magpie.core.BasicExecManager):
     def reset_timestamp(self):
         self.unix_timestamp = 0
         self.run_label = 'foo_0_0'

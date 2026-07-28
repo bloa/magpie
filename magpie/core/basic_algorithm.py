@@ -8,19 +8,22 @@ import magpie.settings
 import magpie.utils
 
 from .abstract_algorithm import AbstractAlgorithm
-from .basic_evalcache import BasicEvalCache
 from .basic_variant import BasicVariant
 from .errors import ScenarioError
 from .patch import Patch
 
 
 class BasicAlgorithm(AbstractAlgorithm):
-    def __init__(self, config):
-        self.software = None
-        self.eval_cache = BasicEvalCache()
-        self.eval_cache.setup(config)
+    def __init__(self, software, eval_manager):
+        self.software = software
+        self.eval_manager = eval_manager
+        self.config = {}
+        self.stats = {}
+        self.report = {}
+        self.stop = {}
 
-        sec = config['search']
+    def setup(self):
+        sec = self.software.config['search']
         self.config = {}
         self.config['warmup'] = magpie.utils.str_to_int_or_none(sec['warmup'])
         self.config['warmup_strategy'] = sec['warmup_strategy']
@@ -62,7 +65,7 @@ class BasicAlgorithm(AbstractAlgorithm):
                     bins.append([])
             elif s[:5] == 'file:':
                 try:
-                    with (pathlib.Path(config['software']['path']) / s[5:]).open('r') as bin_file:
+                    with (pathlib.Path(sec['path']) / s[5:]).open('r') as bin_file:
                         bins[-1].extend([line for line in [line.strip() for line in bin_file] if line and line[0] != '#'])
                 except FileNotFoundError:
                     with pathlib.Path(s[5:]).open('r') as bin_file:
@@ -96,14 +99,11 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stats['budget'] = 0
         self.stats['steps'] = 0
         self.stats['wallclock_start'] = time.time() # dummy
-        self.stats['cache_hits'] = 0
-        self.stats['cache_misses'] = 0
         self.report = {}
         self.report['reference_solution'] = {'patch': None, 'fitness': None, 'diff': None}
         self.report['best_solution'] = {'patch': None, 'fitness': None, 'diff': None}
         self.report['best_solutions'] = []
         self.report['stop'] = None
-        self.eval_cache.reset()
 
     def hook_reset_batch(self):
         # resample instances
@@ -121,16 +121,15 @@ class BasicAlgorithm(AbstractAlgorithm):
                     if s == 0:
                         break
         batch = [b for b in batch if b] # discards empty bins
-        self.software.batch = batch if any(batch) else [['']] # single empty instance when no batch
+        self.eval_manager.batch = batch if any(batch) else [['']] # single empty instance when no batch
         # early exit before warmup
         if self.report['reference_solution']['fitness'] is None:
             return
         # reset reference fitness
         patch = Patch([])
         variant = BasicVariant(self.software, patch)
-        with self.software.add_to_env(counter='REF'):
-            run = self.evaluate_variant(variant)
-            self.hook_warmup_evaluation('REF', patch, run)
+        run = self.eval_manager.evaluate_variant(variant, counter='REF')
+        self.hook_warmup_evaluation('REF', patch, run)
         self.report['reference_solution']['fitness'] = run.fitness
         if run.status != 'SUCCESS':
             msg = 'Reference software evaluation failed'
@@ -139,10 +138,9 @@ class BasicAlgorithm(AbstractAlgorithm):
         solution = self.report['best_solution']
         if solution['patch'] and solution['patch'].edits:
             variant = BasicVariant(self.software, solution['patch'])
-            with self.software.add_to_env(counter='BEST', patch=solution['patch']):
-                run = self.evaluate_variant(variant)
-                best = magpie.utils.dominates(run.fitness, solution['fitness'])
-                self.hook_batch_evaluation('BEST', solution['patch'], run, best)
+            run = self.eval_manager.evaluate_variant(variant, counter='BEST')
+            best = magpie.utils.dominates(run.fitness, solution['fitness'])
+            self.hook_batch_evaluation('BEST', solution['patch'], run, best)
             if run.status == 'SUCCESS' and best:
                 self.report['best_solution']['fitness'] = run.fitness
             else:
@@ -163,7 +161,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         data = self.aux_log_data(patch, run, counter, None, False, False)
         self.aux_log_print(data, run, False, False)
         if run.status != 'SUCCESS':
-            self.software.diagnose_error(run)
+            self.exec_manager.diagnose_error(run)
 
     def hook_batch_evaluation(self, counter, patch, run, best=False):
         data = self.aux_log_data(patch, run, counter, self.report['reference_solution']['fitness'], False, best)
@@ -289,9 +287,8 @@ class BasicAlgorithm(AbstractAlgorithm):
             self.report['reference_solution']['patch'] = patch
         warmup_values = []
         for _ in range(max(self.config['warmup'] or 1, 1), 0, -1):
-            with self.software.add_to_env(counter='WARM'):
-                run = self.evaluate_variant(variant, force=True)
-                self.hook_warmup_evaluation('WARM', patch, run)
+            run = self.eval_manager.evaluate_variant(variant, counter='WARM', force=True)
+            self.hook_warmup_evaluation('WARM', patch, run)
             if run.status != 'SUCCESS':
                 step = run.status.split('_')[0].lower()
                 self.report['stop'] = f'failed to {step} target software'
@@ -299,15 +296,14 @@ class BasicAlgorithm(AbstractAlgorithm):
             warmup_values.append(run.fitness)
         current_fitness = self._aggregate_warmup(warmup_values, self.config['warmup_strategy'])
         run.fitness = current_fitness
-        self.eval_cache.update(variant.diff, run)
+        self.eval_manager.cache_update(variant.diff, run)
         self.hook_warmup_evaluation('REF', patch, run)
         self.report['reference_solution']['fitness'] = current_fitness
         solution = self.report['best_solution']
         if solution['patch']:
             variant = BasicVariant(self.software, solution['patch'])
-            with self.software.add_to_env(counter='BEST', patch=solution['patch']):
-                run = self.evaluate_variant(variant, force=True)
-                self.hook_warmup_evaluation('BEST', patch, run)
+            run = self.eval_manager.evaluate_variant(variant, counter='BEST', force=True)
+            self.hook_warmup_evaluation('BEST', patch, run)
             if magpie.utils.dominates(run.fitness, current_fitness):
                 self.report['best_solution']['fitness'] = run.fitness
             else:
@@ -372,11 +368,7 @@ class BasicAlgorithm(AbstractAlgorithm):
                 raise RuntimeError(msg)
         return edit
 
-    def evaluate_variant(self, variant, force=False):
-        cached_run = None
-        if not force:
-            cached_run = self.eval_cache.get(variant.diff) # potentially partial
-        run = self.software.evaluate_variant(variant, cached_run)
-        self.eval_cache.update(variant.diff, run)
+    def evaluate_variant(self, variant, counter=None, force=False):
+        run = self.eval_manager.evaluate_variant(variant, counter=counter, force=force)
         self.stats['budget'] += getattr(run, 'budget', 0) or 0
         return run

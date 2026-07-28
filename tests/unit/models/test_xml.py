@@ -14,8 +14,9 @@ from .util import assert_diff
 def xml_model():
     class StubSoftware(magpie.core.BasicSoftware):
         def __init__(self):
-            self.config = copy.deepcopy(magpie.default_scenario)
-            self.model_config = magpie.core.BasicSoftware._init_model_config(self.config['software']['model_config'])
+            super().__init__(copy.deepcopy(magpie.default_scenario))
+            self.config['software']['fitness'] = 'time'
+            self.setup()
 
     model = XmlModel('Triangle.java.xml', StubSoftware())
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):

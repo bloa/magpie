@@ -25,7 +25,7 @@ from magpie.core import BasicSoftware, ScenarioError
     ('', []),
 ])
 def test_init_model_rules(value, ref):
-    assert BasicSoftware._init_model_rules(value) == ref
+    assert BasicSoftware._setup_model_rules(value) == ref
 
 @pytest.mark.parametrize('value', [
     'foo',
@@ -38,7 +38,7 @@ def test_init_model_rules(value, ref):
 ])
 def test_init_model_rules_fail(value):
     with pytest.raises(ScenarioError):
-        BasicSoftware._init_model_rules(value)
+        BasicSoftware._setup_model_rules(value)
 
 @pytest.mark.parametrize(('value', 'ref'), [
     ("""
@@ -57,7 +57,7 @@ def test_init_model_rules_fail(value):
     ('', []),
 ])
 def test_init_model_config(value, ref):
-    assert BasicSoftware._init_model_config(value) == ref
+    assert BasicSoftware._setup_model_config(value) == ref
 
 @pytest.mark.parametrize('value', [
     'foo',
@@ -72,7 +72,7 @@ def test_init_model_config(value, ref):
 ])
 def test_init_model_config_fail(value):
     with pytest.raises(ScenarioError):
-        BasicSoftware._init_model_config(value)
+        BasicSoftware._setup_model_config(value)
 
 @pytest.mark.parametrize(('expr', 'ref'), [
     ('time', [['time']]),
@@ -88,5 +88,5 @@ def test_init_model_config_fail(value):
     ('perf<foo bar> ; -perf<bar baz>', [['perf<foo bar>'], ['perf<bar baz>']]),
 ])
 def test_init_model_fitness(expr, ref):
-    trees = BasicSoftware._init_model_fitness(expr)
+    trees = BasicSoftware._setup_model_fitness(expr)
     assert [tree.variables for tree in trees] == ref

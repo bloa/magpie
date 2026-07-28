@@ -12,8 +12,9 @@ from magpie.models.xml import SrcmlModel, XmlModel
 def xml_model():
     class StubSoftware(magpie.core.BasicSoftware):
         def __init__(self):
-            self.config = copy.deepcopy(magpie.default_scenario)
-            self.model_config = magpie.core.BasicSoftware._init_model_config(self.config['software']['model_config'])
+            super().__init__(copy.deepcopy(magpie.default_scenario))
+            self.config['software']['fitness'] = 'time'
+            self.setup()
 
     with contextlib.chdir(pathlib.Path('tests') / 'examples'):
         model = XmlModel('triangle.c.xml', StubSoftware())

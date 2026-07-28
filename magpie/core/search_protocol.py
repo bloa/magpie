@@ -19,9 +19,14 @@ class SearchProtocol(BasicProtocol):
     def setup(self):
         super().setup()
 
-        self.search = magpie.utils.algo_from_string(self.config['search']['algorithm'])(self.config)
         self.software = magpie.utils.software_from_string(self.config['software']['software'])(self.config)
-        self.search.software = self.software
+        self.exec_manager = magpie.core.BasicExecManager(self.software)
+        self.eval_manager = magpie.core.BasicEvalManager(self.software, self.exec_manager)
+        self.search = magpie.utils.algo_from_string(self.config['search']['algorithm'])(self.software, self.eval_manager)
+        self.software.setup()
+        self.exec_manager.setup()
+        self.eval_manager.setup()
+        self.search.setup()
 
     def run(self):
         # control ANSI characters in output
@@ -107,7 +112,7 @@ class SearchProtocol(BasicProtocol):
             logger.info('%s\n%s', header, diff)
 
             # for convenience, save best patch and diff to separate files
-            base_path = pathlib.Path(magpie.settings.log_dir) / self.software.run_label
+            base_path = self.exec_manager.base_log_path()
             patch_file = f'{base_path}.best.patch'
             diff_file = f'{base_path}.best.diff'
             logger.info('[best] patch file: %s', patch_file)
@@ -129,7 +134,7 @@ class SearchProtocol(BasicProtocol):
                 logger.info('%s\n%s', header, diff)
 
                 # for convenience, save best patch and diff to separate files
-                base_path = pathlib.Path(magpie.settings.log_dir) / self.software.run_label
+                base_path = self.exec_manager.base_log_path()
                 patch_file = f'{base_path}.best-{i}.patch'
                 diff_file = f'{base_path}.best-{i}.diff'
                 logger.info('[best-%d] patch file: %s', i, patch_file)
@@ -141,7 +146,7 @@ class SearchProtocol(BasicProtocol):
 
     def cleanup(self):
         # cleanup temporary software copies
-        self.software.clean_work_dir()
+        self.exec_manager.clean_work_dir()
 
 magpie.utils.known_protocols.append(SearchProtocol)
 

@@ -7,10 +7,13 @@ import magpie.utils
 
 
 class GeneticProgramming(magpie.core.BasicAlgorithm):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Genetic Programming'
-        sec = config['search.gp']
+
+    def setup(self):
+        super().setup()
+        sec = self.software.config['search.gp']
         self.config['pop_size'] = int(sec['pop_size'])
         self.config['delete_prob'] = float(sec['delete_prob'])
         self.config['offspring_elitism'] = float(sec['offspring_elitism'])
@@ -67,8 +70,7 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
             local_best_fitness = None
             for sol in offsprings:
                 variant = magpie.core.BasicVariant(self.software, sol)
-                with self.software.add_to_env(counter=self.aux_log_counter(), patch=sol):
-                    run = self.evaluate_variant(variant)
+                run = self.evaluate_variant(variant, counter=self.aux_log_counter())
                 accept = best = False
                 if run.status == 'SUCCESS':
                     if magpie.utils.dominates(run.fitness, local_best_fitness):
@@ -122,8 +124,7 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                     if self.stopping_condition():
                         break
                     variant = magpie.core.BasicVariant(self.software, sol)
-                    with self.software.add_to_env(counter=self.aux_log_counter(), patch=sol):
-                        run = self.evaluate_variant(variant)
+                    run = self.evaluate_variant(variant, counter=self.aux_log_counter())
                     accept = best = False
                     if run.status == 'SUCCESS':
                         if magpie.utils.dominates(run.fitness, local_best_fitness):
@@ -170,8 +171,8 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
 
 
 class GeneticProgrammingConcat(GeneticProgramming):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Genetic Programming (Concat)'
 
     def crossover(self, sol1, sol2):
@@ -184,8 +185,8 @@ magpie.utils.known_algos.append(GeneticProgrammingConcat)
 
 
 class GeneticProgramming1Point(GeneticProgramming):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Genetic Programming (1-point)'
 
     def crossover(self, sol1, sol2):
@@ -202,8 +203,8 @@ magpie.utils.known_algos.append(GeneticProgramming1Point)
 
 
 class GeneticProgramming2Point(GeneticProgramming):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Genetic Programming (2-point)'
 
     def crossover(self, sol1, sol2):
@@ -224,10 +225,14 @@ magpie.utils.known_algos.append(GeneticProgramming2Point)
 
 
 class GeneticProgrammingUniformConcat(GeneticProgramming):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Genetic Programming (uniform+concatenation)'
-        self.config['uniform_rate'] = float(config['search.gp']['uniform_rate'])
+
+    def setup(self):
+        super().setup()
+        sec = self.software.config['search.gp']
+        self.config['uniform_rate'] = float(sec['uniform_rate'])
 
     def crossover(self, sol1, sol2):
         c = magpie.core.Patch()
@@ -249,10 +254,14 @@ magpie.utils.known_algos.append(GeneticProgrammingUniformConcat)
 
 
 class GeneticProgrammingUniformInter(GeneticProgramming):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, software, eval_manager):
+        super().__init__(software, eval_manager)
         self.name = 'Genetic Programming (uniform+interleaved)'
-        self.config['uniform_rate'] = float(config['search.gp']['uniform_rate'])
+
+    def setup(self):
+        super().setup()
+        sec = self.software.config['search.gp']
+        self.config['uniform_rate'] = float(sec['uniform_rate'])
 
     def crossover(self, sol1, sol2):
         c = magpie.core.Patch()
