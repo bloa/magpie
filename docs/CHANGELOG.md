@@ -5,6 +5,7 @@
 **Fixed**
 
 - fix colour stripping in log files
+- fix logging for some LS algorithms
 
 
 ## [1.2.1] 2026-04-28

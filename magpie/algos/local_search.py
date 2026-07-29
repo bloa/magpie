@@ -114,7 +114,7 @@ class DebugSearch(LocalSearch):
                     best = True
 
             # hook
-            self.hook_evaluation(patch, run, accept, best)
+            self.hook_evaluation(variant, run, accept, best)
 
             # next
             self.stats['steps'] += 1
@@ -195,7 +195,7 @@ class RandomWalk(LocalSearch):
             self.check_if_trapped()
 
         # hook
-        self.hook_evaluation(patch, run, accept, best)
+        self.hook_evaluation(variant, run, accept, best)
 
         # next
         self.stats['steps'] += 1
@@ -304,7 +304,7 @@ class BestImprovement(LocalSearch):
             self.check_if_trapped()
 
         # hook
-        self.hook_evaluation(patch, run, accept, best)
+        self.hook_evaluation(variant, run, accept, best)
 
         # next
         self.stats['steps'] += 1
@@ -364,7 +364,7 @@ class WorstImprovement(LocalSearch):
             self.check_if_trapped()
 
         # hook
-        self.hook_evaluation(patch, run, accept, best)
+        self.hook_evaluation(variant, run, accept, best)
 
         # next
         self.stats['steps'] += 1
@@ -430,7 +430,7 @@ class TabuSearch(BestImprovement):
             self.check_if_trapped()
 
         # hook
-        self.hook_evaluation(patch, run, accept, best)
+        self.hook_evaluation(variant, run, accept, best)
 
         # next
         self.stats['steps'] += 1
