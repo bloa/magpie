@@ -30,6 +30,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stop = {}
         self.stop['budget'] = None
         self.stop['steps'] = int(val) if (val := sec['max_steps']) else None
+        self.stop['gens'] = int(val) if (val := sec['max_gens']) else None
         self.stop['wall'] = int(val) if (val := sec['max_time']) else None
         self.stop['fitness'] = [float(s) for s in val.split('s')] if (val := sec['target_fitness']) else None
 
@@ -100,9 +101,9 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.stats['steps'] = 0
         self.stats['wallclock_start'] = time.time() # dummy
         self.report = {}
-        self.report['reference_solution'] = {'patch': None, 'fitness': None, 'diff': None}
-        self.report['best_solution'] = {'patch': None, 'fitness': None, 'diff': None}
-        self.report['best_solutions'] = []
+        self.report['reference_solution'] = {'patch': magpie.core.Patch(), 'fitness': None, 'diff': None}
+        self.report['best_solution'] = {'patch': magpie.core.Patch(), 'fitness': None, 'diff': None}
+        self.report['best_solutions'] = [{'patch': magpie.core.Patch(), 'fitness': None, 'diff': None}]
         self.report['stop'] = None
 
     def hook_reset_batch(self):
@@ -161,7 +162,7 @@ class BasicAlgorithm(AbstractAlgorithm):
         data = self.aux_log_data(patch, run, counter, None, False, False)
         self.aux_log_print(data, run, False, False)
         if run.status != 'SUCCESS':
-            self.exec_manager.diagnose_error(run)
+            self.eval_manager.exec_manager.diagnose_error(run)
 
     def hook_batch_evaluation(self, counter, patch, run, best=False):
         data = self.aux_log_data(patch, run, counter, self.report['reference_solution']['fitness'], False, best)
@@ -299,17 +300,6 @@ class BasicAlgorithm(AbstractAlgorithm):
         self.eval_manager.cache_update(variant.diff, run)
         self.hook_warmup_evaluation('REF', patch, run)
         self.report['reference_solution']['fitness'] = current_fitness
-        solution = self.report['best_solution']
-        if solution['patch']:
-            variant = BasicVariant(self.software, solution['patch'])
-            run = self.eval_manager.evaluate_variant(variant, counter='BEST', force=True)
-            self.hook_warmup_evaluation('BEST', patch, run)
-            if magpie.utils.dominates(run.fitness, current_fitness):
-                self.report['best_solution']['fitness'] = run.fitness
-            else:
-                self.report['best_solution'] = {'patch': patch, 'fitness': current_fitness, 'diff': None}
-        else:
-            self.report['best_solution'] = {'patch': patch, 'fitness': current_fitness, 'diff': None}
 
     @classmethod
     def _aggregate_warmup(cls, warmup_values, strategy):
@@ -351,6 +341,10 @@ class BasicAlgorithm(AbstractAlgorithm):
             if self.stats['steps'] >= self.stop['steps']:
                 self.report['stop'] = 'step budget'
                 return True
+        if self.stop['gens'] is not None:
+            if self.stats['gens'] >= self.stop['gens']:
+                self.report['stop'] = 'gen budget'
+                return True
         if self.stop['fitness'] and self.report['best_solution']['fitness']:
             if magpie.utils.dominates_or_equal(self.report['best_solution']['fitness'], self.stop['fitness']):
                 self.report['stop'] = 'target fitness reached'
@@ -371,4 +365,22 @@ class BasicAlgorithm(AbstractAlgorithm):
     def evaluate_variant(self, variant, counter=None, force=False):
         run = self.eval_manager.evaluate_variant(variant, counter=counter, force=force)
         self.stats['budget'] += getattr(run, 'budget', 0) or 0
+        return run
+
+class BasicSOAlgorithm(BasicAlgorithm):
+    def evaluate_variant(self, variant, counter=None, force=False):
+        run = super().evaluate_variant(variant, counter, force)
+        candidate = {'patch': variant.patch, 'fitness': run.fitness, 'diff': variant.diff}
+        magpie.utils.update_global_best(self.report['best_solution'], candidate)
+        return run
+
+class BasicMOAlgorithm(BasicAlgorithm):
+    def warmup(self):
+        super().warmup()
+        self.report['best_solutions'] = [self.report['best_solution']]
+
+    def evaluate_variant(self, variant, counter=None, force=False):
+        run = super().evaluate_variant(variant, counter, force)
+        candidate = {'patch': variant.patch, 'fitness': run.fitness, 'diff': variant.diff}
+        magpie.utils.update_global_archive(self.report['best_solutions'], candidate)
         return run

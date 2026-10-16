@@ -14,21 +14,25 @@ class PerfTemplatedFitness(TemplatedFitness):
         super().process_run_exec(run_result, exec_result)
         # assume perf stat
         stderr = exec_result.stderr.decode(magpie.settings.output_encoding)
+        run_result.fitness = 0
+        matched = False
         try:
             for line in stderr.splitlines():
                 tmp = line.lower().replace(' ', '')
                 if m := re.search(rf'(\d+\.\d+).*{self.key}', tmp):
-                    run_result.fitness = float(m.group(1))
-                    break
-                if m := re.search(rf'(\d+\.\d+)%?.*{self.key}', tmp):
-                    run_result.fitness = float(m.group(1))
-                    break
-                if m := re.search(rf'(\d+(?:,\d\d\d)*).*{self.key}', tmp):
-                    run_result.fitness = int(m.group(1).replace(',', ''))
-                    break
-            else:
+                    run_result.fitness += float(m.group(1))
+                    matched = True
+                elif m := re.search(rf'(\d+\.\d+)%?.*{self.key}', tmp):
+                    run_result.fitness += float(m.group(1))
+                    matched = True
+                elif m := re.search(rf'(\d+(?:,\d\d\d)*).*{self.key}', tmp):
+                    run_result.fitness += int(m.group(1).replace(',', ''))
+                    matched = True
+            if not matched:
+                run_result.fitness = None
                 run_result.status = 'PARSE_ERROR'
         except (AttributeError, ValueError):
+            run_result.fitness = None
             run_result.status = 'PARSE_ERROR'
 
 magpie.utils.known.fitness.append(PerfTemplatedFitness)

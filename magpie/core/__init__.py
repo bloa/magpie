@@ -7,7 +7,7 @@ from .abstract_model import AbstractModel
 from .abstract_protocol import AbstractProtocol
 from .abstract_software import AbstractSoftware
 from .abstract_variant import AbstractVariant
-from .basic_algorithm import BasicAlgorithm
+from .basic_algorithm import BasicAlgorithm, BasicSOAlgorithm, BasicMOAlgorithm
 from .basic_edit import BasicEdit
 from .basic_evalmanager import BasicEvalManager
 from .basic_execmanager import BasicExecManager

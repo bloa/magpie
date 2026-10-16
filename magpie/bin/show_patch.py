@@ -38,7 +38,7 @@ class ShowPatchProtocol(magpie.core.BasicProtocol):
         if self.keep:
             logger.info('')
             header = magpie.utils.format_header('ARTEFACT', fancy)
-            logger.info('%s\n%s', self.software.work_dir)
+            logger.info('%s\n%s', self.exec_manager.work_dir)
             self.exec_manager.write_variant(self.variant)
         logger.info('')
         header = magpie.utils.format_header('DIFF', fancy)

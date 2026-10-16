@@ -101,6 +101,7 @@ possible_edits =
 warmup = 3
 warmup_strategy = last
 max_steps = 
+max_gens = 
 max_time = 
 target_fitness = 
 cache_maxsize = 100
@@ -109,6 +110,13 @@ batch_instances =
 batch_shuffle = True
 batch_bin_shuffle = False
 batch_sample_size = 1
+
+[search.random]
+min_size = 1
+max_size = 10
+distribution = decay
+decay_prob = 0.2
+linear_bias = -0.8
 
 [search.ls]
 delete_prob = 0.5
@@ -125,6 +133,17 @@ offspring_crossover = 0.5
 offspring_mutation = 0.4
 uniform_rate = 0.5
 batch_reset = True
+
+[search.nsgaii]
+delete_prob = 0.5
+pop_size = 10
+
+[search.moead]
+delete_prob = 0.5
+n_neighbors = 15
+prob_neighbor_mating = 0.7
+refdirs_strategy = uniform
+refdirs_partitions = 12
 
 [search.minify]
 do_cleanup = True

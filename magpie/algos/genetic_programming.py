@@ -6,11 +6,7 @@ import magpie.core
 import magpie.utils
 
 
-class GeneticProgramming(magpie.core.BasicAlgorithm):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Genetic Programming'
-
+class GeneticProgramming(magpie.core.BasicSOAlgorithm):
     def setup(self):
         super().setup()
         sec = self.software.config['search.gp']
@@ -71,14 +67,11 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
             for sol in offsprings:
                 variant = magpie.core.BasicVariant(self.software, sol)
                 run = self.evaluate_variant(variant, counter=self.aux_log_counter())
-                accept = best = False
-                if run.status == 'SUCCESS':
-                    if magpie.utils.dominates(run.fitness, local_best_fitness):
-                        local_best_fitness = run.fitness
-                        accept = True
-                        if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
-                            self.report['best_solution'] = {'patch': sol, 'fitness': run.fitness, 'diff': None}
-                            best = True
+                accept = False
+                if run.status == 'SUCCESS' and magpie.utils.dominates(run.fitness, local_best_fitness):
+                    local_best_fitness = run.fitness
+                    accept = True
+                best = run.fitness == self.report['best_solution']['fitness']
                 self.hook_evaluation(variant, run, accept, best)
                 pop[sol] = run
                 self.stats['steps'] += 1
@@ -130,9 +123,7 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
                         if magpie.utils.dominates(run.fitness, local_best_fitness):
                             local_best_fitness = run.fitness
                             accept = True
-                            if magpie.utils.dominates(run.fitness, self.report['best_solution']['fitness']):
-                                self.report['best_solution'] = {'patch': sol, 'fitness': run.fitness, 'diff': None}
-                                best = True
+                    best = run.fitness == self.report['best_solution']['fitness']
                     self.hook_evaluation(variant, run, accept, best)
                     pop[sol] = run
                     self.stats['steps'] += 1
@@ -171,10 +162,6 @@ class GeneticProgramming(magpie.core.BasicAlgorithm):
 
 
 class GeneticProgrammingConcat(GeneticProgramming):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Genetic Programming (Concat)'
-
     def crossover(self, sol1, sol2):
         c = copy.deepcopy(sol1)
         for edit in sol2.edits:
@@ -185,10 +172,6 @@ magpie.utils.known_algos.append(GeneticProgrammingConcat)
 
 
 class GeneticProgramming1Point(GeneticProgramming):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Genetic Programming (1-point)'
-
     def crossover(self, sol1, sol2):
         c = magpie.core.Patch()
         k1 = random.randint(0, len(sol1.edits))
@@ -203,10 +186,6 @@ magpie.utils.known_algos.append(GeneticProgramming1Point)
 
 
 class GeneticProgramming2Point(GeneticProgramming):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Genetic Programming (2-point)'
-
     def crossover(self, sol1, sol2):
         c = magpie.core.Patch()
         k1 = random.randint(0, len(sol1.edits))
@@ -225,10 +204,6 @@ magpie.utils.known_algos.append(GeneticProgramming2Point)
 
 
 class GeneticProgrammingUniformConcat(GeneticProgramming):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Genetic Programming (uniform+concatenation)'
-
     def setup(self):
         super().setup()
         sec = self.software.config['search.gp']
@@ -254,10 +229,6 @@ magpie.utils.known_algos.append(GeneticProgrammingUniformConcat)
 
 
 class GeneticProgrammingUniformInter(GeneticProgramming):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Genetic Programming (uniform+interleaved)'
-
     def setup(self):
         super().setup()
         sec = self.software.config['search.gp']

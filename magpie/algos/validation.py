@@ -24,11 +24,9 @@ class ValidSearch(LocalSearch):
         # accept
         accept = best = False
         if run.status == 'SUCCESS':
-            solution = self.report['best_solution']
-            best = magpie.utils.dominates(run.fitness, solution['fitness']) or (run.fitness == solution['fitness'] and len(variant.patch.edits) < len(solution['patch'].edits))
-            accept = best or run.fitness == solution['fitness']
-            if best:
-                self.report['best_solution'] = {'patch': variant.patch, 'fitness': run.fitness, 'diff': None}
+            candidate = {'patch': variant.patch, 'fitness': run.fitness, 'diff': variant.diff}
+            accept = magpie.utils.dominates_or_equal(run.fitness, self.report['best_solution']['fitness'])
+            best = magpie.utils.update_global_best(self.report['best_solution'], candidate)
 
         super().hook_evaluation(variant, run, accept, best)
 
@@ -52,10 +50,6 @@ class ValidSearch(LocalSearch):
 
 
 class ValidSingle(ValidSearch):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Validation Single'
-
     def explore(self, current_patch, current_fitness):
         # eval every single patch
         for edit in current_patch.edits:
@@ -71,10 +65,6 @@ magpie.utils.known_algos.append(ValidSingle)
 
 
 class ValidTest(ValidSearch):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Validation Full'
-
     def explore(self, current_patch, current_fitness):
         # full patch only
         variant = magpie.core.BasicVariant(self.software, current_patch)
@@ -88,10 +78,6 @@ magpie.utils.known_algos.append(ValidTest)
 
 
 class ValidMinify(ValidSearch):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Minify Patch'
-
     def setup(self):
         super().setup()
         sec = self.software.config['search.minify']

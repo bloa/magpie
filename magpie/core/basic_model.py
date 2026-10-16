@@ -10,6 +10,7 @@ class BasicModel(AbstractModel):
     def __init__(self, filename, software):
         self.filename = filename
         self.renamed_filename = filename
+        self.config = {}
         self.contents = {}
         self.locations = {}
         self.locations_names = {} # for indirection

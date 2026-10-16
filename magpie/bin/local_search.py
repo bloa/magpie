@@ -6,7 +6,7 @@ import magpie
 class LocalSearchProtocol(magpie.core.SearchProtocol):
     def setup(self):
         super().setup()
-        if not issubclass(self.search.__class__, magpie.algos.LocalSearch):
+        if not (issubclass(self.search.__class__, magpie.algos.LocalSearch) or issubclass(self.search.__class__, magpie.algos.MOLocalSearch)):
             msg = f'Invalid local search algorithm "{self.search.__name__}"'
             raise RuntimeError(msg)
 

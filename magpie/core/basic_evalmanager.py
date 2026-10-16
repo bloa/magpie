@@ -12,7 +12,7 @@ class BasicEvalManager(AbstractEvalManager):
         self.software = software
         self.exec_manager = exec_manager
         self.config = {}
-        self.batch = [''] # single empty instance
+        self.batch = [['']] # single empty instance
         self.report = {}
         self.stats = {}
         self.cache = {}
@@ -213,7 +213,7 @@ class BasicEvalManager(AbstractEvalManager):
                         run_cmd = run_cmd.replace('{PARAMS}', cli)
                     else:
                         run_cmd = f'{run_cmd} {cli}'
-                    exec_result = self.exec_manager.exec_cmd(shlex.split(test_cmd),
+                    exec_result = self.exec_manager.exec_cmd(shlex.split(run_cmd),
                                                              timeout=timeout,
                                                              lengthout=lengthout)
                     run_result.status = exec_result.status

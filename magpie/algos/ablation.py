@@ -7,10 +7,6 @@ from .validation import ValidSearch
 
 
 class AblationAnalysis(ValidSearch):
-    def __init__(self, software, eval_manager):
-        super().__init__(software, eval_manager)
-        self.name = 'Ablation Analysis'
-
     def explore(self, current_patch, current_fitness):
         variant = magpie.core.BasicVariant(self.software, current_patch)
 

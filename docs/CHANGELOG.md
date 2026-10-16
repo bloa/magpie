@@ -6,6 +6,7 @@
 
 - added safety measures for formatting options
 - added support for renaming edits directly from the configuration file
+- added multiobjective algorithms
 
 **Changed**
 
@@ -13,6 +14,7 @@
 - refactored formatting options for better parsing and granularity
 - changed output to uniform between single- and multi-objective
 - refactored evaluation/execution pipeline
+- best variants are now determined implicitly
 
 
 ## [1.2.2] bloa_stable

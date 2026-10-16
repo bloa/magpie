@@ -24,6 +24,9 @@ from .fitness import (
     dominates,
     dominates_or_equal,
     pareto,
+    update_archive,
+    update_global_archive,
+    update_global_best,
 )
 
 # "final" classes only
