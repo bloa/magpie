@@ -4,10 +4,10 @@
 classDiagram
     class AbstractAlgorithm {
         +software : AbstractSoftware
-        +stop : dict~str, any~
-        -create_edit()
-        -evaluate_variant()
+        +eval_manager : AbstractEvalManager
+        -stop : dict~str, any~
         +run()
+        -create_edit()
     }
 
     class AbstractEdit {
@@ -15,6 +15,20 @@ classDiagram
         +target : tuple~str, str, any~
         +apply()
         +auto_create()$
+    }
+
+    class AbstractEvalManager {
+        +software : AbstractSoftware
+        +exec_manager : AbstractExecManager
+        +evaluate_variant()
+    }
+
+    class AbstractExecManager {
+        +software : AbstractSoftware
+        +exec_cmd()
+        +sync_folder()
+        -work_dir : Path
+        +write_variant()
     }
 
     class AbstractFitness {
@@ -36,15 +50,8 @@ classDiagram
 
     class AbstractSoftware {
         -fitness_objectives : list~AbstractFitness~
-        +ingredient_files : list~str~
         +path : Path
-        +noop_variant : AbstractVariant
         +target_files : list~str~
-        -work_dir : Path
-        +evaluate_variant()
-        +exec_cmd()
-        -sync_folder()
-        -write_variant()
     }
 
     class AbstractVariant {
@@ -73,6 +80,8 @@ classDiagram
     }
 
     class SearchProtocol {
+        +eval_manager : AbstractEvalManager
+        +exec_manager : AbstractExecManager
         +search : AbstractAlgorithm
         +software : AbstractSoftware
         +cleanup()
@@ -81,47 +90,54 @@ classDiagram
         +setup()
     }
 
-    %% compositions
-    AbstractSoftware *-- AbstractFitness : fitness_objectives
-    AbstractSoftware *-- AbstractVariant : noop_variant
-    AbstractVariant *-- AbstractModel : models
-    RunResult *-- ExecResult : cache
+    %% inheritance <|--
 
-    %% aggregations
-    Patch o-- AbstractEdit : edits
+    %% compositions *--
+    AbstractSoftware *-- AbstractFitness
+    AbstractVariant *-- AbstractModel
+    Patch *-- AbstractEdit
+    RunResult *-- ExecResult
 
-    %% associations
-    AbstractAlgorithm --> AbstractSoftware : software
-    AbstractVariant --> Patch : patch
-    RunResult --> AbstractVariant : variant
-    SearchProtocol --> AbstractAlgorithm : search
-    SearchProtocol --> AbstractSoftware : software
+    %% aggregations o--
 
-    %% links
+    %% associations -->
+    AbstractVariant --> Patch
+    RunResult --> AbstractVariant
+    SearchProtocol --> AbstractAlgorithm
+    SearchProtocol --> AbstractEvalManager
+    SearchProtocol --> AbstractExecManager
+    SearchProtocol --> AbstractSoftware
 
-    %% dependencies
+    %% links -- / ..
+
+    %% dependencies ..>
     AbstractAlgorithm ..> AbstractEdit : create_edit()
     AbstractAlgorithm ..> AbstractVariant : run()
     AbstractAlgorithm ..> Patch : run()
+    %%AbstractEvalManager ..> AbstractVariant : evaluate_variant()
+    AbstractEvalManager ..> RunResult : evaluate_variant()
+    AbstractExecManager ..> ExecResult : exec_cmd()
+    %%SearchProtocol ..> AbstractAlgorithm : run()
+    AbstractEdit ..> AbstractModel : apply()
     AbstractFitness ..> ExecResult : process_()
-    AbstractSoftware ..> AbstractVariant : evaluate_variant()
-    AbstractSoftware ..> RunResult : exec_cmd()
+
+    %% realization ..|>
 ```
 
 # Search Evaluation Pipeline
 
 ```mermaid
 flowchart
-  Algorithm -->|investigates| Patch
-  Algorithm -->|creates| Edit["Edit(s)"]
+  Edit["Edit(s)"]
+  Model["Model(s)"]
+  ExecResult["ExecResult(s)"]
+  Fitness["Fitness(es)"]
+
   Edit -->|collected into| Patch
   Patch -->|realised into| Variant
-  Edit -.->|modifies| Model["Model(s)"]
-  Model -.->|collected into| Variant
-  Variant -->|evaluated into| RunResult
-  Variant -.->|evaluated by| Software
-  Software -.->|to obtain| ExecResult["ExecResult(s)"]
-  ExecResult -.->|interpreted by| Fitness["Fitness(s)"]
-  Fitness -.->|stored into| RunResult
-  RunResult -->|consumed by| Algorithm
+  Edit -->|mutates| Model
+  Model --->|collected into| Variant
+  Variant -->|once executed| ExecResult
+  ExecResult -->|interpreted by| Fitness
+  Fitness -->|aggregated into| RunResult
 ```
