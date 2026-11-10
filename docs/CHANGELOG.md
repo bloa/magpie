@@ -15,6 +15,7 @@
 - changed output to uniform between single- and multi-objective
 - refactored evaluation/execution pipeline
 - best variants are now determined implicitly
+- improved log filename handling
 
 
 ## [1.2.2] bloa_stable
