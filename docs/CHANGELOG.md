@@ -7,6 +7,7 @@
 - added safety measures for formatting options
 - added support for renaming edits directly from the configuration file
 - added multiobjective algorithms
+- added option to turn STDOUT off during execution
 
 **Changed**
 

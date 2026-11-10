@@ -45,6 +45,7 @@ log_maxlength = {
 }
 allow_very_large_output = False
 
+stdout_output = True
 show_cmd_progress = True
 cmd_progress_maxlength = 70
 
