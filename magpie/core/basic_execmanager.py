@@ -31,50 +31,64 @@ class BasicExecManager(AbstractExecManager):
 
     def setup(self):
         self.reset_timestamp()
-        self.reset_workdir()
-        self.reset_logger()
         self.reset_contents()
 
     def reset(self):
         pass
 
-    def reset_timestamp(self):
+    def reset_timestamp(self, basename=None):
         # ensures a unique timestamp
         self.unix_timestamp = int(time.time())
         with contextlib.suppress(FileExistsError):
             pathlib.Path(magpie.settings.work_dir).mkdir(parents=True)
+        if basename is None:
+            basename = self.software.basename
         while True:
             local_time = time.strftime('%Y%m%d', time.localtime(self.unix_timestamp))
-            self.run_label = f'{self.software.basename}_{local_time}_{self.unix_timestamp}'
-            new_work_dir = self.base_work_path()
+            run_label = f'{basename}_{local_time}_{self.unix_timestamp}'
+            new_work_dir = self.base_work_path(run_label)
             lock_file = f'{new_work_dir}.lock'
             try:
-                fd = os.open(lock_file, os.O_CREAT | os.O_EXCL)
+                fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
                 os.close(fd)
-                try:
-                    new_work_dir.mkdir()
-                    new_work_dir.rmdir()
-                    break
-                except FileExistsError:
-                    pathlib.Path(lock_file).unlink()
             except FileExistsError:
-                pass
-            self.unix_timestamp += 1
+                self.unix_timestamp += 1
+                continue
+            try:
+                new_work_dir.mkdir()
+                self.reset_label(run_label)
+                break
+            except FileExistsError:
+                self.unix_timestamp += 1
+                continue
+            finally:
+                pathlib.Path(lock_file).unlink()
+
+    def reset_label(self, run_label):
+        del self.software.logger
+        self.run_label = run_label
+        self.reset_workdir()
+        self.reset_logger()
 
     def reset_workdir(self):
-        # creates or move current work_dir
         new_work_dir = self.base_work_path()
-        if self.work_dir and self.work_dir.exists():
-            self.work_dir = pathlib.Path(shutil.move(self.work_dir, new_work_dir))
-            if magpie.settings.local_original_copy:
-                self.software.path = self.work_dir / magpie.settings.local_original_name
-        else:
+        if self.work_dir is None:
             self.work_dir = new_work_dir
             if magpie.settings.local_original_copy:
                 new_path = self.work_dir / magpie.settings.local_original_name
                 if self.software.path != new_path:
                     self.software.path = shutil.copytree(self.software.path, new_path)
-        pathlib.Path(f'{new_work_dir}.lock').unlink()
+        elif self.work_dir != new_work_dir:
+            if not self.work_dir.exists():
+                raise RuntimeError
+            if new_work_dir.exists():
+                for item in self.work_dir.iterdir():
+                    shutil.move(str(item), str(new_work_dir / item.name))
+                self.work_dir = new_work_dir
+            else:
+                self.work_dir = pathlib.Path(shutil.move(self.work_dir, new_work_dir))
+            if magpie.settings.local_original_copy:
+                self.software.path = self.work_dir / magpie.settings.local_original_name
 
     def reset_contents(self):
         if not self.software.init_performed:
@@ -142,11 +156,11 @@ class BasicExecManager(AbstractExecManager):
         # save logger
         self.software.logger = logger
 
-    def base_log_path(self):
-        return pathlib.Path(magpie.settings.log_dir).resolve() / self.run_label
+    def base_log_path(self, run_label=None):
+        return pathlib.Path(magpie.settings.log_dir).resolve() / (run_label or self.run_label)
 
-    def base_work_path(self):
-        return pathlib.Path(magpie.settings.work_dir).resolve() / self.run_label
+    def base_work_path(self, run_label=None):
+        return pathlib.Path(magpie.settings.work_dir).resolve() / (run_label or self.run_label)
 
     def variant_work_path(self, variant):
         return self.base_work_path() / self.software.basename # always the same for now
