@@ -50,6 +50,11 @@ class BasicProtocol(AbstractProtocol):
         magpie.settings.default_lengthout = int(float(sec['default_lengthout']))
         magpie.settings.diff_method = sec['diff_method']
         try:
+            magpie.settings.stdout_output = magpie.utils.str_to_bool(sec['stdout_output'])
+        except ValueError as e:
+            msg = '[magpie] stdout_output should be Boolean'
+            raise ScenarioError(msg) from e
+        try:
             magpie.settings.show_cmd_progress = magpie.utils.str_to_bool(sec['show_cmd_progress'])
         except ValueError as e:
             msg = '[magpie] show_cmd_progress should be Boolean'

@@ -130,9 +130,10 @@ class BasicExecManager(AbstractExecManager):
         logger.setLevel(logging.DEBUG)
 
         # add stream handler
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        logger.addHandler(stream_handler)
+        if magpie.settings.stdout_output:
+            stream_handler = logging.StreamHandler()
+            stream_handler.setLevel(logging.INFO)
+            logger.addHandler(stream_handler)
 
         # to remove ANSI color tags in file logs
         def color_stripper(record):
@@ -239,7 +240,7 @@ class BasicExecManager(AbstractExecManager):
         env['MAGPIE_TIMESTAMP'] = str(self.unix_timestamp)
         env['MAGPIE_COUNTER'] = self.env_counter or ''
         env['MAGPIE_PATCH'] = self.env_patch or ''
-        if magpie.settings.show_cmd_progress:
+        if magpie.settings.stdout_output and magpie.settings.show_cmd_progress:
             display_str = '$ ' + ' '.join(cmd)
             display_length = magpie.settings.cmd_progress_maxlength
             tmp = display_str
@@ -258,7 +259,7 @@ class BasicExecManager(AbstractExecManager):
                             _kill_proc_with_children(sprocess)
                             return ExecResult(cmd, 'TIMEOUT', sprocess.returncode, stdout, stderr, end-start, stdout_size+stderr_size)
                         a = select.select([sprocess.stdout, sprocess.stderr], [], [], 1)[0]
-                        if magpie.settings.show_cmd_progress:
+                        if magpie.settings.stdout_output and magpie.settings.show_cmd_progress:
                             display_time = f'({int(end-start)}s ago)'
                             tmp = f'{display_str} {display_time}'
                             if len(tmp) > display_length:
@@ -298,7 +299,7 @@ class BasicExecManager(AbstractExecManager):
         except FileNotFoundError:
             return ExecResult(cmd, 'CLI_ERROR', -1, b'', b'', 0, 0)
         finally:
-            if magpie.settings.show_cmd_progress:
+            if magpie.settings.stdout_output and magpie.settings.show_cmd_progress:
                 print(' '*display_length, end='\r', flush=True)
 
     def clean_work_dir(self):
