@@ -9,6 +9,9 @@
 - added multiobjective algorithms
 - added option to turn STDOUT off during execution
 
+**Fixed**
+- fixed newlines breaking reading patches from strings
+
 **Changed**
 
 - refactored protocols and scenario management

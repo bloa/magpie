@@ -8,13 +8,21 @@ class Patch:
     @staticmethod
     def from_string(s):
         patch = Patch()
-        if s == '':
+        s = s.strip()
+        if not s:
             return patch
         for blob in s.split(' | '):
-            m = re.search(r'^(\w+(?:<.*?>)?)\((.+)\)$', blob)
-            klass = magpie.utils.edit_from_string(m.group(1))
-            args = ast.literal_eval(f'[{m.group(2)}]')
-            patch.edits.append(klass(*args))
+            m = re.fullmatch(r'\s*(\w+(?:<.*?>)?)\((.+)\)\s*', blob)
+            if not m:
+                msg = f'Invalid patch edit: {blob!r}'
+                raise ValueError(msg)
+            try:
+                klass = magpie.utils.edit_from_string(m.group(1))
+                args = ast.literal_eval(f'[{m.group(2)}]')
+                patch.edits.append(klass(*args))
+            except (ValueError, SyntaxError, TypeError) as e:
+                msg = f'Failed to parse patch edit {blob!r}: {e}'
+                raise ValueError(msg) from e
         return patch
 
     def __init__(self, edits=None):
