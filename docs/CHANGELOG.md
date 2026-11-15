@@ -20,7 +20,7 @@
 - refactored evaluation/execution pipeline
 - best variants are now determined implicitly
 - improved log filename handling
-
+- improved debug logs (machine details, ENV)
 
 ## [1.2.2] bloa_stable
 

@@ -1,6 +1,9 @@
 import configparser
 import io
+import os
 import pathlib
+import platform
+import socket
 
 import magpie
 
@@ -32,6 +35,69 @@ class SearchProtocol(BasicProtocol):
         # control ANSI characters in output
         fancy = magpie.settings.color_output
         logger = self.software.logger
+
+        # log machine characteristics just in case
+        with io.StringIO() as ss:
+            ss.write(f'Hostname: {platform.node()}\n')
+            ss.write(f'OS: {platform.platform()}\n')
+            cpu_model = platform.processor() or 'unknown'
+            logical_cores = os.cpu_count() or 'unknown'
+            physical_cores = 'unknown'
+            if os.path.exists('/proc/cpuinfo'):
+                with open('/proc/cpuinfo') as f:
+                    cpuinfo = f.read()
+                entries = cpuinfo.strip().split('\n\n')
+                cpu = {}
+                for line in entries[0].splitlines():
+                    if ':' in line:
+                        key, value = line.split(':', 1)
+                        cpu[key.strip()] = value.strip()
+                cpu_model = cpu.get('model name', cpu_model)
+                cores = set()
+                for block in entries:
+                    entry = {}
+                    for line in block.splitlines():
+                        if ':' in line:
+                            key, value = line.split(':', 1)
+                            entry[key.strip()] = value.strip()
+                    if 'core id' in entry:
+                        package = entry.get('physical id', '0')
+                        cores.add((package, entry['core id']))
+                physical_cores = len(cores) or 'unknown'
+                logical_cores = len(entries) or logical_cores
+            ss.write(f'CPU: {cpu_model}\n')
+            ss.write(f'Physical cores: {physical_cores}\n')
+            ss.write(f'Logical cores: {logical_cores}\n')
+            mem_total = 'unknown'
+            mem_free = 'unknown'
+            mem_available = 'unknown'
+            if os.path.exists('/proc/meminfo'):
+                memory = {}
+                with open('/proc/meminfo') as f:
+                    for line in f:
+                        if ':' in line:
+                            key, value = line.split(':', 1)
+                            memory[key.strip()] = value.strip()
+                mem_total = memory.get("MemTotal", mem_total)
+                mem_free = memory.get("MemFree", mem_free)
+                mem_available = memory.get("MemAvailable", mem_available)
+            ss.write(f'RAM total: {mem_total}\n')
+            ss.write(f'RAM free: {mem_free}\n')
+            ss.write(f'RAM available: {mem_available}\n')
+            ss.write(f'Python: {platform.python_implementation()} {platform.python_version()}\n')
+            ss.seek(0)
+            header = magpie.utils.format_header('MACHINE', fancy)
+            logger.debug('%s\n%s', header, ss.read())
+
+        # log ENV just in case
+        with io.StringIO() as ss:
+            for key, value in sorted(os.environ.items()):
+                if any(s in key.upper() for s in ('PASSWORD', 'SECRET', 'TOKEN', 'KEY')):
+                    value = '********'
+                ss.write(f'{key}={value}\n')
+            ss.seek(0)
+            header = magpie.utils.format_header('ENV', fancy)
+            logger.debug('%s\n%s', header, ss.read())
 
         # log config just in case
         with io.StringIO() as ss:
