@@ -4,8 +4,8 @@ import collections
 Token = collections.namedtuple('Token', ['type', 'value'])
 
 KEYWORDS = {'and', 'or', 'xor', 'not', 'if', 'iif', 'in'}
-MULTI_CHAR_OPS = {'==', '!=', '<=', '>=', '**'}
-SINGLE_CHAR_OPS = {'+', '-', '*', '/', '<', '>', '!', '='}
+MULTI_CHAR_OPS = {'==', '!=', '<=', '>=', '//', '**'}
+SINGLE_CHAR_OPS = {'+', '-', '*', '/', '%', '<', '>', '!', '='}
 IDENTIFIERS_CHARS = {'_', '$', '@'}
 IDENTIFIERS_CHARS_NOLEAD = {'-'}
 

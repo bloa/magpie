@@ -8,6 +8,7 @@
 - added support for renaming edits directly from the configuration file
 - added multiobjective algorithms
 - added option to turn STDOUT off during execution
+- added support for modulo and integer division
 
 **Fixed**
 - fixed newlines breaking reading patches from strings

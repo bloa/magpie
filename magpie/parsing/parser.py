@@ -86,6 +86,7 @@ class Parser:
         while token := self.accept(
                     ('OP', '+'),
                     ('OP', '-'),
+                    ('OP', '%'),
         ):
             expr_left = BinaryOp(token.value, expr_left, self.parse_high())
         return expr_left
@@ -98,6 +99,7 @@ class Parser:
                 ('OP', '*'),
                 ('OP', '/'),
                 ('OP', '**'),
+                ('OP', '//'),
                 ('VAR', None),
         ):
             if token.type == 'OP':

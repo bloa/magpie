@@ -136,6 +136,10 @@ class BinaryOp(Expr):
                 return lval > rval
             case '/':
                 return lval / rval
+            case '//':
+                return lval // rval
+            case '%':
+                return lval % rval
             case '==':
                 return lval == rval
             case '!=':
