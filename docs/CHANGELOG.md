@@ -11,7 +11,9 @@
 - added support for modulo and integer division
 
 **Fixed**
+
 - fixed newlines breaking reading patches from strings
+- fixed some read-only behaviour when syncing work directory
 
 **Changed**
 

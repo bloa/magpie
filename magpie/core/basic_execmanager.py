@@ -178,6 +178,16 @@ class BasicExecManager(AbstractExecManager):
                 variant.models[filename].write_to_file()
 
     def sync_folder(self, target, original):
+        def remove_entry(path):
+            if path.is_dir() and not path.is_symlink():
+                shutil.rmtree(path, onerror=remove_readonly)
+            else:
+                remove_readonly(os.unlink, path, None)
+
+        def remove_readonly(func, path, exc_info):
+            os.chmod(path, 0o700)
+            func(path)
+
         try:
             contents_target = os.listdir(target)
         except FileNotFoundError:
@@ -189,18 +199,22 @@ class BasicExecManager(AbstractExecManager):
             if target_entry.is_dir():
                 if entry not in contents_original:
                     # new directory
-                    shutil.rmtree(target_entry)
+                    remove_entry(target_entry)
                 # else: common directory
             elif entry not in contents_original:
                 # new file
-                target_entry.unlink()
+                remove_entry(target_entry)
             else:
                 original_entry = original / entry
-                if original_entry.stat().st_mtime < target_entry.stat().st_mtime:
+                if (original_entry.stat().st_mtime != target_entry.stat().st_mtime or
+                    original_entry.stat().st_size != target_entry.stat().st_size):
                     # modified file
-                    shutil.copyfile(original_entry, target_entry)
-                    shutil.copystat(original_entry, target_entry)
-            # else: unmodified file
+                    try:
+                        shutil.copy2(original_entry, target_entry, follow_symlinks=False)
+                    except PermissionError:
+                        remove_entry(target_entry)
+                        shutil.copy2(original_entry, target_entry, follow_symlinks=False)
+                # else: unmodified file
         for entry in contents_original:
             target_entry = target / entry
             original_entry = original / entry
@@ -213,7 +227,7 @@ class BasicExecManager(AbstractExecManager):
                     shutil.copytree(original_entry, target_entry)
             elif entry not in contents_target:
                 # deleted file
-                shutil.copyfile(original_entry, target_entry)
+                shutil.copy2(original_entry, target_entry, follow_symlinks=False)
             # else: appears in both (already handled)
 
     @contextlib.contextmanager
